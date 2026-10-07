@@ -34,7 +34,6 @@ export default function HomePage() {
   };
 
   const loadUsers = useCallback(async () => {
-    setLoading(true);
     try {
       if (isConfigured) {
         const { data, error } = await supabase
@@ -44,8 +43,7 @@ export default function HomePage() {
 
         if (error) {
           console.error('Supabase fetch error:', error);
-          // If table not found or credentials wrong, load from localStorage or demo
-          const saved = localStorage.getItem('ce_demo_users');
+          const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
           setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
         } else if (data && data.length > 0) {
           setUsers(data as User[]);
@@ -53,21 +51,34 @@ export default function HomePage() {
           setUsers([]);
         }
       } else {
-        // Fallback local storage / demo data
-        const saved = localStorage.getItem('ce_demo_users');
+        const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
         setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
       }
     } catch (err) {
       console.error('Failed to load users:', err);
-      const saved = localStorage.getItem('ce_demo_users');
+      const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
       setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
     } finally {
       setLoading(false);
     }
   }, []);
 
+  const handleRefresh = useCallback(() => {
+    setLoading(true);
+    void loadUsers();
+  }, [loadUsers]);
+
   useEffect(() => {
-    loadUsers();
+    let ignore = false;
+    const fetchInitialData = async () => {
+      if (!ignore) {
+        await loadUsers();
+      }
+    };
+    void fetchInitialData();
+    return () => {
+      ignore = true;
+    };
   }, [loadUsers]);
 
   // Handle Save (Create or Update)
@@ -261,7 +272,7 @@ export default function HomePage() {
             <UserTable
               users={users}
               loading={loading}
-              onRefresh={loadUsers}
+              onRefresh={handleRefresh}
               onAddUser={handleOpenAdd}
               onEditUser={handleOpenEdit}
               onDeleteUser={handleOpenDelete}

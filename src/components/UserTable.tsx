@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Filter, Plus, Edit2, Trash2, Eye, EyeOff, Check, X, Shield, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { User, UserRole } from '@/types/database';
 
 interface UserTableProps {

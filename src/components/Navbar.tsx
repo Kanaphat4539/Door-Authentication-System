@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { Database, ShieldCheck, Wifi, BookOpen, AlertCircle } from 'lucide-react';
+import { Database, Wifi, BookOpen, AlertCircle } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: 'users' | 'radius' | 'setup';

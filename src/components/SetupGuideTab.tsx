@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { BookOpen, Check, Copy, ExternalLink, Terminal, GitBranch, Layers, ShieldCheck } from 'lucide-react';
+import { BookOpen, Check, Copy, GitBranch } from 'lucide-react';
 
 export default function SetupGuideTab() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);

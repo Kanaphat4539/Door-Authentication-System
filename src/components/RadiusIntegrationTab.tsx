@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Wifi, Copy, Check, Server, Shield, ExternalLink, Code2 } from 'lucide-react';
+import { Wifi, Copy, Check, Server, Shield, Code2 } from 'lucide-react';
 import { User } from '@/types/database';
 
 interface RadiusIntegrationTabProps {
