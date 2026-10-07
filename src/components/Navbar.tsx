@@ -1,15 +1,21 @@
 'use client';
 
 import React from 'react';
-import { Database, Wifi, BookOpen, AlertCircle } from 'lucide-react';
+import { Database, Wifi, BookOpen, AlertCircle, Activity } from 'lucide-react';
 
 interface NavbarProps {
   activeTab: 'users' | 'radius' | 'setup';
   setActiveTab: (tab: 'users' | 'radius' | 'setup') => void;
   isSupabaseConnected: boolean;
+  onOpenHealthCheck: () => void;
 }
 
-export default function Navbar({ activeTab, setActiveTab, isSupabaseConnected }: NavbarProps) {
+export default function Navbar({
+  activeTab,
+  setActiveTab,
+  isSupabaseConnected,
+  onOpenHealthCheck,
+}: NavbarProps) {
   return (
     <header className="border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-md sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,20 +40,32 @@ export default function Navbar({ activeTab, setActiveTab, isSupabaseConnected }:
           </div>
 
           <div className="flex items-center gap-2 sm:gap-4">
-            {/* Status Badge */}
-            <div className="flex items-center">
+            {/* Clickable Status Badge & Health Checker */}
+            <button
+              onClick={onOpenHealthCheck}
+              className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer shadow-xs ${
+                isSupabaseConnected
+                  ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                  : 'bg-amber-50 hover:bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+              }`}
+              title="คลิกเพื่อตรวจสอบสถานะการเชื่อมต่อ Database"
+            >
               {isSupabaseConnected ? (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="hidden md:inline">Connected to</span> Supabase DB
-                </div>
+                  <span className="font-semibold">Supabase DB</span>
+                  <Activity className="w-3.5 h-3.5 ml-0.5 text-emerald-600" />
+                </>
               ) : (
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-300 dark:border-amber-800" title="Add NEXT_PUBLIC_SUPABASE_URL and KEY in Vercel to connect live database">
+                <>
                   <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                  <span>Preview / Demo Mode</span>
-                </div>
+                  <span className="font-semibold">Demo Mode</span>
+                  <span className="text-[10px] bg-amber-200/80 dark:bg-amber-900 px-1.5 py-0.2 rounded text-amber-900 dark:text-amber-200 ml-0.5">
+                    ตรวจเช็ค
+                  </span>
+                </>
               )}
-            </div>
+            </button>
 
             {/* Navigation Tabs */}
             <nav className="flex items-center gap-1 bg-zinc-100 dark:bg-zinc-800/80 p-1 rounded-lg">
