@@ -1,29 +1,31 @@
-# Auth API design
+# การออกแบบ Auth API
 
-Build the user's `auth-api/` layout with FastAPI. Accept JSON credentials at
-`POST /auth/login`, authenticate via RADIUS PAP, and issue a 15-minute HS256 JWT.
-`GET /auth/me` returns the authenticated username from a verified token. No
-database, roles, door permissions, refresh token, or logout is included yet.
+สร้างระบบด้วย FastAPI ตามโครงสร้าง `auth-api/` ที่ผู้ใช้กำหนด รับข้อมูลชื่อผู้ใช้และรหัสผ่านในรูปแบบ JSON ที่
+`POST /auth/login` ยืนยันตัวตนผ่าน RADIUS แบบ PAP และออก JWT ที่ลงลายเซ็นด้วย HS256 มีอายุ 15 นาที
+`GET /auth/me` คืนชื่อผู้ใช้จาก token ที่ตรวจสอบแล้ว ในขั้นนี้ยังไม่รวม
+ฐานข้อมูล, role, สิทธิ์เปิดประตู, refresh token หรือการออกจากระบบ (logout)
 
-RADIUS host and shared secret remain empty in `.env.example`. The application
-starts without them; login returns 503 until configured. JWT signing secret is
-also supplied locally, never committed. A missing secret prevents token issuance.
-Development mock mode requires explicit opt-in and explicitly configured mock
-credentials; it is never a fallback after a RADIUS error.
+เว้นค่า host และ shared secret ของ RADIUS ใน `.env.example` ไว้ แอปพลิเคชัน
+เริ่มทำงานได้แม้ยังไม่มีค่าเหล่านี้ แต่ Login จะตอบ `503` จนกว่าจะตั้งค่าครบ ค่าความลับสำหรับลงลายเซ็น JWT
+ต้องกำหนดบนเครื่องเช่นกัน และห้าม commit ลง repository หากไม่มีค่านี้ ระบบจะไม่ออก token
+โหมดจำลอง (mock) สำหรับพัฒนาต้องเปิดใช้เองและกำหนดชื่อผู้ใช้กับรหัสผ่านสำหรับทดสอบอย่างชัดเจน
+ระบบจะไม่สลับไปใช้ mock เมื่อ RADIUS เกิดข้อผิดพลาด
 
-The RADIUS adapter uses pyrad packets and Python connected UDP sockets (the pyrad
-client uses select.poll, unavailable on Windows), UDP auth port 1812, bounded
-socket timeout/retries, a minimal dictionary, and Message-Authenticator. It supports PAP only; the RADIUS
-team must confirm PAP, register this API host as a client, and provide the host,
-port, shared secret and test account. Challenge/MFA is unsupported and fails
-closed. A rejection is 401; unavailable/unconfigured backend is 503. HTTP error
-responses never reflect credential values.
+ส่วนเชื่อมต่อ RADIUS ใช้ pyrad สร้างแพ็กเก็ต และใช้ UDP socket ของ Python ที่กำหนดปลายทางด้วย `connect`
+เพราะ client ของ pyrad ใช้ `select.poll` ซึ่งไม่มีบน Windows ใช้พอร์ต UDP สำหรับยืนยันตัวตน `1812`
+กำหนดเวลารอของ socket และจำนวนครั้งที่ส่งคำขอ ใช้ dictionary เฉพาะ attribute ที่จำเป็น
+และใช้ Message-Authenticator รองรับ PAP เท่านั้น ทีม RADIUS
+ต้องยืนยันว่ารองรับ PAP ลงทะเบียนเครื่อง API เป็น client และส่งค่า host,
+port, shared secret รวมถึงบัญชีทดสอบ ระบบยังไม่รองรับ challenge/MFA และจะปฏิเสธการยืนยันตัวตนเมื่อพบกรณีดังกล่าว
+หาก RADIUS ปฏิเสธข้อมูลเข้าสู่ระบบ ให้ตอบ `401`; หากบริการยืนยันตัวตนไม่พร้อมหรือยังไม่ได้ตั้งค่า ให้ตอบ `503`
+ข้อความข้อผิดพลาด HTTP ต้องไม่ส่งค่าชื่อผู้ใช้หรือรหัสผ่านที่รับมากลับไป
 
-JWT validation fixes HS256 and requires subject, issued-at, expiration, issuer
-and audience. Bearer errors are 401. Secrets use Pydantic SecretStr. Validation
-errors omit submitted credential values. No CORS origins are enabled by default.
-`GET /health` indicates API liveness only, not RADIUS readiness.
+การตรวจ JWT กำหนดให้ใช้ HS256 เท่านั้น และต้องมี subject (`sub`), เวลาที่ออก token (`iat`),
+เวลาหมดอายุ (`exp`), ผู้ออก token (`iss`) และผู้รับที่กำหนด (`aud`)
+ข้อผิดพลาดของ Bearer token ให้ตอบ `401` ค่าความลับใช้ชนิดข้อมูล `SecretStr` ของ Pydantic
+ข้อผิดพลาดจากการตรวจรูปแบบข้อมูลต้องไม่แสดงค่าชื่อผู้ใช้หรือรหัสผ่านที่ส่งมา โดยค่าเริ่มต้นยังไม่อนุญาต CORS origin ใด
+`GET /health` บอกเพียงว่า API ทำงานอยู่ ไม่ได้ยืนยันว่า RADIUS พร้อมใช้งาน
 
-Tests exercise JSON login, the real mock adapter, token rejection, missing config,
-and the real RADIUS adapter with only network transport replaced. Live RADIUS
-integration remains unverified until the team's server is available.
+การทดสอบครอบคลุม Login ด้วย JSON, ส่วนเชื่อมต่อ mock ที่แอปใช้งานจริง, การปฏิเสธ token,
+กรณีค่าตั้งค่าไม่ครบ และส่วนเชื่อมต่อ RADIUS จริงโดยจำลองเฉพาะการรับส่งข้อมูลผ่านเครือข่าย
+การเชื่อมต่อกับ RADIUS server จริงยังไม่ได้ตรวจสอบ จนกว่า server ของทีมจะพร้อมใช้งาน
