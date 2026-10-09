@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือการเข้าใช้งานเซิร์ฟเวอร์เสมือน (Virtual Machine Handover Guide)</title>
+  <style>
+    :root {
+      --primary: #2563eb;
+      --primary-dark: #1d4ed8;
+      --bg-page: #f8fafc;
+      --bg-card: #ffffff;
+      --text-main: #0f172a;
+      --text-muted: #475569;
+      --border: #e2e8f0;
+      --danger: #dc2626;
+      --danger-bg: #fef2f2;
+      --danger-border: #f87171;
+      --terminal-bg: #1e1e1e;
+      --terminal-text: #d4d4d4;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      line-height: 1.6;
+      background-color: var(--bg-page);
+      color: var(--text-main);
+      padding: 2rem 1rem;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: var(--bg-card);
+      padding: 2.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.08);
+      border: 1px solid var(--border);
+    }
+
+    h1 {
+      font-size: 1.85rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: #0f172a;
+    }
+
+    .subtitle {
+      font-size: 1rem;
+      color: var(--text-muted);
+      margin-bottom: 1.75rem;
+    }
+
+    hr {
+      border: none;
+      height: 1px;
+      background-color: var(--border);
+      margin: 2rem 0;
+    }
+
+    /* Warning Banner */
+    .prerequisite-banner {
+      background-color: var(--danger-bg);
+      border: 3px solid var(--danger-border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      text-align: center;
+    }
+
+    .prerequisite-banner h2 {
+      font-size: 1.4rem;
+      color: var(--danger);
+      margin-bottom: 0.5rem;
+    }
+
+    .wifi-highlight {
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: #b91c1c;
+      background: #fee2e2;
+      display: inline-block;
+      padding: 0.35rem 1rem;
+      border-radius: 8px;
+      margin: 0.5rem 0;
+      border: 2px dashed #ef4444;
+    }
+
+    .prerequisite-banner p {
+      font-size: 0.95rem;
+      color: #7f1d1d;
+      margin-top: 0.75rem;
+      text-align: left;
+      line-height: 1.5;
+    }
+
+    h2.section-title {
+      font-size: 1.35rem;
+      color: #1e293b;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    h3.step-title {
+      font-size: 1.1rem;
+      color: #1e293b;
+      margin: 1.5rem 0 0.5rem 0;
+      font-weight: 600;
+    }
+
+    /* Table */
+    .table-responsive {
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    th {
+      background-color: #f1f5f9;
+      color: #334155;
+      font-weight: 600;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+      text-align: center;
+    }
+
+    td {
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--border);
+    }
+
+    tr:nth-child(even) {
+      background-color: #f8fafc;
+    }
+
+    td.center {
+      text-align: center;
+    }
+
+    /* Code & Terminal */
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      background-color: #f1f5f9;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      font-size: 0.88rem;
+      color: #0f172a;
+    }
+
+    .terminal {
+      background-color: var(--terminal-bg);
+      border-radius: 8px;
+      margin: 0.75rem 0;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    .terminal-header {
+      background-color: #2d2d2d;
+      padding: 0.4rem 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .terminal-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .dot-red { background: #ff5f56; }
+    .dot-yellow { background: #ffbd2e; }
+    .dot-green { background: #27c93f; }
+
+    .terminal-body {
+      padding: 1rem;
+      color: var(--terminal-text);
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.5;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      height: 15px;
+      background-color: #ffffff;
+      vertical-align: middle;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+
+    ul, ol {
+      margin-left: 1.5rem;
+      margin-bottom: 0.75rem;
+    }
+
+    li {
+      margin-bottom: 0.35rem;
+    }
+
+    .callout-box {
+      background-color: #fffbeb;
+      border-left: 4px solid #f59e0b;
+      padding: 0.85rem 1rem;
+      border-radius: 4px;
+      margin: 0.75rem 0;
+      font-size: 0.92rem;
+      color: #92400e;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>คู่มือการเข้าใช้งานเซิร์ฟเวอร์เสมือน (Virtual Machine Handover Guide)</h1>
+    <p class="subtitle">เอกสารส่งมอบและคำแนะนำการเข้าใช้งาน Virtual Machine (VM) ผ่านระบบ Secure Shell (SSH) สำหรับผู้พัฒนาทั้ง 5 กลุ่ม</p>
+
+    <!-- Prerequisite Banner -->
+    <div class="prerequisite-banner">
+      <h2>⚠️ ข้อกำหนดสำคัญที่สุดก่อนเริ่มเชื่อมต่อ (PREREQUISITE)</h2>
+      <div style="font-size: 1.2rem; font-weight: 700; color: #b91c1c; margin-top: 0.5rem;">
+        🚨 ต้องเชื่อมต่อและ Login Wi-Fi:
+      </div>
+      <div class="wifi-highlight">
+        👉 KMITL-WiFi หรือ CEDC-WiFi เท่านั้น! 👈
+      </div>
+      <p>
+        <strong>คำเตือนสำคัญมาก:</strong> เนื่องจากเครื่อง Server ทำงานอยู่บนเครือข่ายภายในของสถาบัน (วง IP <code>172.16.x.x</code>)<br>
+        <strong>หากใช้ Hotspot มือถือ (4G/5G), เน็ตบ้าน หรือ Wi-Fi อื่น จะไม่สามารถเชื่อมต่อไปยัง IP 172.16.10.200 ได้เด็ดขาด</strong><br>
+        ก่อนเริ่มทำสเต็ปถัดไป กรุณาเปิดเว็บบราวเซอร์เพื่อยืนยันว่าได้ Login เข้าใช้งาน <strong>KMITL-WiFi</strong> หรือ <strong>CEDC-WiFi</strong> จนใช้อินเทอร์เน็ตได้เรียบร้อยแล้ว
+      </p>
+    </div>
+
+    <hr>
+
+    <!-- Section 1 -->
+    <h2 class="section-title">1. ข้อมูลการเชื่อมต่อแยกตามกลุ่ม (Connection Details)</h2>
+    <ul>
+      <li><strong>รหัสผ่านเริ่มต้น (Default Password):</strong> <code>admince04</code> (ใช้รหัสเดียวกันทุกเครื่อง)</li>
+    </ul>
+
+    <div class="table-responsive">
+      <table>
+        <thead>
+          <tr>
+            <th>กลุ่มที่</th>
+            <th>ชื่อเซิร์ฟเวอร์</th>
+            <th>Private IP (วงใน)</th>
+            <th>SSH Port</th>
+            <th>คำสั่งเข้าใช้งานผ่าน SSH</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="center"><strong>1</strong></td>
+            <td><strong>Radius-Ser</strong></td>
+            <td><code>192.168.100.101</code></td>
+            <td class="center"><code>2201</code></td>
+            <td><code>ssh root@172.16.10.200 -p 2201</code></td>
+          </tr>
+          <tr>
+            <td class="center"><strong>2</strong></td>
+            <td><strong>Database-Ser</strong></td>
+            <td><code>192.168.100.102</code></td>
+            <td class="center"><code>2202</code></td>
+            <td><code>ssh root@172.16.10.200 -p 2202</code></td>
+          </tr>
+          <tr>
+            <td class="center"><strong>3</strong></td>
+            <td><strong>API-Ser</strong></td>
+            <td><code>192.168.100.103</code></td>
+            <td class="center"><code>2203</code></td>
+            <td><code>ssh root@172.16.10.200 -p 2203</code></td>
+          </tr>
+          <tr>
+            <td class="center"><strong>4</strong></td>
+            <td><strong>Web-App</strong></td>
+            <td><code>192.168.100.104</code></td>
+            <td class="center"><code>2204</code></td>
+            <td><code>ssh root@172.16.10.200 -p 2204</code></td>
+          </tr>
+          <tr>
+            <td class="center"><strong>5</strong></td>
+            <td><strong>IOT-Ser</strong></td>
+            <td><code>192.168.100.106</code></td>
+            <td class="center"><code>2206</code></td>
+            <td><code>ssh root@172.16.10.200 -p 2206</code></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <hr>
+
+    <!-- Section 2 -->
+    <h2 class="section-title">2. ขั้นตอนการเข้าใช้งานอย่างละเอียด (Step-by-Step Guide สำหรับมือใหม่)</h2>
+    <p>การเชื่อมต่อผ่าน SSH คือการเปิดหน้าต่าง Terminal สั่งการคอมพิวเตอร์ระยะไกลโดยตรง โดยมีขั้นตอนและหน้าจอที่ต้องพบเจอดังนี้:</p>
+
+    <h3 class="step-title">สเต็ปที่ 1: เปิดโปรแกรม Command Line บนเครื่องคอมพิวเตอร์ของคุณ</h3>
+    <ul>
+      <li><strong>สำหรับ Windows:</strong> กดปุ่ม <code>Windows + S</code> ค้นหาคำว่า <code>Terminal</code>, <code>PowerShell</code> หรือ <code>Command Prompt</code> (CMD) แล้วกดเปิด</li>
+      <li><strong>สำหรับ macOS:</strong> กดปุ่ม <code>Command + Spacebar</code> พิมพ์ค้นหา <code>Terminal</code> แล้วกด Enter</li>
+      <li><strong>สำหรับ Linux:</strong> กดคีย์ลัด <code>Ctrl + Alt + T</code></li>
+    </ul>
+
+    <h3 class="step-title">สเต็ปที่ 2: พิมพ์คำสั่ง SSH ประจำกลุ่มตนเอง</h3>
+    <p>คัดลอกคำสั่ง SSH จากตารางในข้อ 1 มาวางในหน้าต่าง Terminal ของคุณ (ตัวอย่างนี้จำลองจากกลุ่ม 4: <strong>Web-App</strong>)</p>
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-dot dot-red"></span>
+        <span class="terminal-dot dot-yellow"></span>
+        <span class="terminal-dot dot-green"></span>
+      </div>
+      <div class="terminal-body">ssh root@172.16.10.200 -p 2204</div>
+    </div>
+    <p>จากนั้นกดปุ่ม <strong><code>Enter</code></strong></p>
+
+    <h3 class="step-title">สเต็ปที่ 3: ตอบรับการยืนยัน Fingerprint (ถามเฉพาะการเชื่อมต่อครั้งแรก)</h3>
+    <p>หากเพิ่งเคยเชื่อมต่อไปยังเซิร์ฟเวอร์นี้เป็นครั้งแรก หน้าจอจะขึ้นข้อความเตือนความปลอดภัยดังนี้:</p>
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-dot dot-red"></span>
+        <span class="terminal-dot dot-yellow"></span>
+        <span class="terminal-dot dot-green"></span>
+      </div>
+      <div class="terminal-body">The authenticity of host '[172.16.10.200]:2204' can't be established.
+ED25519 key fingerprint is SHA256:7uV/xY8aB9zK0L1mN2oP3qR4sT5uV6wX7yZ8aB9c.
+This key is not known by any other names.
+Are you sure you want to continue connecting (yes/no/[fingerprint])? <span class="cursor"></span></div>
+    </div>
+    <ul>
+      <li><strong>สิ่งที่ต้องทำ:</strong> ให้พิมพ์คำว่า <strong><code>yes</code></strong> (ตัวพิมพ์เล็กทั้งหมด) แล้วกดปุ่ม <strong><code>Enter</code></strong></li>
+      <li><em>(ข้อความนี้จะถามเพียงครั้งเดียวในชีวิต ต่อไปเครื่องจะจำไว้และไม่ถามอีก)</em></li>
+    </ul>
+
+    <h3 class="step-title">สเต็ปที่ 4: หน้าจอตอนระบบถามรหัสผ่าน (Password Prompt)</h3>
+    <p>เมื่อกดยืนยันแล้ว ระบบจะขึ้นบรรทัดถามรหัสผ่านดังนี้:</p>
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-dot dot-red"></span>
+        <span class="terminal-dot dot-yellow"></span>
+        <span class="terminal-dot dot-green"></span>
+      </div>
+      <div class="terminal-body">Warning: Permanently added '[172.16.10.200]:2204' (ED25519) to the list of known hosts.
+root@172.16.10.200's password: <span class="cursor"></span></div>
+    </div>
+    <ul>
+      <li><strong>สิ่งที่ต้องทำ:</strong> ให้พิมพ์รหัสผ่าน <strong><code>admince04</code></strong> แล้วกดปุ่ม <strong><code>Enter</code></strong></li>
+    </ul>
+
+    <div class="callout-box">
+      <strong>⚠️ ข้อควรระวังสำคัญที่สุด (จุดที่มือใหม่เข้าใจผิดบ่อย):</strong>
+      <ul style="margin-top: 0.4rem; margin-bottom: 0;">
+        <li>ขณะที่คุณกำลังกดแป้นพิมพ์คำว่า <code>admince04</code> <strong>หน้าจอจะนิ่งสนิท ไม่ขยับเคอร์เซอร์ และไม่มีจุดไข่ปลาหรือเครื่องหมายดอกจัน (*) ขึ้นมาเด็ดขาด</strong></li>
+        <li><strong>แป้นพิมพ์ไม่ได้ค้าง!</strong> นี่คือระบบรักษาความปลอดภัยปกติของ Linux เพื่อป้องกันคนอื่นแอบมองความยาวของรหัสผ่าน</li>
+        <li>ขอให้มั่นใจแล้วพิมพ์ตัวอักษรให้ครบ <code>admince04</code> จากนั้นกดปุ่ม <strong><code>Enter</code></strong> ได้ทันที</li>
+      </ul>
+    </div>
+
+    <h3 class="step-title">สเต็ปที่ 5: หน้าจอเมื่อล็อกอินสำเร็จ (Success Screen)</h3>
+    <p>หากรหัสผ่านถูกต้อง หน้าจอจะแสดงข้อความต้อนรับของระบบปฏิบัติการ และปิดท้ายด้วย Command Prompt พร้อมรับคำสั่งดังนี้:</p>
+    <div class="terminal">
+      <div class="terminal-header">
+        <span class="terminal-dot dot-red"></span>
+        <span class="terminal-dot dot-yellow"></span>
+        <span class="terminal-dot dot-green"></span>
+      </div>
+      <div class="terminal-body">Linux Web-App 6.1.0-28-amd64 #1 SMP PREEMPT_DYNAMIC Debian 6.1.119-1 (2024-11-22) x86_64
+
+The programs included with the Debian GNU/Linux system are free software;
+the exact distribution terms for each program are described in the
+individual files in /usr/share/doc/*/copyright.
+
+Debian GNU/Linux comes with ABSOLUTELY NO WARRANTY, to the extent
+permitted by applicable law.
+Last login: Wed Oct  7 16:30:12 2026 from 172.16.10.50
+root@Web-App:~# <span class="cursor"></span></div>
+    </div>
+
+    <hr>
+
+    <!-- Inter-VM Networking -->
+    <h2 class="section-title">3. การสื่อสารระหว่างเซิร์ฟเวอร์ (Inter-VM Networking)</h2>
+    <ul>
+      <li>
+        <strong>การเรียกใช้งานข้ามเซิร์ฟเวอร์ระหว่างกลุ่ม:</strong> ให้ใช้ <strong>Private IP (วงใน)</strong> คุยกันตรงๆ ผ่านพอร์ตมาตรฐานของแต่ละบริการได้ทันที โดยไม่ต้องผ่านพอร์ต Forwarding ภายนอก เช่น:
+        <ul style="margin-top: 0.3rem;">
+          <li><strong>Web-App</strong> หรือ <strong>API-Ser</strong> ต่อ Database: กำหนด Host ไปที่ <code>192.168.100.102</code> (พอร์ต <code>3306</code> สำหรับ MySQL/MariaDB หรือ <code>5432</code> สำหรับ PostgreSQL)</li>
+          <li><strong>Web-App</strong> ต่อ API Backend: กำหนด Host ไปที่ <code>192.168.100.103</code> (พอร์ต <code>3000</code>, <code>8000</code>, หรือ <code>8080</code>)</li>
+          <li><strong>IOT-Ser</strong> ส่งข้อมูลเข้า API: ยิง request ตรงไปที่ <code>192.168.100.103</code></li>
+        </ul>
+      </li>
+      <li><strong>การเชื่อมต่ออินเทอร์เน็ต:</strong> ทุกเครื่องสามารถออกสู่อินเทอร์เน็ตเพื่อติดตั้งแพ็กเกจ (<code>apt update</code>, <code>npm install</code>, <code>pip install</code>, <code>docker pull</code>) ได้ตามปกติ</li>
+    </ul>
+
+    <hr>
+
+    <!-- Section 4 -->
+    <h2 class="section-title">4. ข้อควรระวังและการดูแลรักษาความปลอดภัย</h2>
+    <ul>
+      <li>ผู้ใช้งานได้รับสิทธิ์ <strong><code>root</code></strong> สูงสุดของเครื่องตนเอง โปรดระมัดระวังคำสั่งที่เกี่ยวข้องกับการลบไฟล์ระบบ เช่น <code>rm -rf /</code></li>
+    </ul>
+  </div>
+
+</body>
+</html>
