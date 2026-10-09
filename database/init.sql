@@ -2,6 +2,7 @@
 -- PROJECT: CE Database Server (Group 2)
 -- SYSTEM: Central User Database for Wi-Fi 802.1X (RADIUS) & IoT Door Access
 -- SPECIFICATION: ตามเอกสาร "ข้อมูลที่จะเก็บลง Database ในกลุ่ม 2"
+-- COMPATIBILITY: Standard PostgreSQL (Debian VM 192.168.100.102)
 -- ==============================================================================
 
 -- 1. Enable Extension
@@ -199,25 +200,7 @@ JOIN public.roles r ON u.role_id = r.role_id
 JOIN public.departments d ON p.department_code = d.department_code;
 
 -- ==============================================================================
--- 8. Row Level Security (RLS)
--- ==============================================================================
-ALTER TABLE public.departments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.majors ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.roles ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.users ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.students ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.professors ENABLE ROW LEVEL SECURITY;
-
--- Allow anon & authenticated all operations (สำหรับ Web Portal & Direct SQL)
-CREATE POLICY "Allow anon all departments" ON public.departments FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all majors" ON public.majors FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all roles" ON public.roles FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all users" ON public.users FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all students" ON public.students FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-CREATE POLICY "Allow anon all professors" ON public.professors FOR ALL TO anon, authenticated USING (true) WITH CHECK (true);
-
--- ==============================================================================
--- 9. Seed Initial Master & Demo Data
+-- 8. Seed Initial Master & Demo Data
 -- ==============================================================================
 
 -- Insert roles

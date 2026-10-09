@@ -7,17 +7,17 @@ import UserTable from '@/components/UserTable';
 import UserModal from '@/components/UserModal';
 import DeleteModal from '@/components/DeleteModal';
 import RadiusIntegrationTab from '@/components/RadiusIntegrationTab';
-import SetupGuideTab from '@/components/SetupGuideTab';
+import ProjectOverviewTab from '@/components/ProjectOverviewTab';
 import DbHealthModal from '@/components/DbHealthModal';
 import { User } from '@/types/database';
-import { supabase, isConfigured } from '@/lib/supabase';
 import { INITIAL_DEMO_USERS } from '@/lib/demo-data';
-import { AlertCircle, CheckCircle, ArrowRight, Activity } from 'lucide-react';
+import { AlertCircle, CheckCircle, ArrowRight, Activity, Terminal } from 'lucide-react';
 
 export default function HomePage() {
-  const [activeTab, setActiveTab] = useState<'users' | 'radius' | 'setup'>('users');
+  const [activeTab, setActiveTab] = useState<'users' | 'radius' | 'overview'>('users');
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDbConnected, setIsDbConnected] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Modal States
@@ -39,27 +39,19 @@ export default function HomePage() {
 
   const loadUsers = useCallback(async () => {
     try {
-      if (isConfigured) {
-        const { data, error } = await supabase
-          .from('users')
-          .select('*')
-          .order('created_at', { ascending: false });
+      const res = await fetch('/api/users');
+      const data = await res.json();
 
-        if (error) {
-          console.error('Supabase fetch error:', error);
-          const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
-          setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
-        } else if (data && data.length > 0) {
-          setUsers(data as User[]);
-        } else {
-          setUsers([]);
-        }
+      if (res.ok && data.connected) {
+        setIsDbConnected(true);
+        setUsers(data.users as User[]);
       } else {
+        setIsDbConnected(false);
         const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
         setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
       }
-    } catch (err) {
-      console.error('Failed to load users:', err);
+    } catch {
+      setIsDbConnected(false);
       const saved = typeof window !== 'undefined' ? localStorage.getItem('ce_demo_users') : null;
       setUsers(saved ? JSON.parse(saved) : INITIAL_DEMO_USERS);
     } finally {
@@ -89,42 +81,64 @@ export default function HomePage() {
   const handleSaveUser = async (userData: Partial<User>) => {
     if (editingUser) {
       // Update
-      if (isConfigured) {
-        const { error } = await supabase
-          .from('users')
-          .update({
+      let dbUpdated = false;
+      try {
+        const res = await fetch('/api/users', {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            id: editingUser.id,
             student_id: userData.student_id,
             full_name: userData.full_name,
             email: userData.email,
             password_text: userData.password_text,
             role: userData.role,
             is_active: userData.is_active,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('id', editingUser.id);
-
-        if (error) throw error;
+          }),
+        });
+        if (res.ok) {
+          dbUpdated = true;
+        }
+      } catch (err) {
+        console.warn('Direct DB update failed, using local fallback', err);
       }
 
-      // Update local state
       const updatedList = users.map((u) =>
         u.id === editingUser.id
-          ? {
+          ? ({
               ...u,
               ...userData,
               updated_at: new Date().toISOString(),
-            } as User
+            } as User)
           : u
       );
       setUsers(updatedList);
-      if (!isConfigured) {
+      if (!dbUpdated) {
         localStorage.setItem('ce_demo_users', JSON.stringify(updatedList));
       }
       showToast(`อัปเดตข้อมูลผู้ใช้ ${userData.student_id} เรียบร้อยแล้ว`);
     } else {
       // Create
+      let dbInserted = false;
+      let newId = crypto.randomUUID();
+
+      try {
+        const res = await fetch('/api/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(userData),
+        });
+        const data = await res.json();
+        if (res.ok && data.user) {
+          dbInserted = true;
+          newId = data.user.user_id || newId;
+        }
+      } catch (err) {
+        console.warn('Direct DB insert failed, using local fallback', err);
+      }
+
       const newUser: User = {
-        id: crypto.randomUUID(),
+        id: newId,
         student_id: userData.student_id!,
         full_name: userData.full_name!,
         email: userData.email || null,
@@ -135,14 +149,9 @@ export default function HomePage() {
         updated_at: new Date().toISOString(),
       };
 
-      if (isConfigured) {
-        const { error } = await supabase.from('users').insert([newUser]);
-        if (error) throw error;
-      }
-
       const updatedList = [newUser, ...users];
       setUsers(updatedList);
-      if (!isConfigured) {
+      if (!dbInserted) {
         localStorage.setItem('ce_demo_users', JSON.stringify(updatedList));
       }
       showToast(`เพิ่มผู้ใช้ใหม่ ${newUser.student_id} เรียบร้อยแล้ว`);
@@ -153,23 +162,25 @@ export default function HomePage() {
   const handleToggleStatus = async (user: User) => {
     const updatedStatus = !user.is_active;
 
-    if (isConfigured) {
-      const { error } = await supabase
-        .from('users')
-        .update({ is_active: updatedStatus, updated_at: new Date().toISOString() })
-        .eq('id', user.id);
-
-      if (error) {
-        showToast('ไม่สามารถเปลี่ยนสถานะได้: ' + error.message);
-        return;
-      }
+    try {
+      await fetch('/api/users', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: user.id,
+          student_id: user.student_id,
+          is_active: updatedStatus,
+        }),
+      });
+    } catch (err) {
+      console.warn('Toggle DB status error, updating local:', err);
     }
 
     const updatedList = users.map((u) =>
       u.id === user.id ? { ...u, is_active: updatedStatus } : u
     );
     setUsers(updatedList);
-    if (!isConfigured) {
+    if (!isDbConnected) {
       localStorage.setItem('ce_demo_users', JSON.stringify(updatedList));
     }
 
@@ -203,14 +214,13 @@ export default function HomePage() {
     if (!deletingUser) return;
     setDeleteLoading(true);
     try {
-      if (isConfigured) {
-        const { error } = await supabase.from('users').delete().eq('id', deletingUser.id);
-        if (error) throw error;
-      }
+      await fetch(`/api/users?id=${deletingUser.id}&student_id=${deletingUser.student_id}`, {
+        method: 'DELETE',
+      });
 
       const updatedList = users.filter((u) => u.id !== deletingUser.id);
       setUsers(updatedList);
-      if (!isConfigured) {
+      if (!isDbConnected) {
         localStorage.setItem('ce_demo_users', JSON.stringify(updatedList));
       }
 
@@ -238,14 +248,14 @@ export default function HomePage() {
       <Navbar
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        isSupabaseConnected={isConfigured}
+        isDbConnected={isDbConnected}
         onOpenHealthCheck={() => setIsHealthModalOpen(true)}
       />
 
       {/* Main Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
-        {/* Unconfigured Demo Alert */}
-        {!isConfigured && activeTab === 'users' && (
+        {/* Unconnected / Offline Notice Banner */}
+        {!isDbConnected && activeTab === 'users' && (
           <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-start sm:items-center gap-3">
               <div className="p-2 bg-amber-100 dark:bg-amber-900/50 rounded-lg text-amber-700 dark:text-amber-300">
@@ -253,10 +263,10 @@ export default function HomePage() {
               </div>
               <div>
                 <p className="text-sm font-semibold text-amber-900 dark:text-amber-200">
-                  กำลังทำงานในโหมดจำลอง (Preview Mode)
+                  กำลังทำงานในโหมด Offline / Local Cache
                 </p>
                 <p className="text-xs text-amber-700 dark:text-amber-400">
-                  คุณสามารถเพิ่ม ลบ แก้ไข ข้อมูลทดสอบได้ทันที หรือกดตรวจสอบสถานะการเชื่อมต่อ Supabase
+                  หากรันบนเครื่อง Local ให้เปิด SSH Tunnel เพื่อต่อฐานข้อมูล VM (<code className="font-mono bg-amber-100 dark:bg-amber-900 px-1 py-0.5 rounded">python3 scripts/start_tunnel.py</code>)
                 </p>
               </div>
             </div>
@@ -269,10 +279,11 @@ export default function HomePage() {
                 <span>ตรวจสอบการเชื่อมต่อ DB</span>
               </button>
               <button
-                onClick={() => setActiveTab('setup')}
+                onClick={() => setActiveTab('overview')}
                 className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-amber-600 hover:bg-amber-700 text-white transition-colors shrink-0 cursor-pointer"
               >
-                <span>ดูวิธีเชื่อมต่อ</span>
+                <Terminal className="w-3.5 h-3.5" />
+                <span>วิธีเปิด Tunnel</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </button>
             </div>
@@ -280,11 +291,11 @@ export default function HomePage() {
         )}
 
         {/* Quick Connection Diagnostics Button for Active Dashboard */}
-        {isConfigured && activeTab === 'users' && (
+        {isDbConnected && activeTab === 'users' && (
           <div className="flex items-center justify-between px-4 py-2.5 rounded-xl bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200/60 dark:border-emerald-900/40 text-xs">
             <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span>เชื่อมต่อกับ Supabase PostgreSQL สำเร็จ (พร้อมสำหรับเว็บแอดมินและ FreeRADIUS)</span>
+              <span>เชื่อมต่อกับเซิร์ฟเวอร์ฐานข้อมูล PostgreSQL 17 บน VM สำเร็จ (192.168.100.102 / cedatabase)</span>
             </div>
             <button
               onClick={() => setIsHealthModalOpen(true)}
@@ -315,14 +326,14 @@ export default function HomePage() {
         {/* Tab 2: RADIUS Integration Hub */}
         {activeTab === 'radius' && <RadiusIntegrationTab users={users} />}
 
-        {/* Tab 3: Setup & Deployment Guide */}
-        {activeTab === 'setup' && <SetupGuideTab />}
+        {/* Tab 3: Project Architecture & VM Guide */}
+        {activeTab === 'overview' && <ProjectOverviewTab />}
       </main>
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 dark:border-zinc-800 py-6 text-center text-xs text-zinc-500 dark:text-zinc-400 bg-white dark:bg-zinc-900">
         <p>CE Database Server (Group 2) • Wi-Fi 802.1X & IoT Door Access Control Project</p>
-        <p className="mt-1">Powered by Next.js, Supabase PostgreSQL, and Vercel</p>
+        <p className="mt-1">Central User Database & Admin Portal • Debian VM (192.168.100.102:5432)</p>
       </footer>
 
       {/* Add / Edit Modal */}

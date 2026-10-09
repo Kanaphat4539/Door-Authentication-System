@@ -9,8 +9,9 @@ import {
   RefreshCw,
   Database,
   Wifi,
+  Server,
+  Terminal,
 } from 'lucide-react';
-import { supabase, isConfigured } from '@/lib/supabase';
 
 interface DbHealthModalProps {
   isOpen: boolean;
@@ -28,120 +29,61 @@ interface TableStatus {
 export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
   const [testing, setTesting] = useState(false);
   const [latency, setLatency] = useState<number | null>(null);
+  const [dbInfo, setDbInfo] = useState<{
+    host: string;
+    port: string;
+    database: string;
+    user: string;
+    version?: string;
+  }>({
+    host: '192.168.100.102',
+    port: '5432',
+    database: 'cedatabase',
+    user: 'ceadmin',
+  });
   const [overallStatus, setOverallStatus] = useState<
-    'success' | 'warning' | 'error' | 'unconfigured' | 'pending'
+    'success' | 'error' | 'pending'
   >('pending');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [tables, setTables] = useState<TableStatus[]>([
-    { name: 'users', description: 'ข้อมูลบุคคลกลาง', status: 'pending' },
+    { name: 'users', description: 'ข้อมูลบุคคลกลาง (Login/Password)', status: 'pending' },
     { name: 'radcheck', description: 'View สำหรับ FreeRADIUS (กลุ่ม 1)', status: 'pending' },
     { name: 'students', description: 'ข้อมูลเฉพาะนักศึกษา', status: 'pending' },
     { name: 'departments', description: 'ข้อมูลภาควิชา', status: 'pending' },
+    { name: 'majors', description: 'ข้อมูลสาขาวิชา', status: 'pending' },
+    { name: 'roles', description: 'ข้อมูลบทบาทผู้ใช้', status: 'pending' },
   ]);
 
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-
   const runDiagnostics = useCallback(async () => {
-    if (!isConfigured) {
-      setOverallStatus('unconfigured');
-      setLatency(null);
-      setTables((prev) =>
-        prev.map((t) => ({
-          ...t,
-          status: 'error',
-          message: 'ยังไม่ได้ตั้งค่า Environment Variables',
-        }))
-      );
-      return;
-    }
-
     setTesting(true);
     setOverallStatus('pending');
-
-    const updatedTables: TableStatus[] = [
-      { name: 'users', description: 'ข้อมูลบุคคลกลาง', status: 'pending' },
-      { name: 'radcheck', description: 'View สำหรับ FreeRADIUS (กลุ่ม 1)', status: 'pending' },
-      { name: 'students', description: 'ข้อมูลเฉพาะนักศึกษา', status: 'pending' },
-      { name: 'departments', description: 'ข้อมูลภาควิชา', status: 'pending' },
-    ];
+    setErrorMessage(null);
 
     try {
-      const startTime = performance.now();
+      const res = await fetch('/api/health');
+      const data = await res.json();
 
-      // 1. Test users table
-      const { count: usersCount, error: usersErr } = await supabase
-        .from('users')
-        .select('*', { count: 'exact', head: true });
-
-      const measuredLatency = Math.round(performance.now() - startTime);
-      setLatency(measuredLatency);
-
-      if (usersErr) {
-        updatedTables[0].status = 'error';
-        updatedTables[0].message = usersErr.message;
-      } else {
-        updatedTables[0].status = 'ok';
-        updatedTables[0].count = usersCount ?? 0;
-      }
-
-      // 2. Test radcheck view (Crucial for Group 1 RADIUS)
-      const { count: radCount, error: radErr } = await supabase
-        .from('radcheck')
-        .select('*', { count: 'exact', head: true });
-
-      if (radErr) {
-        updatedTables[1].status = 'error';
-        updatedTables[1].message = radErr.message;
-      } else {
-        updatedTables[1].status = 'ok';
-        updatedTables[1].count = radCount ?? 0;
-      }
-
-      // 3. Test students table
-      const { count: stdCount, error: stdErr } = await supabase
-        .from('students')
-        .select('*', { count: 'exact', head: true });
-
-      if (stdErr) {
-        updatedTables[2].status = 'error';
-        updatedTables[2].message = stdErr.message;
-      } else {
-        updatedTables[2].status = 'ok';
-        updatedTables[2].count = stdCount ?? 0;
-      }
-
-      // 4. Test departments table
-      const { count: deptCount, error: deptErr } = await supabase
-        .from('departments')
-        .select('*', { count: 'exact', head: true });
-
-      if (deptErr) {
-        updatedTables[3].status = 'error';
-        updatedTables[3].message = deptErr.message;
-      } else {
-        updatedTables[3].status = 'ok';
-        updatedTables[3].count = deptCount ?? 0;
-      }
-
-      setTables(updatedTables);
-
-      // Determine overall status
-      const okCount = updatedTables.filter((t) => t.status === 'ok').length;
-      if (okCount === updatedTables.length) {
+      if (res.ok && data.connected) {
+        setLatency(data.latency);
         setOverallStatus('success');
-      } else if (okCount > 0) {
-        setOverallStatus('warning');
+        setDbInfo({
+          host: data.host,
+          port: data.port,
+          database: data.database,
+          user: data.user,
+          version: data.version,
+        });
+        setTables(data.tables || []);
       } else {
         setOverallStatus('error');
+        setLatency(null);
+        setErrorMessage(data.error || 'ไม่สามารถติดต่อฐานข้อมูล PostgreSQL บน VM ได้');
+        setTables(data.tables || []);
       }
     } catch (err: unknown) {
       setOverallStatus('error');
-      setTables((prev) =>
-        prev.map((t) => ({
-          ...t,
-          status: 'error',
-          message: err instanceof Error ? err.message : 'Connection failed',
-        }))
-      );
+      setLatency(null);
+      setErrorMessage(err instanceof Error ? err.message : 'Network error');
     } finally {
       setTesting(false);
     }
@@ -149,174 +91,178 @@ export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
 
   useEffect(() => {
     if (isOpen) {
-      runDiagnostics();
+      void runDiagnostics();
     }
   }, [isOpen, runDiagnostics]);
 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-200">
+      <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         {/* Header */}
-        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between bg-zinc-50 dark:bg-zinc-900/50">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-lg">
+            <div className="p-2 bg-blue-100 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 rounded-lg">
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-semibold text-zinc-900 dark:text-zinc-100 text-base">
-                ตรวจสอบสถานะการเชื่อมต่อฐานข้อมูล
+              <h3 className="font-bold text-zinc-900 dark:text-zinc-100 text-base">
+                ตรวจสอบการเชื่อมต่อฐานข้อมูล (Database Diagnostics)
               </h3>
               <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                Supabase PostgreSQL & FreeRADIUS Compatibility Check
+                PostgreSQL 17 on Debian VM (`Database-Server`)
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1.5 rounded-lg"
+            className="p-1 rounded-lg text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Content */}
-        <div className="p-6 space-y-5">
-          {/* Main Status Card */}
+        <div className="p-6 space-y-6 overflow-y-auto">
+          {/* Overall Health Status Banner */}
           <div
-            className={`p-4 rounded-xl border flex items-center justify-between ${
+            className={`p-4 rounded-xl border flex items-start gap-3.5 ${
               overallStatus === 'success'
-                ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-900 text-emerald-900 dark:text-emerald-200'
-                : overallStatus === 'warning'
-                ? 'bg-amber-50 dark:bg-amber-950/40 border-amber-200 dark:border-amber-900 text-amber-900 dark:text-amber-200'
-                : overallStatus === 'unconfigured'
-                ? 'bg-zinc-100 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700 text-zinc-800 dark:text-zinc-200'
-                : 'bg-rose-50 dark:bg-rose-950/40 border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200'
+                ? 'bg-emerald-50 dark:bg-emerald-950/30 border-emerald-200 dark:border-emerald-900/50 text-emerald-900 dark:text-emerald-200'
+                : overallStatus === 'error'
+                ? 'bg-rose-50 dark:bg-rose-950/30 border-rose-200 dark:border-rose-900/50 text-rose-900 dark:text-rose-200'
+                : 'bg-zinc-50 dark:bg-zinc-800/40 border-zinc-200 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300'
             }`}
           >
-            <div className="flex items-center gap-3">
-              {overallStatus === 'success' && (
-                <CheckCircle2 className="w-7 h-7 text-emerald-600 dark:text-emerald-400 shrink-0" />
-              )}
-              {overallStatus === 'warning' && (
-                <AlertTriangle className="w-7 h-7 text-amber-600 dark:text-amber-400 shrink-0" />
-              )}
-              {overallStatus === 'unconfigured' && (
-                <AlertTriangle className="w-7 h-7 text-zinc-500 shrink-0" />
-              )}
-              {overallStatus === 'error' && (
-                <XCircle className="w-7 h-7 text-rose-600 dark:text-rose-400 shrink-0" />
-              )}
-
-              <div>
-                <p className="font-bold text-sm">
-                  {overallStatus === 'success' && 'เชื่อมต่อ Supabase สำเร็จสมบูรณ์!'}
-                  {overallStatus === 'warning' && 'เชื่อมต่อได้ แต่ตาราง/วิวบางตัวยังไม่พร้อม'}
-                  {overallStatus === 'unconfigured' && 'ยังไม่ได้เชื่อมต่อ (โหมดจำลอง Demo Mode)'}
-                  {overallStatus === 'error' && 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้'}
-                  {overallStatus === 'pending' && 'กำลังตรวจสอบการเชื่อมต่อ...'}
-                </p>
-                <p className="text-xs opacity-80 mt-0.5">
-                  {overallStatus === 'success' && 'เว็บไซต์และ RADIUS สามารถอ่านเขียนข้อมูลได้ตามปกติ'}
-                  {overallStatus === 'warning' && 'กรุณารันไฟล์ supabase/schema.sql ใน Supabase SQL Editor'}
-                  {overallStatus === 'unconfigured' && 'กรุณาใส่ NEXT_PUBLIC_SUPABASE_URL และ KEY บน Vercel'}
-                  {overallStatus === 'error' && 'กรุณาตรวจสอบ URL และ Anon Key ใน Vercel อีกครั้ง'}
-                </p>
-              </div>
+            <div className="mt-0.5">
+              {overallStatus === 'success' && <CheckCircle2 className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />}
+              {overallStatus === 'error' && <XCircle className="w-5 h-5 text-rose-600 dark:text-rose-400" />}
+              {overallStatus === 'pending' && <RefreshCw className="w-5 h-5 text-blue-600 animate-spin" />}
             </div>
-
-            {latency !== null && (
-              <div className="text-right shrink-0 pl-3">
-                <span className="text-xs font-mono font-bold bg-white/60 dark:bg-black/30 px-2 py-1 rounded">
-                  {latency} ms
-                </span>
-                <p className="text-[10px] opacity-75 mt-0.5">Latency</p>
-              </div>
-            )}
+            <div className="flex-1 space-y-1">
+              <h4 className="font-semibold text-sm">
+                {overallStatus === 'success' && 'เชื่อมต่อ PostgreSQL บน VM สำเร็จสมบูรณ์!'}
+                {overallStatus === 'error' && 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้'}
+                {overallStatus === 'pending' && 'กำลังทดสอบการเชื่อมต่อ...'}
+              </h4>
+              <p className="text-xs opacity-90 leading-relaxed">
+                {overallStatus === 'success' &&
+                  `ระบบเชื่อมต่อกับ PostgreSQL 17 สำเร็จ ตารางและ View พร้อมสำหรับ RADIUS (กลุ่ม 1) และ API (กลุ่ม 3)`}
+                {overallStatus === 'error' && (
+                  <span>
+                    {errorMessage || 'กรุณาตรวจสอบว่า VM เปิดอยู่ หรือรันคำสั่ง SSH Tunnel บนเครื่อง Local'}
+                  </span>
+                )}
+                {overallStatus === 'pending' && 'กำลังส่ง Query ทดสอบ Latency และโครงสร้างตาราง...'}
+              </p>
+            </div>
           </div>
 
-          {/* Database Target Info */}
-          <div className="p-3 bg-zinc-50 dark:bg-zinc-800/60 rounded-xl border border-zinc-200 dark:border-zinc-700/60 text-xs space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="text-zinc-500 dark:text-zinc-400">Target Project:</span>
-              <span className="font-mono text-zinc-900 dark:text-zinc-100 truncate max-w-[280px]">
-                {supabaseUrl || 'ไม่ได้กำหนด (Unset)'}
+          {/* Connection Target Details */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800">
+              <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">Host / IP</span>
+              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 truncate block">
+                {dbInfo.host}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <span className="text-zinc-500 dark:text-zinc-400">RADIUS Compatibility (Group 1):</span>
-              <span className="font-semibold text-zinc-900 dark:text-zinc-100 flex items-center gap-1">
-                <Wifi className="w-3.5 h-3.5 text-blue-500" />
-                <span>radcheck VIEW</span>
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800">
+              <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">พอร์ต (Port)</span>
+              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
+                {dbInfo.port}
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800">
+              <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">Database / User</span>
+              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100 truncate block">
+                {dbInfo.database} ({dbInfo.user})
+              </span>
+            </div>
+            <div className="p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/40 border border-zinc-200 dark:border-zinc-800">
+              <span className="text-zinc-500 dark:text-zinc-400 block text-[11px]">Latency (RTT)</span>
+              <span className="font-mono font-semibold text-zinc-900 dark:text-zinc-100">
+                {latency !== null ? `${latency} ms` : '-'}
               </span>
             </div>
           </div>
 
-          {/* Table / View Check Items */}
-          <div>
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-zinc-500 dark:text-zinc-400 mb-2">
-              ผลการตรวจสอบตารางและวิวในฐานข้อมูล:
-            </h4>
+          {/* Tables & Views Verification List */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
+              <span className="font-medium">สถานะตารางและ View สำคัญ</span>
+              <span>{tables.filter((t) => t.status === 'ok').length} / {tables.length} ผ่านการตรวจสอบ</span>
+            </div>
+
             <div className="divide-y divide-zinc-100 dark:divide-zinc-800 border border-zinc-200 dark:border-zinc-800 rounded-xl overflow-hidden">
               {tables.map((table) => (
                 <div
                   key={table.name}
-                  className="p-3 flex items-center justify-between bg-white dark:bg-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30"
+                  className="px-4 py-2.5 flex items-center justify-between text-xs bg-white dark:bg-zinc-900 hover:bg-zinc-50/50 dark:hover:bg-zinc-800/30 transition-colors"
                 >
                   <div className="flex items-center gap-2.5">
                     {table.status === 'ok' ? (
                       <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0" />
-                    ) : table.status === 'pending' ? (
-                      <RefreshCw className="w-4 h-4 text-blue-500 animate-spin shrink-0" />
-                    ) : (
+                    ) : table.status === 'error' ? (
                       <XCircle className="w-4 h-4 text-rose-500 shrink-0" />
+                    ) : (
+                      <RefreshCw className="w-4 h-4 text-zinc-400 animate-spin shrink-0" />
                     )}
                     <div>
-                      <span className="font-mono font-semibold text-xs text-zinc-900 dark:text-zinc-100">
+                      <span className="font-mono font-semibold text-zinc-800 dark:text-zinc-200">
                         {table.name}
                       </span>
-                      <span className="text-xs text-zinc-500 dark:text-zinc-400 ml-2">
-                        ({table.description})
+                      <span className="text-zinc-500 dark:text-zinc-400 ml-2">
+                        {table.description}
                       </span>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    {table.status === 'ok' ? (
-                      <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full">
-                        พร้อมใช้งาน ({table.count} แถว)
+                  <div>
+                    {table.status === 'ok' && (
+                      <span className="font-mono text-emerald-600 dark:text-emerald-400 font-medium">
+                        {table.count !== undefined ? `${table.count} แถว` : 'พร้อมใช้งาน'}
                       </span>
-                    ) : table.status === 'pending' ? (
-                      <span className="text-xs text-zinc-400">กำลังตรวจ...</span>
-                    ) : (
-                      <span className="text-xs font-medium text-rose-600 dark:text-rose-400 bg-rose-50 dark:bg-rose-950/60 px-2 py-0.5 rounded-full">
-                        ไม่พบตาราง
-                      </span>
+                    )}
+                    {table.status === 'error' && (
+                      <span className="text-rose-500 text-[11px]">ไม่พบข้อมูล</span>
                     )}
                   </div>
                 </div>
               ))}
             </div>
           </div>
+
+          {/* SSH Tunnel Hint when error */}
+          {overallStatus === 'error' && (
+            <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 text-xs space-y-2">
+              <div className="flex items-center gap-2 font-semibold text-amber-900 dark:text-amber-200">
+                <Terminal className="w-4 h-4 text-amber-600" />
+                <span>คำแนะนำ: รัน SSH Tunnel ในเครื่อง Local</span>
+              </div>
+              <p className="text-amber-800 dark:text-amber-300 leading-relaxed text-[11px]">
+                หากรันบนเครื่อง Local ให้รันคำสั่งนี้ในเทอร์มินัลเพื่อ Forward พอร์ต 5432:
+              </p>
+              <pre className="p-2 bg-zinc-950 text-emerald-400 rounded-lg font-mono text-[11px] overflow-x-auto">
+                python3 scripts/start_tunnel.py
+              </pre>
+            </div>
+          )}
         </div>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
+        <div className="px-6 py-3.5 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900/50 flex items-center justify-between">
           <button
-            type="button"
-            onClick={runDiagnostics}
+            onClick={() => void runDiagnostics()}
             disabled={testing}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-zinc-700 dark:text-zinc-200 hover:bg-zinc-200 dark:hover:bg-zinc-800 rounded-lg transition-colors border border-zinc-300 dark:border-zinc-700"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg bg-white dark:bg-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-700 text-zinc-700 dark:text-zinc-200 border border-zinc-300 dark:border-zinc-700 transition-colors disabled:opacity-50 cursor-pointer shadow-xs"
           >
             <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
-            <span>{testing ? 'กำลังทดสอบ...' : 'ทดสอบอีกครั้ง (Re-test)'}</span>
+            <span>ทดสอบอีกครั้ง</span>
           </button>
-
           <button
-            type="button"
             onClick={onClose}
-            className="px-4 py-2 text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-xs"
+            className="px-4 py-1.5 text-xs font-semibold rounded-lg bg-zinc-900 dark:bg-zinc-100 text-white dark:text-zinc-900 hover:bg-zinc-800 dark:hover:bg-zinc-200 transition-colors cursor-pointer"
           >
             ปิดหน้าต่าง
           </button>

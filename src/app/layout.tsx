@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CE Database Admin - Group 2 (Supabase & RADIUS)",
+  title: "CE Database Admin - Group 2 (Central User Database)",
   description: "Central User Database for Wi-Fi 802.1X & IoT Door Access Control Project",
 };
 

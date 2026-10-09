@@ -23,12 +23,12 @@ export default function RadiusIntegrationTab({ users }: RadiusIntegrationTabProp
     driver = "rlm_sql_postgresql"
     dialect = "postgresql"
 
-    # Supabase Connection Settings (Pooler IPv4 Port 6543 หรือ Direct Port 5432)
-    server = "aws-0-ap-southeast-1.pooler.supabase.com"
-    port = 6543
-    login = "postgres.your-project-ref"
-    password = "your-database-password"
-    radius_db = "postgres"
+    # PostgreSQL Database Connection Settings (เครือข่าย VM ภายใน)
+    server = "192.168.100.102"
+    port = 5432
+    login = "ceadmin"
+    password = "ceadmin2026"
+    radius_db = "cedatabase"
 
     # Connection pool options
     pool {
@@ -48,11 +48,11 @@ export default function RadiusIntegrationTab({ users }: RadiusIntegrationTabProp
 
   const sqlViewCode = `CREATE OR REPLACE VIEW public.radcheck AS
 SELECT 
-    id::text AS id,
-    student_id AS username,
-    'Cleartext-Password' AS attribute,
-    ':=' AS op,
-    password_text AS value
+    user_id::text AS id,
+    username,
+    'Cleartext-Password'::varchar(32) AS attribute,
+    ':='::varchar(2) AS op,
+    password AS value
 FROM public.users
 WHERE is_active = TRUE;`;
 
@@ -68,8 +68,8 @@ WHERE is_active = TRUE;`;
             </div>
             <h2 className="text-2xl font-bold">FreeRADIUS PostgreSQL Integration</h2>
             <p className="text-blue-200 text-sm max-w-2xl leading-relaxed">
-              กลุ่ม 1 (RADIUS Server) จะทำการ query ตรวจสอบผู้ใช้ผ่าน SQL มายัง Supabase PostgreSQL
-              โดยตารางผู้ใช้ในระบบนี้ถูกแมปผ่าน View ชื่อ <b>radcheck</b> ให้ตรงกับมาตรฐานของ FreeRADIUS
+              กลุ่ม 1 (RADIUS Server) จะทำการ query ตรวจสอบผู้ใช้ผ่าน SQL มายังเซิร์ฟเวอร์ฐานข้อมูล PostgreSQL (<code className="text-white font-mono bg-blue-950/60 px-1 py-0.5 rounded">192.168.100.102:5432</code>)
+              โดยตารางผู้ใช้ในระบบถูกแมปผ่าน View ชื่อ <b>radcheck</b> ให้ตรงกับมาตรฐานของ FreeRADIUS
               โดยอัตโนมัติ
             </p>
           </div>
@@ -135,7 +135,7 @@ WHERE is_active = TRUE;`;
               <div className="flex items-center gap-2">
                 <Code2 className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
                 <h3 className="font-semibold text-zinc-900 dark:text-zinc-100">
-                  SQL View Code (สำหรับ Supabase)
+                  SQL View Code (สำหรับ PostgreSQL บน VM)
                 </h3>
               </div>
               <button

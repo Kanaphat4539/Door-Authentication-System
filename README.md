@@ -1,51 +1,61 @@
-# Database Admin (Group 2) - CE Student User Management Portal
+# Database Admin (Group 2) - CE Central User Database Portal
 
-ระบบบริหารจัดการฐานข้อมูลผู้ใช้ (Central User Database) สำหรับโครงการควบคุมการเข้า-ออกและยืนยันตัวตนผ่าน Wi-Fi 802.1X (RADIUS)
+ระบบบริหารจัดการฐานข้อมูลผู้ใช้กลาง (Central User Database) สำหรับโครงการควบคุมการเข้า-ออกและยืนยันตัวตนผ่าน Wi-Fi 802.1X (FreeRADIUS) และระบบประตูดิจิทัล (IoT Door Access)
+
+![Project Flow](public/images/project-flow.jpg)
 
 ## 📌 สถาปัตยกรรมระบบ (System Architecture)
-- **Database Server:** PostgreSQL on Supabase
+- **Database Server:** PostgreSQL 17 on Debian 13 VM (Host `Database-Server` / IP `192.168.100.102:5432`)
 - **Admin & Student Web Portal:** Next.js 16 (App Router) + TypeScript + Tailwind CSS
-- **Deployment Platform:** Vercel
-- **Authentication Integration:** FreeRADIUS (Group 1) ผ่าน SQL query / radcheck view
+- **Authentication Integration:**
+  - **Group 1 (RADIUS Server):** Query ตรวจสอบผู้ใช้ผ่าน SQL View `radcheck`
+  - **Group 3 (Authentication API):** Query ข้อมูลผู้ใช้จากตาราง `users` เพื่อให้บริการ API
+- **Documentation & Progress:** ดูบันทึกการทำงานและสถานะระบบแบบละเอียดได้ที่ [PROJECT_PROGRESS.md](PROJECT_PROGRESS.md)
 
-## 🌿 Git Branching Model
-- `main`: Production-ready release branch (Vercel Production)
-- `DEV`: Integration and development branch (Vercel Preview / Staging)
-- `feature/*`: Specific feature branches (branched from `DEV` and merged back to `DEV`)
-  - `feature/init-nextjs`: Bootstrap Next.js 16 + Tailwind CSS + Supabase Client
-  - `feature/supabase-schema`: Database SQL Schema, Supabase migrations & radcheck view
-  - `feature/crud-portal`: Full CRUD Web Management UI for CE Student & Admin
-  - `feature/radius-integration-hub`: RADIUS configuration guide and test tools
+---
 
-## 🚀 Getting Started
+## 🖥️ ข้อมูลการเชื่อมต่อเซิร์ฟเวอร์เสมือน (VM Specs)
+* **IP วงในระหว่าง VM:** `192.168.100.102`
+* **พอร์ต Database:** `5432` (PostgreSQL)
+* **Database Name:** `cedatabase`
+* **Database User:** `ceadmin`
+* **SSH Access ภายนอก (ผ่าน Wi-Fi มหาลัย):** `ssh root@172.16.10.200 -p 2202`
 
-1. Clone the repository and install dependencies:
+---
+
+## 🚀 การติดตั้งและรันในเครื่อง Local (Getting Started)
+
+### 1. ติดตั้ง Dependencies
 ```bash
 npm install
 ```
 
-2. Setup environment variables (สร้างไฟล์ `.env.local`):
+### 2. ตั้งค่า Environment Variables (`.env.local`)
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
-SUPABASE_SERVICE_ROLE_KEY=your-service-role-key (optional for server-side admin)
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=cedatabase
+DB_USER=ceadmin
+DB_PASSWORD=ceadmin2026
 ```
 
-3. Run development server:
+### 3. เปิด SSH Tunnel เพื่อเชื่อมต่อไปยัง VM
+เมื่อต่อ Wi-Fi มหาลัย ให้รันคำสั่ง:
+```bash
+python3 scripts/start_tunnel.py
+```
+*(สคริปต์จะทำการ Forward พอร์ต `5432` จากเครื่อง VM มาที่ `localhost:5432` อัตโนมัติ)*
+
+### 4. รัน Development Server
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000)
+เปิดใช้งานที่ [http://localhost:3000](http://localhost:3000)
 
-4. Build for Production:
-```bash
-npm run build
-```
+---
 
-## 🌐 Deploy to Vercel
-1. Push code to GitHub repository
-2. Import project in [Vercel Dashboard](https://vercel.com)
-3. Set Environment Variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-4. Deploy!
+## 🛠️ โครงสร้างฐานข้อมูล (Database Schema)
+* ดูไฟล์ DDL และ Seed Data ได้ที่ [`database/init.sql`](database/init.sql)
+* ตารางหลัก: `users`, `students`, `professors`, `departments`, `majors`, `roles`
+* View สำหรับ RADIUS: `radcheck`
+* View สำหรับเว็บ/API: `view_students`, `view_professors`

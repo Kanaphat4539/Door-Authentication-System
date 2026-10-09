@@ -118,8 +118,10 @@ export interface RadCheckRecord {
   value: string;
 }
 
-export interface DatabaseConfig {
-  supabaseUrl: string;
-  supabaseAnonKey: string;
-  isConfigured: boolean;
+export interface DbConnectionConfig {
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  connected: boolean;
 }

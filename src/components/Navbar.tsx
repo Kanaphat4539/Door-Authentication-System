@@ -1,19 +1,19 @@
 'use client';
 
 import React from 'react';
-import { Database, Wifi, BookOpen, AlertCircle, Activity } from 'lucide-react';
+import { Database, Wifi, Server, AlertCircle, Activity } from 'lucide-react';
 
 interface NavbarProps {
-  activeTab: 'users' | 'radius' | 'setup';
-  setActiveTab: (tab: 'users' | 'radius' | 'setup') => void;
-  isSupabaseConnected: boolean;
+  activeTab: 'users' | 'radius' | 'overview';
+  setActiveTab: (tab: 'users' | 'radius' | 'overview') => void;
+  isDbConnected: boolean;
   onOpenHealthCheck: () => void;
 }
 
 export default function Navbar({
   activeTab,
   setActiveTab,
-  isSupabaseConnected,
+  isDbConnected,
   onOpenHealthCheck,
 }: NavbarProps) {
   return (
@@ -34,7 +34,7 @@ export default function Navbar({
                 </span>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">
-                User Management & RADIUS Authentication Database
+                Central User Database Server (PostgreSQL 17 on VM)
               </p>
             </div>
           </div>
@@ -44,24 +44,24 @@ export default function Navbar({
             <button
               onClick={onOpenHealthCheck}
               className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer shadow-xs ${
-                isSupabaseConnected
+                isDbConnected
                   ? 'bg-emerald-50 hover:bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:hover:bg-emerald-900/80 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
                   : 'bg-amber-50 hover:bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:hover:bg-amber-900/80 dark:text-amber-300 border-amber-300 dark:border-amber-800'
               }`}
-              title="คลิกเพื่อตรวจสอบสถานะการเชื่อมต่อ Database"
+              title="คลิกเพื่อตรวจสอบสถานะการเชื่อมต่อ PostgreSQL บน VM"
             >
-              {isSupabaseConnected ? (
+              {isDbConnected ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="font-semibold">Supabase DB</span>
+                  <span className="font-semibold">PostgreSQL (VM)</span>
                   <Activity className="w-3.5 h-3.5 ml-0.5 text-emerald-600" />
                 </>
               ) : (
                 <>
                   <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                  <span className="font-semibold">Demo Mode</span>
+                  <span className="font-semibold">DB Offline</span>
                   <span className="text-[10px] bg-amber-200/80 dark:bg-amber-900 px-1.5 py-0.2 rounded text-amber-900 dark:text-amber-200 ml-0.5">
-                    ตรวจเช็ค
+                    เช็คสถานะ
                   </span>
                 </>
               )}
@@ -95,16 +95,16 @@ export default function Navbar({
               </button>
 
               <button
-                onClick={() => setActiveTab('setup')}
+                onClick={() => setActiveTab('overview')}
                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs sm:text-sm font-medium transition-all ${
-                  activeTab === 'setup'
+                  activeTab === 'overview'
                     ? 'bg-white dark:bg-zinc-700 text-zinc-900 dark:text-white shadow-sm'
                     : 'text-zinc-600 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-white'
                 }`}
               >
-                <BookOpen className="w-4 h-4" />
-                <span className="hidden sm:inline">Setup Guide</span>
-                <span className="sm:hidden">Guide</span>
+                <Server className="w-4 h-4" />
+                <span className="hidden sm:inline">Project Flow & VM</span>
+                <span className="sm:hidden">VM Guide</span>
               </button>
             </nav>
           </div>
