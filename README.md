@@ -20,7 +20,8 @@
 * **พอร์ต Database:** `5432` (PostgreSQL)
 * **Database Name:** `cedatabase`
 * **Database User:** `ceadmin`
-* **SSH Access ภายนอก (ผ่าน Wi-Fi มหาลัย):** `ssh root@172.16.10.200 -p 2202`
+* **SSH Access ภายนอก (ผ่าน Wi-Fi มหาลัย):** `ssh root@172.16.10.200 -p 2202` *(ขอรหัสผ่านด้วย Keyword: `[G2-VM-SSH-ACCESS]`)*
+* **คู่มือการเชื่อมต่อสำหรับกลุ่ม 1 และกลุ่ม 3:** ดูเอกสารส่งมอบฉบับเต็มได้ที่ [HANDOVER_GUIDE.md](HANDOVER_GUIDE.md)
 
 ---
 
@@ -37,7 +38,7 @@ DB_HOST=localhost
 DB_PORT=5432
 DB_NAME=cedatabase
 DB_USER=ceadmin
-DB_PASSWORD=ceadmin2026
+DB_PASSWORD=<ขอรหัสผ่านจากกลุ่ม 2 ด้วย Keyword: [G2-DB-PASSWORD]>
 ```
 
 ### 3. เปิด SSH Tunnel เพื่อเชื่อมต่อไปยัง VM

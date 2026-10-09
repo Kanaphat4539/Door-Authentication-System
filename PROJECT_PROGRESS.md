@@ -20,12 +20,12 @@
 * **Private IP (เครือข่ายภายในระหว่าง VM):** `192.168.100.102`
 * **พอร์ต Database:** `5432` (PostgreSQL 17)
 * **Database Name:** `cedatabase`
-* **Database User:** `ceadmin` (Password: `ceadmin2026`)
+* **Database User:** `ceadmin` *(รหัสผ่านความปลอดภัย: ติดต่อขอด้วย Keyword: `[G2-DB-PASSWORD]`)*
 * **การเชื่อมต่อ SSH จากภายนอก:**
   * **IP เชื่อมต่อ:** `172.16.10.200`
   * **SSH Port:** `2202`
   * **SSH User:** `root`
-  * **Default Password:** `admince04`
+  * **SSH Password:** 🔒 *(ติดต่อขอด้วย Keyword: `[G2-VM-SSH-ACCESS]`)*
   * **เงื่อนไขสำคัญ:** ต้องเชื่อมต่อผ่าน **KMITL-WiFi** หรือ **CEDC-WiFi** ของสถาบันเท่านั้น (ห้ามใช้เน็ตบ้านหรือ Hotspot มือถือ)
 
 ---
@@ -42,7 +42,7 @@
    * แก้ไข `pg_hba.conf` อนุญาตการยืนยันตัวตนด้วยรหัสผ่าน (SCRAM-SHA-256) จากวงใน (`192.168.100.0/24`), วง Wi-Fi (`172.16.0.0/16`), และเครือข่ายทั้งหมด
 3. **สร้าง Database และ User:**
    * **Database Name:** `cedatabase`
-   * **User / Role:** `ceadmin` (Superuser / Owner, Password: `ceadmin2026`)
+   * **User / Role:** `ceadmin` (Superuser / Owner, รหัสผ่าน: `[G2-DB-PASSWORD]`)
 
 ### 3.2 โครงสร้างฐานข้อมูล (Database Schema)
 * ไฟล์สคริปต์หลักย้ายมาอยู่ที่ [`database/init.sql`](database/init.sql)
@@ -83,7 +83,7 @@
 | **Port** | `5432` | พอร์ตมาตรฐาน PostgreSQL |
 | **Database** | `cedatabase` | |
 | **User** | `ceadmin` | |
-| **Password** | `ceadmin2026` | |
+| **Password** | 🔒 ติดต่อขอด้วย Keyword: `[G2-DB-PASSWORD]` | ดูรายละเอียดที่ [HANDOVER_GUIDE.md](HANDOVER_GUIDE.md) |
 
 ### ตัวอย่างคำสั่งที่กลุ่มอื่นนำไปใช้:
 * **สำหรับกลุ่ม 1 (RADIUS Server):**
