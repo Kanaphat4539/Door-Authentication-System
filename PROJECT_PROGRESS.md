@@ -101,6 +101,27 @@
 
 ---
 
-## 📋 5. แผนงานถัดไป (Next Steps)
-1. Commit และ Push การเปลี่ยนแปลงทั้งหมดขึ้น GitHub
-2. ประสานงานส่งข้อมูลการเชื่อมต่อให้กลุ่ม 1 (FreeRADIUS) และกลุ่ม 3 (API Server)
+## 🌿 5. กฎและกระบวนการทำงาน Git (Git Workflow & Repository Rules)
+* **คลังโค้ดกลางของโครงการ (Central Repo):** [`Kanaphat4539/Door-Authentication-System`](https://github.com/Kanaphat4539/Door-Authentication-System.git)
+* **Branch หลักของกลุ่ม 2:** **`database-server`**
+* **⚠️ กฎเหล็กสำคัญ:**
+  1. **ห้าม Push ขึ้น `main` หรือ `dev` โดยตรงเด็ดขาด**
+  2. โค้ดทั้งหมดของกลุ่ม 2 จะรวมอยู่ที่ branch **`database-server`**
+  3. **เมื่อต้องการพัฒนาฟีเจอร์ใหม่:** ให้แตก Branch ออกมาจาก `database-server` เสมอ:
+     ```bash
+     git checkout database-server
+     git pull origin database-server
+     git checkout -b feature/<feature-name>
+     ```
+  4. **เมื่อฟีเจอร์เสร็จและทดสอบผ่านแล้ว:** ค่อยรวม (Merge) กลับเข้าสู่ `database-server` และ Push:
+     ```bash
+     git checkout database-server
+     git merge feature/<feature-name>
+     git push origin database-server
+     ```
+
+---
+
+## 📋 6. แผนงานถัดไป (Next Steps)
+1. ประสานงานส่งข้อมูลการเชื่อมต่อให้กลุ่ม 1 (FreeRADIUS) และกลุ่ม 3 (API Server)
+2. เมื่อมีการเพิ่มฟีเจอร์ใหม่ ให้ปฏิบัติตามกฎการแตก branch จาก `database-server`
