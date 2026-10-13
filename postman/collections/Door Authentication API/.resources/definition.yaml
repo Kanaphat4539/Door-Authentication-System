@@ -1,0 +1,4 @@
+$kind: collection
+description: API สำหรับยืนยันตัวตนกลุ่ม 3 (API-Ser)
+variables:
+  baseUrl: /

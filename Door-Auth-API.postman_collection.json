@@ -1,0 +1,118 @@
+{
+  "info": {
+    "_postman_id": "a9b8c7d6-e5f4-4321-abcd-0123456789ab",
+    "name": "Door Authentication API",
+    "description": "Postman Collection สำหรับทดสอบ API ยืนยันตัวตน กลุ่มที่ 3 (API-Ser)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://127.0.0.1:8000",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "health"
+          ]
+        },
+        "description": "ตรวจสอบสถานะการทำงานของ API Server"
+      },
+      "response": []
+    },
+    {
+      "name": "2. Login (เข้าสู่ระบบ)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// เมื่อ Login สำเร็จ ให้บันทึก access_token เข้าตัวแปร token ของ Collection อัตโนมัติ",
+              "if (pm.response.code === 200) {",
+              "    var data = pm.response.json();",
+              "    pm.collectionVariables.set('token', data.access_token);",
+              "    console.log('✅ บันทึก Access Token เรียบร้อยแล้ว:', data.access_token);",
+              "}"
+            ],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"username\": \"student\",\n  \"password\": \"local-demo-password\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/auth/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "ยิงตรวจสอบ Username & Password และรับ JWT Token (เมื่อรันคำขอนี้ Token จะถูกเก็บเข้าตัวแปร {{token}} ให้อัตโนมัติ)"
+      },
+      "response": []
+    },
+    {
+      "name": "3. Get Current User (/auth/me)",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/auth/me",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "auth",
+            "me"
+          ]
+        },
+        "description": "ดึงข้อมูลผู้ใช้ปัจจุบันจาก Token (ใช้ค่า {{token}} ที่ได้จาก Login อัตโนมัติ)"
+      },
+      "response": []
+    }
+  ]
+}

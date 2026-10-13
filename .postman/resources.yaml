@@ -1,0 +1,13 @@
+workspace:
+  id: c9ebda3f-ab46-427f-8e29-d31b04bca45c
+
+localResources:
+  specs:
+    - ../postman/specs/Door Authentication API/index.json
+resourceNameMappings:
+  specs:
+    - ../postman/specs/Door Authentication API/index.json: Door Authentication API
+
+cloudResources:
+  collections:
+    ../postman/collections/Door Authentication API Copy: 2876c13d-2272-4dba-9788-6212b02c43d5

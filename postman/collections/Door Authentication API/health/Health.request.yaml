@@ -1,0 +1,12 @@
+$kind: http-request
+description: ตรวจสอบสถานะ API
+url: "{{baseUrl}}/health"
+method: GET
+headers:
+  Accept: application/json
+body:
+  type: text
+  content: ""
+settings: {}
+examples: ./.resources/Health.resources/examples
+order: 1000

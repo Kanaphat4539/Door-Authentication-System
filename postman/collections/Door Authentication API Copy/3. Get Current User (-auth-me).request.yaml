@@ -1,0 +1,10 @@
+$kind: http-request
+name: 3. Get Current User (/auth/me)
+description: ดึงข้อมูลผู้ใช้ปัจจุบันจาก Token (ใช้ค่า {{token}} ที่ได้จาก Login อัตโนมัติ)
+url: "{{baseUrl}}/auth/me"
+method: GET
+auth:
+  type: bearer
+  credentials:
+    token: "{{token}}"
+order: 3000

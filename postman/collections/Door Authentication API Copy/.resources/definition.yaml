@@ -1,0 +1,5 @@
+$kind: collection
+description: Postman Collection สำหรับทดสอบ API ยืนยันตัวตน กลุ่มที่ 3 (API-Ser)
+variables:
+  baseUrl: http://127.0.0.1:8000
+  token: ""

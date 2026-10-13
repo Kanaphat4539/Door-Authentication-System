@@ -1,0 +1,24 @@
+$kind: http-request
+description: ยิงตรวจสอบ Username & Password และรับ JWT Token (เมื่อรันคำขอนี้ Token จะถูกเก็บเข้าตัวแปร {{token}} ให้อัตโนมัติ)
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "student",
+      "password": "local-demo-password"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      // เมื่อ Login สำเร็จ ให้บันทึก access_token เข้าตัวแปร token ของ Collection อัตโนมัติ
+      if (pm.response.code === 200) {
+          var data = pm.response.json();
+          pm.collectionVariables.set('token', data.access_token);
+          console.log('✅ บันทึก Access Token เรียบร้อยแล้ว:', data.access_token);
+      }
+    language: text/javascript
+order: 2000

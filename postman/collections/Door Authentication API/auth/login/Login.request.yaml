@@ -1,0 +1,42 @@
+$kind: http-request
+description: ตรวจสอบ username/password กับ RADIUS และออก JWT Token
+url: "{{baseUrl}}/auth/login"
+method: POST
+headers:
+  Content-Type: application/json
+  Accept: application/json
+body:
+  type: json
+  content: |-
+    {
+      "username": "student",
+      "password": "local-demo-password"
+    }
+  $type: |-
+    {
+      "title": "LoginRequest",
+      "type": "object",
+      "properties": {
+        "username": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 253,
+          "example": "student",
+          "title": "Username"
+        },
+        "password": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "example": "local-demo-password",
+          "title": "Password"
+        }
+      },
+      "required": [
+        "username",
+        "password"
+      ]
+    }
+settings: {}
+examples: ./.resources/Login.resources/examples
+order: 1000
