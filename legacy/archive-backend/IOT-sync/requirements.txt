@@ -1,0 +1,9 @@
+# Database connectivity
+pymysql
+cryptography
+
+# HTTP Client
+requests
+
+# Environment configuration
+python-dotenv

@@ -1,0 +1,32 @@
+-- 1. สร้างฐานข้อมูล
+CREATE DATABASE IF NOT EXISTS `web_app_db`
+    DEFAULT CHARACTER SET utf8mb4
+    DEFAULT COLLATE utf8mb4_unicode_ci;
+
+USE `web_app_db`;
+
+-- 2. สร้างตาราง web_app พร้อม Index และ Unique Key
+CREATE TABLE IF NOT EXISTS `web_app` (
+    `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
+    `timestamp` DATETIME NOT NULL COMMENT 'เวลาสแกน (UTC+7)',
+    `student_id` CHAR(8) NOT NULL COMMENT 'รหัสนักศึกษา 8 หลัก',
+    `student_name` VARCHAR(150) NOT NULL COMMENT 'ชื่อ-นามสกุล',
+    `room` VARCHAR(10) NOT NULL COMMENT 'รหัสห้อง เช่น LAB-401',
+    `status` ENUM('IN', 'OUT') NOT NULL COMMENT 'สถานะเข้า-ออก',
+    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาบันทึกเข้า DB',
+    
+    PRIMARY KEY (`id`),
+    INDEX `idx_timestamp` (`timestamp`),
+    INDEX `idx_student_id` (`student_id`),
+    INDEX `idx_room` (`room`),
+    INDEX `idx_status` (`status`),
+    INDEX `idx_search_composite` (`timestamp`, `room`),
+    UNIQUE KEY `uk_access_log` (`timestamp`, `student_id`, `room`, `status`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 3. สร้าง User และสิทธิ์การใช้งานสำหรับ Backend
+CREATE USER IF NOT EXISTS 'app_backend'@'%' IDENTIFIED BY 'Password1234!';
+GRANT SELECT, INSERT ON web_app_db.web_app TO 'app_backend'@'%';
+FLUSH PRIVILEGES;
+
+EXIT;

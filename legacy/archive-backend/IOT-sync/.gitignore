@@ -1,0 +1,22 @@
+# Environment variables & secrets
+.env
+
+# Python bytecode & cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+
+
+# Application runtime state & logs
+state.txt
+*.log
+*.db
+*.sqlite3
+test_*.py
+
+API_LOGS_FOR_WEBAPP.md

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="th">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title data-i18n="pageTitle">
+      ระบบติดตามการเข้าใช้ห้อง - ระบบบริหารจัดการการเข้าใช้ห้องเรียน
+    </title>
+    <link rel="icon" href="data:,">
+    <!-- Route Guard: หากยังไม่ได้เข้าสู่ระบบ ให้เปลี่ยนเส้นทางไปยังหน้า Login ทันที -->
+    <script>
+      if (!localStorage.getItem('token')) {
+        window.location.replace('../login/index.html');
+      }
+    </script>
+    <link rel="stylesheet" href="style.css" />
+    <!-- Google Fonts for Thai (Prompt) & English -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <!-- FontAwesome for icons -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header Section -->
+    <header class="app-header">
+      <div class="header-left">
+        <div class="logo-icon">
+          <img src="logoce.png" alt="Logo CE">
+        </div>
+        <div class="header-titles">
+          <h1 data-i18n="headerTitle">ระบบบริหารจัดการการเข้าใช้ห้องเรียน</h1>
+          <p data-i18n="headerSubtitle">
+            ระบบบันทึกและติดตามการเข้าใช้งานห้องเรียนอัตโนมัติ
+          </p>
+        </div>
+      </div>
+      <div class="header-right">
+        <div class="lang-toggle">
+          <button class="lang-btn active" id="btnTH">TH</button>
+          <button class="lang-btn" id="btnEN">EN</button>
+        </div>
+        <div class="user-profile-container">
+          <div class="user-profile" id="userProfileBtn">
+            <span class="status-dot"></span>
+            <span class="user-name" data-i18n="userName"
+              >อาจารย์ ลูกอ๊อดตัวน้อย</span
+            >
+            <i class="fa-solid fa-chevron-down"></i>
+          </div>
+          <div class="profile-dropdown-menu" id="profileDropdown">
+            <div class="dropdown-header">
+              <div class="dropdown-avatar-wrap">
+                <i class="fa-solid fa-circle-user" style="font-size: 40px; color: var(--accent-blue);"></i>
+                <span class="status-dot-online"></span>
+              </div>
+              <div class="dropdown-user-info">
+                <h4 data-i18n="userName">อาจารย์ ลูกอ๊อดตัวน้อย</h4>
+                <p>lecturer@university.ac.th</p>
+                <span class="role-badge" data-i18n="roleBadge">อาจารย์ผู้สอน</span>
+              </div>
+            </div>
+            <div class="dropdown-divider"></div>
+            <a href="#" class="logout-btn" id="logoutBtn">
+              <i class="fa-solid fa-arrow-right-from-bracket"></i>
+              <span data-i18n="logoutBtn">ออกจากระบบ</span>
+            </a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Dashboard Container -->
+    <main class="dashboard-container">
+      <!-- Top Bar Title & Refresh -->
+      <div class="dashboard-title-row">
+        <h2 data-i18n="dashboardTitle">ระบบติดตามการเข้าใช้ห้อง</h2>
+        <button class="refresh-btn" id="refreshBtn">
+          <i class="fa-solid fa-rotate-right"></i>
+          <span data-i18n="refreshBtn">รีเฟรชข้อมูล</span>
+        </button>
+      </div>
+
+      <!-- Statistics Cards Grid -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-subtitle" data-i18n="stat1Title">
+            ห้องเรียนที่เปิดใช้งานอยู่ขณะนี้
+          </div>
+          <div class="stat-desc" data-i18n="stat1Desc">
+            สถานะห้องเรียนที่เปิดใช้งาน
+          </div>
+          <div class="stat-number">
+            <span id="activeRoomsNum">0</span>
+            <span class="stat-total" data-i18n="stat1Unit">/ 8 ห้อง</span>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-subtitle" data-i18n="stat2Title">
+            จำนวนการเข้าใช้งานวันนี้
+          </div>
+          <div class="stat-desc" data-i18n="stat2Desc">
+            ยอดการเข้าห้องเรียนวันนี้
+          </div>
+          <div class="stat-number">
+            <span id="totalAccessNum">0</span>
+            <span class="stat-unit" data-i18n="stat2Unit">ครั้ง</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Search Section -->
+      <div class="filter-section">
+        <div class="filter-group">
+          <label for="studentId" data-i18n="labelStudentId">รหัสนักศึกษา</label>
+          <div class="input-with-icon">
+            <i class="fa-solid fa-hashtag"></i>
+            <input
+              type="text"
+              id="studentId"
+              placeholder="ระบุรหัสนักศึกษา..."
+              data-i18n-ph="phStudentId"
+            />
+          </div>
+        </div>
+
+        <!-- Filter Search Room -->
+        <div class="filter-group">
+          <label for="roomSelect" data-i18n="labelClassroom">ห้องเรียน</label>
+          <div class="select-wrapper">
+            <i class="fa-solid fa-door-open"></i>
+            <select id="roomSelect">
+              <option value="all" data-i18n="optAllRooms">ทุกห้องเรียน</option>
+              <option value="B217">B217</option>
+              <option value="B218">B218</option>
+              <option value="B316">B316</option>
+              <option value="B317">B317</option>
+              <option value="E107">E107</option>
+              <option value="E111">E111</option>
+              <option value="E112">E112</option>
+              <option value="B113">B113</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label for="dateSelect" data-i18n="labelRecordDate"
+            >วันที่บันทึก</label>
+          <div class="input-with-icon">
+            <i class="fa-regular fa-calendar"></i>
+            <input type="date" id="dateSelect" />
+          </div>
+        </div>
+
+        <!-- Filter Search Time -->
+        <div class="filter-group">
+          <label for="timeSelect" data-i18n="labelTimeSlot">ช่วงเวลา</label>
+          <div class="select-wrapper">
+            <i class="fa-regular fa-clock"></i>
+            <select id="timeSelect">
+              <option value="all" data-i18n="optAllTime">ทุกช่วงเวลา</option>
+              <option value="08:00">08:00 - 09:00 น.</option>
+              <option value="09:00">09:00 - 10:00 น.</option>
+              <option value="10:00">10:00 - 11:00 น.</option>
+              <option value="11:00">11:00 - 12:00 น.</option>
+              <option value="12:00">12:00 - 13:00 น.</option>
+              <option value="13:00">13:00 - 14:00 น.</option>
+              <option value="14:00">14:00 - 15:00 น.</option>
+              <option value="15:00">15:00 - 16:00 น.</option>
+              <option value="16:00">16:00 - 17:00 น.</option>
+              <option value="17:00">17:00 - 18:00 น.</option>
+              <option value="18:00">18:00 - 19:00 น.</option>
+              <option value="19:00">19:00 - 20:00 น.</option>
+              <option value="20:00">20:00 - 21:00 น.</option>
+              <option value="21:00">21:00 - 22:00 น.</option>
+              <option value="22:00">22:00 - 23:00 น.</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="filter-group search-btn-group">
+          <button class="search-action-btn" id="searchBtn" title="ค้นหา">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- History Table Section -->
+      <div class="table-card">
+        <div class="table-header-info">
+          <div class="history-icon-wrapper">
+            <div class="history-icon">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+            </div>
+            <div>
+              <h3 data-i18n="tableHeaderTitle">
+                ประวัติการเข้า-ออกห้องเรียนล่าสุด
+              </h3>
+              <p data-i18n="tableHeaderSub">
+                บันทึกการแตะบัตรห้องเรียนแบบเรียลไทม์ • ซิงค์อัตโนมัติทุก 10
+                วินาที
+              </p>
+            </div>
+          </div>
+          <div class="live-stream-badge" id="liveBadge" style="display: none">
+            <span class="live-dot"></span> Live Stream
+          </div>
+        </div>
+
+        <div class="table-responsive">
+          <table>
+            <thead>
+              <tr>
+                <th data-i18n="thTimestamp">วันและเวลา</th>
+                <th data-i18n="thStudentId">รหัสนักศึกษา</th>
+                <th data-i18n="thFullName">ชื่อ-นามสกุล</th>
+                <th data-i18n="thClassroom">ห้องเรียน</th>
+                <th data-i18n="thStatus">สถานะการเข้าใช้ห้อง</th>
+              </tr>
+            </thead>
+            <tbody id="logTableBody">
+              <tr class="empty-row">
+                <td colspan="5">
+                  <div class="empty-state-container">
+                    <i class="fa-regular fa-folder-open empty-state-icon"></i>
+                    <div class="empty-state-title" data-i18n="noData">
+                      ยังไม่มีข้อมูลในขณะนี้
+                    </div>
+                    <div class="empty-state-desc" data-i18n="noDataSub">
+                      ระบบจะแสดงรายการอัตโนมัติเมื่อมีการบันทึกการแตะบัตรเข้าห้องเรียน
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination Component -->
+        <div class="pagination-container">
+          <span class="pagination-info" id="paginationInfo" data-i18n="paginationInfo"
+            >แสดง 0 ถึง 0 จากทั้งหมด 0 รายการ</span
+          >
+          <div class="pagination-buttons">
+            <button class="page-btn" id="prevPageBtn" disabled>
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <button class="page-btn active" id="currentPageBtn">1</button>
+            <button class="page-btn" id="nextPageBtn" disabled>
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- คนที่ 1: การตั้งค่าระบบ Auth และ API Configuration -->
+    <script src="../login/js/config.js"></script>
+    <!-- คนที่ 2: คอมโพเนนต์ UI, การเรนเดอร์ตาราง และ Profile Dropdown -->
+    <script src="script.js"></script>
+    <!-- คนที่ 3: ระบบจัดการ API Service สำหรับเชื่อมต่อไปยัง Backend (คนที่ 6) -->
+    <script src="../src/api/logService.js"></script>
+    <!-- คนที่ 3: Controller สำหรับ State Management, Pagination, Search และ Auto-Sync 10 วินาที -->
+    <script src="../src/dashboardController.js"></script>
+  </body>
+</html>

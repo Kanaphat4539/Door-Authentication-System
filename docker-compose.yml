@@ -1,0 +1,65 @@
+version: '3.8'
+
+services:
+  db:
+    image: mariadb:10.11
+    container_name: g4_mariadb
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: RootPassword123!
+      MYSQL_DATABASE: web_app_db
+      MYSQL_USER: app_backend
+      MYSQL_PASSWORD: Password1234!
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./database:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: g4_backend_fastapi
+    restart: always
+    ports:
+      - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_PORT=3306
+      - DB_NAME=web_app_db
+      - DB_USER=app_backend
+      - DB_PASSWORD=Password1234!
+      - DATABASE_URL=mysql+pymysql://app_backend:Password1234!@db:3306/web_app_db
+      - JWT_SECRET=super_secret_kmitl_security_key_group4
+      - JWT_ALGORITHM=HS256
+      - ACCESS_TOKEN_EXPIRE_MINUTES=120
+      - GROUP3_AUTH_URL=http://192.168.100.103:8000/auth/login
+      - USE_MOCK_FALLBACK=true
+      - IOT_LOG_URL=http://192.168.100.106/api/logs
+      - POLL_INTERVAL_SECONDS=20
+      - IOT_SYNC_ENABLED=false
+    depends_on:
+      db:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: g4_frontend_nextjs
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api/v1
+    depends_on:
+      - backend
+
+volumes:
+  mariadb_data:
