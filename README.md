@@ -7,6 +7,8 @@
 
 ## 📚 เอกสารประกอบโครงการ
 - 📖 [คู่มือการเข้าใช้งานเซิร์ฟเวอร์เสมือน (HOWTO-VM.md)](HOWTO-VM.md) — ข้อมูล IP, SSH Port, และขั้นตอนการรีโมตเข้าเครื่อง Proxmox VM
+- 📋 [ข้อมูลตอบกลับกลุ่ม 1 Radius-Ser (REPLY-GROUP1.md)](REPLY-GROUP1.md) — ข้อกำหนด RADIUS (PAP, Message-Authenticator), สิ่งที่ต้องขอจากกลุ่ม 2 และคู่มือการทดสอบ
+- 📋 [ข้อมูลประสานงานกลุ่ม 2 Database-Ser (REPLY-GROUP2.md)](REPLY-GROUP2.md) — ข้อกำหนดฐานข้อมูล, โครงสร้างตาราง (DDL), และการทดสอบ Database
 - 📋 [ข้อมูลตอบกลับกลุ่ม 4 Web-App (REPLY-GROUP4.md)](REPLY-GROUP4.md) — สเปก API, Request/Response, และข้อความประสานงานกับทีม Web-App
 - 🛠️ [คู่มือเชิงลึกของ Auth API (auth-api/README.md)](auth-api/README.md) — โครงสร้างโค้ดและการทดสอบเชิงลึก
 
