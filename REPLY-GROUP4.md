@@ -33,41 +33,52 @@
 ถูกต้องแล้วครับ! ฝั่งเรารับ JSON รูปแบบนี้เลย:
 
 {
-  "username": "student",
-  "password": "local-demo-password"
+  "username": "6501234567",
+  "password": "your-password"
 }
 
 • ข้อจำกัด (Validation):
-  - username: ความยาว 1 – 253 ตัวอักษร (ห้ามเว้นว่าง, ไม่เกิน 253 UTF-8 bytes)
+  - username: รหัสนักศึกษา / ผู้ใช้งาน ความยาว 1 – 253 ตัวอักษร (ห้ามเว้นว่าง, ไม่เกิน 253 UTF-8 bytes)
   - password: ความยาว 1 – 128 ตัวอักษร (ห้ามเว้นว่าง, ไม่มี NUL byte)
 
 ════════════════════════════════════════════════════════════
-4. การตอบกลับ Role และรูปแบบ Response
+4. การตอบกลับ Token และโครงสร้าง JWT Payload (role & username)
 ════════════════════════════════════════════════════════════
-ในระบบปัจจุบันของกลุ่ม 3 ยังไม่มีฟิลด์ role ส่งกลับมาใน Response ครับ โดยระบบของกลุ่ม 3 ทำหน้าที่ตรวจตัวตนกับ RADIUS และออก JWT Access Token ให้:
-
 ✅ เมื่อเข้าสู่ระบบสำเร็จ (HTTP 200 OK):
 จะได้รับ JWT Token กลับไป:
 {
-  "access_token": "eyJhbGciOiJIUzI1Ni...",
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer",
-  "expires_in": 900
+  "expires_in": 3600
 }
-(Token มีอายุ 15 นาที / 900 วินาที)
 
-🔍 การตรวจ Token และดึง Username (GET /auth/me):
-หากกลุ่ม 4 ต้องการตรวจสอบความถูกต้องของ Token หรือดึง Username สามารถยิงไปที่:
+🔑 โครงสร้าง Decoded JWT Payload (กลุ่ม 4 สามารถแกะอ่านได้ทันที):
+{
+  "sub": "6501234567",
+  "username": "6501234567",
+  "role": "student",
+  "iat": 1729330000,
+  "exp": 1729333600,
+  "iss": "auth-service",
+  "aud": "door-system"
+}
+
+• รายละเอียดฟิลด์ใน JWT Payload:
+  - username: รหัสนักศึกษาของผู้ใช้งาน (เช่น "6501234567")
+  - role: สิทธิ์ของผู้ใช้งาน (เช่น "student", "teacher", "admin")
+  - sub: รหัสนักศึกษา (Subject ตามมาตรฐาน JWT)
+  - exp / iat: เวลาหมดอายุและเวลาออก Token (Unix timestamp)
+  - iss / aud: Issuer ("auth-service") และ Audience ("door-system")
+
+🔍 การตรวจ Token และดึงข้อมูลผู้ใช้ (GET /auth/me):
+หากกลุ่ม 4 ต้องการตรวจสอบความถูกต้องของ Token หรือดึงข้อมูลผู้ใช้ สามารถยิงไปที่:
 • Path: GET /auth/me
 • Header: Authorization: Bearer <access_token>
 • Response (HTTP 200 OK):
   {
-    "username": "student"
+    "username": "6501234567",
+    "role": "student"
   }
-
-💡 เรื่อง Role ของผู้ใช้ (เช่น "student", "teacher", "admin"):
-เนื่องจากข้อมูล Role ถูกเก็บอยู่ที่ฐานข้อมูลกลางของ กลุ่ม 2 (Database-Ser) ในตาราง roles / users:
-• แนวทางที่ 1 (แนะนำ): เมื่อกลุ่ม 4 ได้รับ JWT และ username จากกลุ่ม 3 แล้ว ให้กลุ่ม 4 นำ username ไป Query ดึง Role/สิทธิ์ต่อจาก Database Server ของกลุ่ม 2 (192.168.100.102:5432 หรือ 3306)
-• แนวทางที่ 2: หากทางกลุ่ม 4 จำเป็นต้องให้กลุ่ม 3 เป็นผู้คืน role มาใน JSON Response หรือฝังใน JWT ทันที รบกวนแจ้งได้เลยครับ ทางกลุ่ม 3 จะได้เชื่อมต่อ Database กลุ่ม 2 เพิ่มเติม
 
 ════════════════════════════════════════════════════════════
 5. สถานะ Error Codes ที่ควรรองรับ
@@ -124,13 +135,13 @@
 ##### Request Body
 ```json
 {
-  "username": "student",
-  "password": "local-demo-password"
+  "username": "6501234567",
+  "password": "your-password"
 }
 ```
 
 ##### Validation Rules:
-- `username`: String ความยาว 1 ถึง 253 ตัวอักษร ห้ามเป็นค่าว่าง
+- `username`: String ความยาว 1 ถึง 253 ตัวอักษร (รหัสนักศึกษา / ผู้ใช้งาน) ห้ามเป็นค่าว่าง
 - `password`: String ความยาว 1 ถึง 128 ตัวอักษร ห้ามมีอักขระ `\x00` (NUL)
 
 ##### Success Response (HTTP 200 OK)
@@ -138,10 +149,10 @@
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer",
-  "expires_in": 900
+  "expires_in": 3600
 }
 ```
-*อายุ Token:* 900 วินาที (15 นาที)
+*อายุ Token:* 3600 วินาที (1 ชั่วโมง)
 
 ##### Error Responses
 - **401 Unauthorized:** บัญชีผู้ใช้หรือรหัสผ่านไม่ถูกต้อง
@@ -162,7 +173,7 @@
     ]
   }
   ```
-- **503 Service Unavailable:** ไม่สามารถติดต่อ RADIUS Server ได้ หรือระบบยังไม่ได้ตั้งค่า Signing Key
+- **503 Service Unavailable:** ไม่สามารถติดต่อ RADIUS Server หรือ Database ได้
   ```json
   {
     "detail": "Authentication service is temporarily unavailable"
@@ -171,8 +182,45 @@
 
 ---
 
-#### 2.2 ตรวจสอบตัวตนด้วย Token (GET `/auth/me`)
-ใช้สำหรับตรวจสอบว่า JWT Token ยังถูกต้องและไม่หมดอายุ พร้อมดึง Username ของผู้ถือ Token
+#### 2.2 โครงสร้างข้อมูลภายใน JWT Access Token (JWT Payload Specification)
+เมื่อทางกลุ่ม 4 ได้รับ `access_token` สามารถนำไป decode (เช่น ผ่าน library `jwt-decode`, `jose` หรือ `jsonwebtoken`) เพื่ออ่านข้อมูลผู้ใช้และ role ได้ทันทีโดยไม่ต้องส่ง request ซ้ำ:
+
+##### JWT Header
+```json
+{
+  "alg": "HS256",
+  "typ": "JWT"
+}
+```
+
+##### Decoded JWT Payload
+```json
+{
+  "sub": "6501234567",
+  "username": "6501234567",
+  "role": "student",
+  "iat": 1729330000,
+  "exp": 1729333600,
+  "iss": "auth-service",
+  "aud": "door-system"
+}
+```
+
+##### คำอธิบายฟิลด์ใน JWT Payload:
+| ฟิลด์ | ชนิดข้อมูล | คำอธิบาย | ตัวอย่าง |
+|---|---|---|---|
+| `sub` | string | Subject รหัสนักศึกษา/ผู้ใช้งานตามมาตรฐาน JWT | `"6501234567"` |
+| `username` | string | รหัสนักศึกษาของผู้ใช้งาน | `"6501234567"` |
+| `role` | string | สิทธิ์การใช้งานของผู้ใช้ (`student`, `teacher`, `admin`) | `"student"` |
+| `iat` | integer | เวลาที่สร้าง Token (Unix Timestamp วินาที) | `1729330000` |
+| `exp` | integer | เวลาที่ Token หมดอายุ (Unix Timestamp วินาที) | `1729333600` |
+| `iss` | string | ผู้สร้าง Token (Issuer) | `"auth-service"` |
+| `aud` | string | ผู้รับ Token (Audience) | `"door-system"` |
+
+---
+
+#### 2.3 ตรวจสอบตัวตนด้วย Token (GET `/auth/me`)
+ใช้สำหรับตรวจสอบว่า JWT Token ยังถูกต้องและไม่หมดอายุ พร้อมดึง Username และ Role ของผู้ถือ Token
 
 - **URL:** `http://192.168.100.103:8000/auth/me`
 - **Method:** `GET`
@@ -181,7 +229,8 @@
 ##### Success Response (HTTP 200 OK)
 ```json
 {
-  "username": "student"
+  "username": "6501234567",
+  "role": "student"
 }
 ```
 
@@ -195,7 +244,7 @@
 
 ---
 
-#### 2.3 ตรวจสอบสถานะการทำงานของเซิร์ฟเวอร์ (GET `/health`)
+#### 2.4 ตรวจสอบสถานะการทำงานของเซิร์ฟเวอร์ (GET `/health`)
 ใช้ตรวจสอบว่า Service ของกลุ่ม 3 เปิดใช้งานและรับ Request ได้ตามปกติ
 
 - **URL:** `http://192.168.100.103:8000/health`
@@ -217,9 +266,9 @@
 # 1. Login เพื่อรับ Token
 curl -X POST "http://192.168.100.103:8000/auth/login" \
   -H "Content-Type: application/json" \
-  -d '{"username":"student","password":"local-demo-password"}'
+  -d '{"username":"6501234567","password":"your-password"}'
 
-# 2. นำ Token ไปเรียกดู Username
+# 2. นำ Token ไปเรียกดู Username และ Role
 curl -X GET "http://192.168.100.103:8000/auth/me" \
   -H "Authorization: Bearer <YOUR_ACCESS_TOKEN>"
 ```
@@ -246,7 +295,7 @@ async function login(username: string, password: string) {
   return data;
 }
 
-// ฟังก์ชันดึง Username จาก Token
+// ฟังก์ชันดึง Username และ Role จาก Token ผ่าน API
 async function getCurrentUser(token: string) {
   const response = await fetch("http://192.168.100.103:8000/auth/me", {
     method: "GET",
@@ -259,7 +308,7 @@ async function getCurrentUser(token: string) {
     throw new Error("Token ไม่ถูกต้องหรือหมดอายุ");
   }
 
-  return await response.json(); // { username: "student" }
+  return await response.json(); // { username: "6501234567", role: "student" }
 }
 ```
 
