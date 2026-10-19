@@ -41,6 +41,7 @@ class AuditLogResponse(BaseModel):
     message: str
     action: str
     username: str
+    role: Optional[str] = "teacher"
 
 
 # -------------------------------------------------------------

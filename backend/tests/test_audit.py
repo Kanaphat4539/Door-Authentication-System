@@ -12,7 +12,7 @@ def test_audit_log_sql_execution():
         mock_conn = MagicMock()
         mock_engine_begin.return_value.__enter__.return_value = mock_conn
 
-        success = _execute_insert(username="teacher_ajarn", action="Login")
+        success = _execute_insert(username="teacher_ajarn", action="Login", role="teacher")
         assert success is True
 
         assert mock_conn.execute.called
@@ -20,18 +20,18 @@ def test_audit_log_sql_execution():
         sql_obj = call_args[0][0]
         params = call_args[0][1]
 
-        assert "INSERT INTO user (username, action, timestamp)" in str(sql_obj)
-        assert "VALUES (:username, :action, NOW())" in str(sql_obj)
-        assert params == {"username": "teacher_ajarn", "action": "Login"}
+        assert "INSERT INTO user (username, role, action, timestamp)" in str(sql_obj)
+        assert "VALUES (:username, :role, :action, NOW())" in str(sql_obj)
+        assert params == {"username": "teacher_ajarn", "role": "teacher", "action": "Login"}
 
 
 def test_audit_log_exception_safety():
     with patch("app.services.audit_service.engine.begin", side_effect=Exception("Database Connection Timed Out")):
-        result = _execute_insert(username="teacher_ajarn", action="Login")
+        result = _execute_insert(username="teacher_ajarn", action="Login", role="teacher")
         assert result is False
 
 
-def test_audit_log_endpoint_with_valid_token():
+def test_audit_log_endpoint_with_valid_teacher_token():
     token = create_access_token(username="teacher_ajarn", role="teacher")
 
     res1 = client.post(
@@ -44,6 +44,23 @@ def test_audit_log_endpoint_with_valid_token():
     assert data1["status"] == "success"
     assert data1["action"] == "Login>Search>Student"
     assert data1["username"] == "teacher_ajarn"
+    assert data1["role"] == "teacher"
+
+
+def test_audit_log_endpoint_with_valid_student_token():
+    token = create_access_token(username="65010234", role="student")
+
+    res = client.post(
+        "/api/v1/audit/log",
+        headers={"Authorization": f"Bearer {token}"},
+        json={"action": "Login>ViewMyRoom"},
+    )
+    assert res.status_code == 200
+    data = res.json()
+    assert data["status"] == "success"
+    assert data["action"] == "Login>ViewMyRoom"
+    assert data["username"] == "65010234"
+    assert data["role"] == "student"
 
 
 def test_audit_log_endpoint_unauthorized():

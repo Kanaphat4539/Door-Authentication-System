@@ -16,16 +16,18 @@ def record_audit_log(
     [คนที่ 1-3 เรียกใช้] บันทึกเหตุการณ์การใช้งานหน้าเว็บลงตาราง user
     """
     username = current_user.get("sub", "unknown")
+    role = current_user.get("role", "teacher")
     if not payload.action:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Action description is required",
         )
 
-    success = log_user_action(username=username, action=payload.action, background=True)
+    success = log_user_action(username=username, action=payload.action, role=role, background=True)
     return AuditLogResponse(
         status="success",
         message="Audit log queued successfully" if success else "Failed to record audit log",
         action=payload.action,
         username=username,
+        role=role,
     )

@@ -29,6 +29,7 @@ def search_access_logs(
     - ดึงข้อมูลและตัดหน้าจาก MariaDB ตาราง web_app (คนที่ 6 & 7)
     """
     teacher_name = current_teacher.get("sub", "unknown")
+    teacher_role = current_teacher.get("role", "teacher")
     search_keyword = student_id or keyword or None
 
     # บันทึก Audit Log ลงตาราง user (คนที่ 4 & 7)
@@ -42,7 +43,7 @@ def search_access_logs(
 
     if audit_actions:
         action_summary = "; ".join(audit_actions)
-        log_user_action(username=teacher_name, action=action_summary)
+        log_user_action(username=teacher_name, action=action_summary, role=teacher_role)
 
     # เรียกใช้ Search Service ของคนที่ 6
     result = get_dashboard_data(

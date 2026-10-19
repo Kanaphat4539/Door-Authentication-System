@@ -31,12 +31,13 @@ class WebAppLog(Base):
 
 class UserAudit(Base):
     """
-    ตาราง user สำหรับเก็บประวัติการสืบค้นและกระทำบนหน้าเว็บของอาจารย์ (Member 4, 7)
+    ตาราง user สำหรับเก็บประวัติการสืบค้นและกระทำบนหน้าเว็บของผู้ใช้งาน (Member 4, 7)
     """
     __tablename__ = "user"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     username = Column(String(100), nullable=False, index=True)
+    role = Column(Enum("teacher", "student", name="user_role_enum"), nullable=False, default="teacher", server_default=text("'teacher'"), index=True)
     action = Column(String(255), nullable=False)
     timestamp = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"), index=True)
 
@@ -44,6 +45,7 @@ class UserAudit(Base):
         return {
             "id": self.id,
             "username": self.username,
+            "role": self.role,
             "action": self.action,
             "timestamp": self.timestamp.isoformat() if self.timestamp else None,
         }

@@ -17,7 +17,9 @@ INSERT INTO `web_app` (`timestamp`, `student_id`, `student_name`, `room`, `statu
 ON DUPLICATE KEY UPDATE `created_at` = CURRENT_TIMESTAMP;
 
 -- ข้อมูลจำลองสำหรับประวัติการสืบค้น (Audit Log)
-INSERT INTO `user` (`username`, `action`, `timestamp`) VALUES
-('teacher_ajarn', 'Login', '2026-10-14 12:00:00'),
-('teacher_ajarn', 'Search>room=B217', '2026-10-14 12:01:15'),
-('teacher_ajarn', 'Search>keyword=65010234', '2026-10-14 12:05:30');
+INSERT INTO `user` (`username`, `role`, `action`, `timestamp`) VALUES
+('teacher_ajarn', 'teacher', 'Login', '2026-10-14 12:00:00'),
+('teacher_ajarn', 'teacher', 'Search>room=B217', '2026-10-14 12:01:15'),
+('teacher_ajarn', 'teacher', 'Search>keyword=65010234', '2026-10-14 12:05:30'),
+('student_somchai', 'student', 'Login', '2026-10-14 13:00:00'),
+('student_somchai', 'student', 'Search>keyword=student_somchai', '2026-10-14 13:01:00');
