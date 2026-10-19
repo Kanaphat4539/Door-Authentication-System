@@ -9,9 +9,9 @@ import LogTable from '../../components/LogTable';
 import Pagination from '../../components/Pagination';
 import { useAuth } from '../../context/AuthContext';
 import { useLanguage } from '../../context/LanguageContext';
-import { fetchDashboardData, recordAuditLog } from '../../services/api';
+import { fetchDashboardData, recordAuditLog, triggerIoTSync } from '../../services/api';
 import { FilterParams, LogItem, Pagination as PaginationType } from '../../types';
-import { RotateCw, AlertTriangle, ShieldCheck } from 'lucide-react';
+import { RotateCw, AlertTriangle, ShieldCheck, Radio, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -42,6 +42,8 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
   const [isOfflineMode, setIsOfflineMode] = useState<boolean>(false);
+  const [isSyncingIoT, setIsSyncingIoT] = useState<boolean>(false);
+  const [syncMessage, setSyncMessage] = useState<string>('');
 
   // Route Guard
   useEffect(() => {
@@ -134,10 +136,36 @@ export default function DashboardPage() {
     loadData(resetFilters);
   };
 
+  // Synchronize IoT logs manually
+  const handleSyncIoT = async () => {
+    if (!token) return;
+    setIsSyncingIoT(true);
+    setSyncMessage('');
+    try {
+      const res = await triggerIoTSync(token);
+      if (res && res.message) {
+        setSyncMessage(`ซิงก์สำเร็จ (${res.inserted_count ?? 0} รายการใหม่)`);
+      } else {
+        setSyncMessage('ดึงข้อมูล IoT สำเร็จ');
+      }
+      setTimeout(() => setSyncMessage(''), 4000);
+      await loadData(filters);
+    } catch (err) {
+      console.warn('Sync IoT error:', err);
+    } finally {
+      setIsSyncingIoT(false);
+    }
+  };
+
   // Refresh data button
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     setIsRefreshing(true);
-    loadData(filters);
+    try {
+      await triggerIoTSync(token);
+    } catch {
+      // Non-blocking
+    }
+    await loadData(filters);
   };
 
   // Pagination page change
@@ -180,13 +208,32 @@ export default function DashboardPage() {
             </p>
           </div>
 
-          <div className="flex items-center space-x-3">
+          <div className="flex flex-wrap items-center gap-2.5">
+            {syncMessage && (
+              <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                <span>{syncMessage}</span>
+              </span>
+            )}
+
             {isOfflineMode && (
               <span className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-50 text-amber-700 border border-amber-200">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-500" />
                 <span>{t('offlineMode')}</span>
               </span>
             )}
+
+            {/* IoT Sync Button */}
+            <button
+              onClick={handleSyncIoT}
+              disabled={isLoading || isSyncingIoT}
+              id="syncIotBtn"
+              title="ดึงประวัติการสแกนบัตรล่าสุดจาก IoT Server (http://172.16.10.200:3000/api/logs)"
+              className="inline-flex items-center space-x-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-sm font-medium shadow-sm transition-all disabled:opacity-50"
+            >
+              <Radio className={`w-4 h-4 text-blue-600 ${isSyncingIoT ? 'animate-pulse' : ''}`} />
+              <span>{isSyncingIoT ? 'กำลังซิงก์ IoT...' : 'ดึงข้อมูล IoT'}</span>
+            </button>
             
             <button
               onClick={handleRefresh}

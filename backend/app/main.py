@@ -19,7 +19,7 @@ logger = logging.getLogger("main")
 
 async def background_iot_poller():
     """Background task for polling IoT logs periodically when enabled"""
-    logger.info(f"🚀 IoT Polling task started (Interval: {settings.POLL_INTERVAL_SECONDS}s)")
+    logger.info(f"🚀 IoT Polling task started (Interval: {settings.POLL_INTERVAL_SECONDS}s, URL: {settings.IOT_LOG_URL})")
     while True:
         try:
             fetch_and_sync_iot_logs()
@@ -30,7 +30,12 @@ async def background_iot_poller():
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup
+    # Startup: sync immediately
+    try:
+        fetch_and_sync_iot_logs()
+    except Exception as e:
+        logger.warning(f"Initial IoT sync error: {e}")
+
     poller_task = None
     if settings.IOT_SYNC_ENABLED:
         poller_task = asyncio.create_task(background_iot_poller())

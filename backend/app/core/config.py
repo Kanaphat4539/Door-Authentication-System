@@ -17,7 +17,7 @@ class Settings:
 
     # Central Auth Service (Group 3 on Proxmox)
     GROUP3_AUTH_URL: str = os.getenv("GROUP3_AUTH_URL", "http://192.168.100.103:8000/auth/login")
-    GROUP3_TIMEOUT_SECONDS: float = float(os.getenv("GROUP3_TIMEOUT_SECONDS", "5.0"))
+    GROUP3_TIMEOUT_SECONDS: float = float(os.getenv("GROUP3_TIMEOUT_SECONDS", "2.0"))
     USE_MOCK_FALLBACK: bool = os.getenv("USE_MOCK_FALLBACK", "true").lower() in ("true", "1", "yes")
 
     # Database Configuration (Member 7 - MariaDB / MySQL)
@@ -32,9 +32,9 @@ class Settings:
     )
 
     # IoT Ingestion & Sync (Member 5 - Group 6 IoT Server)
-    IOT_LOG_URL: str = os.getenv("IOT_LOG_URL", "http://192.168.100.106/api/logs")
+    IOT_LOG_URL: str = os.getenv("IOT_LOG_URL", "http://172.16.10.200:3000/api/logs")
     POLL_INTERVAL_SECONDS: int = int(os.getenv("POLL_INTERVAL_SECONDS", "20"))
-    IOT_SYNC_ENABLED: bool = os.getenv("IOT_SYNC_ENABLED", "false").lower() in ("true", "1", "yes")
+    IOT_SYNC_ENABLED: bool = os.getenv("IOT_SYNC_ENABLED", "true").lower() in ("true", "1", "yes")
 
     # CORS settings
     CORS_ORIGINS: List[str] = ["*"]

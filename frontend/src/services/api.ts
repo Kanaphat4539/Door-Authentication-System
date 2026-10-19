@@ -158,3 +158,40 @@ export async function recordAuditLog(action: string, token: string): Promise<voi
     // Non-blocking
   }
 }
+
+export async function triggerIoTSync(token?: string, url?: string): Promise<any> {
+  const query = url ? `?url=${encodeURIComponent(url)}` : '';
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  };
+  if (token) {
+    headers['Authorization'] = `Bearer ${token}`;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE_URL}/iot/sync${query}`, {
+      method: 'POST',
+      headers,
+    });
+    if (!res.ok) {
+      throw new Error(`Sync failed with status: ${res.status}`);
+    }
+    return await res.json();
+  } catch (err: any) {
+    console.warn('IoT sync request warning:', err.message);
+    return null;
+  }
+}
+
+export async function getIoTSyncStatus(): Promise<any> {
+  try {
+    const res = await fetch(`${API_BASE_URL}/iot/status`);
+    if (res.ok) {
+      return await res.json();
+    }
+  } catch (err) {
+    console.warn('Failed to get IoT status:', err);
+  }
+  return null;
+}
+

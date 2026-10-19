@@ -1,0 +1,178 @@
+[
+  {
+    "id": 22,
+    "timestamp": "2026-10-13 17:46:51",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 21,
+    "timestamp": "2026-10-13 17:46:10",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 20,
+    "timestamp": "2026-10-13 17:21:22",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 19,
+    "timestamp": "2026-10-13 17:20:12",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 18,
+    "timestamp": "2026-10-13 17:20:06",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 17,
+    "timestamp": "2026-10-13 16:43:45",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 16,
+    "timestamp": "2026-10-13 16:37:32",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 15,
+    "timestamp": "2026-10-13 16:35:48",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 14,
+    "timestamp": "2026-10-13 16:35:40",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 13,
+    "timestamp": "2026-10-13 16:32:25",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 12,
+    "timestamp": "2026-10-13 16:12:37",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 11,
+    "timestamp": "2026-10-13 16:11:53",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 10,
+    "timestamp": "2026-10-13 16:05:51",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 9,
+    "timestamp": "2026-10-13 16:05:46",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 8,
+    "timestamp": "2026-10-13 15:50:12",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 7,
+    "timestamp": "2026-10-13 15:50:09",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 6,
+    "timestamp": "2026-10-13 15:25:03",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 5,
+    "timestamp": "2026-10-13 15:25:01",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 4,
+    "timestamp": "2026-10-13 15:06:37",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 3,
+    "timestamp": "2026-10-13 15:06:23",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 2,
+    "timestamp": "2026-10-09 15:14:13",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 1,
+    "timestamp": "2026-10-09 15:04:56",
+    "student_id": "67200324",
+    "student_name": "Leo Ev (67200324)",
+    "room": "B317",
+    "status": "IN"
+  }
+]

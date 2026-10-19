@@ -1,8 +1,10 @@
 import logging
+import time as pytime
 from datetime import date, datetime, time, timedelta
 from typing import Any, Dict, List, Optional
 from sqlalchemy import text
 from app.db.database import engine
+from app.services.iot_service import get_synced_logs, fetch_and_sync_iot_logs
 
 logger = logging.getLogger(__name__)
 
@@ -39,11 +41,16 @@ ROOM_SUB_MAP = {
     "SMART-205": "Building 2 / Smart Room",
 }
 
+# Circuit breaker สำหรับ MariaDB เมื่อออฟไลน์
+_last_db_failure_time: float = 0.0
+_DB_COOLDOWN_SECONDS: float = 60.0
+
 
 def _as_datetime(value: datetime | str) -> datetime:
     if isinstance(value, datetime):
         return value
-    return datetime.strptime(str(value), "%Y-%m-%d %H:%M:%S")
+    clean_val = str(value).strip().strip("[]")
+    return datetime.strptime(clean_val, "%Y-%m-%d %H:%M:%S")
 
 
 def _format_log(log: Dict[str, Any], lang: str) -> Dict[str, Any]:
@@ -69,7 +76,7 @@ def _format_log(log: Dict[str, Any], lang: str) -> Dict[str, Any]:
         "roomSub": room_sub,
         "date": displayed_date,
         "time": displayed_time,
-        "status": str(log["status"]),
+        "status": str(log["status"]).upper(),
     }
 
 
@@ -100,9 +107,23 @@ def _matches(
                 return False
         except ValueError:
             pass
-    if status and status != "all" and log["status"] != status:
+    if status and status != "all" and str(log["status"]).upper() != status.upper():
         return False
     return True
+
+
+def get_all_available_logs() -> List[Dict[str, Any]]:
+    """รวบรวม Logs ที่ซิงก์มาจาก IoT หากยังไม่มีให้พยายาม Pull อัตโนมัติ"""
+    synced = get_synced_logs()
+    if not synced:
+        try:
+            fetch_and_sync_iot_logs()
+            synced = get_synced_logs()
+        except Exception:
+            pass
+    if synced:
+        return synced
+    return MOCK_LOGS
 
 
 def _filtered_mock(
@@ -112,8 +133,9 @@ def _filtered_mock(
     time_slot: Optional[str],
     status: Optional[str],
 ) -> List[Dict[str, Any]]:
+    base_logs = get_all_available_logs()
     return sorted(
-        [log for log in MOCK_LOGS if _matches(log, student_id, room, selected_date, time_slot, status)],
+        [log for log in base_logs if _matches(log, student_id, room, selected_date, time_slot, status)],
         key=lambda item: _as_datetime(item["timestamp"]),
         reverse=True,
     )
@@ -131,79 +153,87 @@ def get_dashboard_data(
 ) -> Dict[str, Any]:
     """
     ดึงข้อมูลประวัติการเข้า-ออกห้องเรียนและสถิติภาพรวม (Member 6)
-    พยายามเชื่อมต่อฐานข้อมูล MariaDB/MySQL ก่อน หากเชื่อมต่อไม่ได้จะ Fallback ไปใช้ Mock Data
+    พยายามเชื่อมต่อฐานข้อมูล MariaDB/MySQL ก่อน หากเชื่อมต่อไม่ได้จะดึงข้อมูล IoT Logs ที่ซิงก์ไว้มาแสดงผล
     """
+    global _last_db_failure_time
     total = 0
     raw_logs = []
     active_rooms = 0
     total_access = 0
+    used_db = False
 
-    try:
-        where_clauses = ["1=1"]
-        params = {}
+    # ตรวจสอบว่า MariaDB อยู่ในช่วง Cooldown หรือไม่
+    now_time = pytime.time()
+    db_cooling_down = (now_time - _last_db_failure_time) < _DB_COOLDOWN_SECONDS
 
-        if student_id:
-            where_clauses.append("(student_id LIKE :kw OR student_name LIKE :kw)")
-            params["kw"] = f"%{student_id}%"
-        if room and room != "all":
-            where_clauses.append("room = :room")
-            params["room"] = room
-        if selected_date:
-            where_clauses.append("DATE(timestamp) = :sel_date")
-            params["sel_date"] = selected_date
-        if time_slot and time_slot != "all":
-            slot_clean = time_slot.split("-")[0].strip() if "-" in time_slot else time_slot
-            where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) < ADDTIME(:slot_start, '01:00:00')")
-            params["slot_start"] = slot_clean
-        if status and status != "all":
-            where_clauses.append("status = :status")
-            params["status"] = status
+    if not db_cooling_down:
+        try:
+            where_clauses = ["1=1"]
+            params = {}
 
-        where_sql = " AND ".join(where_clauses)
-        offset = (page - 1) * limit
+            if student_id:
+                where_clauses.append("(student_id LIKE :kw OR student_name LIKE :kw)")
+                params["kw"] = f"%{student_id}%"
+            if room and room != "all":
+                where_clauses.append("room = :room")
+                params["room"] = room
+            if selected_date:
+                where_clauses.append("DATE(timestamp) = :sel_date")
+                params["sel_date"] = selected_date
+            if time_slot and time_slot != "all":
+                slot_clean = time_slot.split("-")[0].strip() if "-" in time_slot else time_slot
+                where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) < ADDTIME(:slot_start, '01:00:00')")
+                params["slot_start"] = slot_clean
+            if status and status != "all":
+                where_clauses.append("status = :status")
+                params["status"] = status
 
-        with engine.connect() as conn:
-            # นับจำนวนรายการทั้งหมด
-            count_query = text(f"SELECT COUNT(*) FROM web_app WHERE {where_sql}")
-            total = conn.execute(count_query, params).scalar() or 0
+            where_sql = " AND ".join(where_clauses)
+            offset = (page - 1) * limit
 
-            # ดึงรายการข้อมูลตามเงื่อนไขและการแบ่งหน้า
-            query_sql = text(
-                f"SELECT id, timestamp, student_id, student_name, room, status "
-                f"FROM web_app WHERE {where_sql} "
-                f"ORDER BY timestamp DESC LIMIT :limit OFFSET :offset"
-            )
-            query_params = {**params, "limit": limit, "offset": offset}
-            result = conn.execute(query_sql, query_params)
-            for row in result:
-                raw_logs.append({
-                    "id": row.id,
-                    "timestamp": row.timestamp,
-                    "student_id": row.student_id,
-                    "student_name": row.student_name,
-                    "room": row.room,
-                    "status": row.status,
-                })
+            with engine.connect() as conn:
+                count_query = text(f"SELECT COUNT(*) FROM web_app WHERE {where_sql}")
+                total = conn.execute(count_query, params).scalar() or 0
 
-            # คำนวณ Active Rooms และ Total Access วันนี้
-            stat_query = text("SELECT COUNT(DISTINCT room) FROM web_app WHERE status = 'IN' AND DATE(timestamp) = CURDATE()")
-            active_rooms = conn.execute(stat_query).scalar() or 0
+                query_sql = text(
+                    f"SELECT id, timestamp, student_id, student_name, room, status "
+                    f"FROM web_app WHERE {where_sql} "
+                    f"ORDER BY timestamp DESC LIMIT :limit OFFSET :offset"
+                )
+                query_params = {**params, "limit": limit, "offset": offset}
+                result = conn.execute(query_sql, query_params)
+                for row in result:
+                    raw_logs.append({
+                        "id": row.id,
+                        "timestamp": row.timestamp,
+                        "student_id": row.student_id,
+                        "student_name": row.student_name,
+                        "room": row.room,
+                        "status": row.status,
+                    })
 
-            access_query = text("SELECT COUNT(*) FROM web_app WHERE DATE(timestamp) = CURDATE()")
-            total_access = conn.execute(access_query).scalar() or total
+                stat_query = text("SELECT COUNT(DISTINCT room) FROM web_app WHERE status = 'IN' AND DATE(timestamp) = CURDATE()")
+                active_rooms = conn.execute(stat_query).scalar() or 0
 
-    except Exception as exc:
-        logger.warning(f"Database query failed, using mock fallback: {exc}")
+                access_query = text("SELECT COUNT(*) FROM web_app WHERE DATE(timestamp) = CURDATE()")
+                total_access = conn.execute(access_query).scalar() or total
+                used_db = True
+
+        except Exception as exc:
+            _last_db_failure_time = pytime.time()
+            logger.info(f"MariaDB connection not active, using IoT synced logs cache: {exc}")
+
+    # หากไม่ได้ใช้ MariaDB หรือไม่มีข้อมูลใน DB ให้ดึงข้อมูลจาก Synced IoT Storage
+    if not used_db or (total == 0 and len(raw_logs) == 0):
         all_filtered = _filtered_mock(student_id, room, selected_date, time_slot, status)
         total = len(all_filtered)
         start = (page - 1) * limit
         end = start + limit
         raw_logs = all_filtered[start:end]
 
-        # Active rooms mock calculation
-        in_rooms = {l["room"] for l in all_filtered if l["status"] == "IN"}
+        in_rooms = {l["room"] for l in all_filtered if str(l.get("status", "")).upper() == "IN"}
         active_rooms = len(in_rooms)
-        total_access = total if total > 0 else 142
+        total_access = total
 
     total_pages = max(1, (total + limit - 1) // limit) if total > 0 else 1
     formatted_logs = [_format_log(l, lang) for l in raw_logs]
