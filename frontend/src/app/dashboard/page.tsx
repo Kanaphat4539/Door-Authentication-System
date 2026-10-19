@@ -15,7 +15,7 @@ import { RotateCw, AlertTriangle, ShieldCheck, Radio, CheckCircle2 } from 'lucid
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { token, isAuthenticated, isLoading: authLoading, logout } = useAuth();
+  const { user, token, isAuthenticated, isLoading: authLoading, logout } = useAuth();
   const { lang, t } = useLanguage();
 
   // Filters State
@@ -57,14 +57,27 @@ export default function DashboardPage() {
     setFilters((prev) => ({ ...prev, lang }));
   }, [lang]);
 
+  // กำหนด studentId เริ่มต้นถ้าเป็นนักศึกษา (ข้อกำหนดคนที่ 3)
+  useEffect(() => {
+    if (user?.role === 'student' && user?.username) {
+      setFilters((prev) => ({ ...prev, studentId: user.username }));
+    }
+  }, [user]);
+
   // Load Data
   const loadData = useCallback(
     async (params: FilterParams = filters) => {
       if (!token) return;
       setIsLoading(true);
 
+      // สำหรับนักศึกษา บังคับค้นหาเฉพาะรหัสของตนเองเสมอ (Scope Enforcement ป้องกัน IDOR)
+      const effectiveParams: FilterParams = {
+        ...params,
+        studentId: user?.role === 'student' ? (user.username || params.studentId) : params.studentId,
+      };
+
       try {
-        const response = await fetchDashboardData(params, token);
+        const response = await fetchDashboardData(effectiveParams, token);
         setLogs(response.logs || []);
         setStats({
           activeRooms: response.activeRooms ?? 0,
@@ -87,7 +100,7 @@ export default function DashboardPage() {
         setIsRefreshing(false);
       }
     },
-    [filters, token, logout]
+    [filters, token, logout, user]
   );
 
   // Initial load
@@ -104,15 +117,20 @@ export default function DashboardPage() {
 
   // Handle search submission
   const handleSearch = () => {
-    const updated = { ...filters, page: 1 };
+    const activeStudentId = user?.role === 'student' ? (user?.username || filters.studentId) : filters.studentId;
+    const updated = { ...filters, studentId: activeStudentId, page: 1 };
     setFilters(updated);
     loadData(updated);
 
     // Record audit log for search behavior (Member 4 requirement)
     if (token) {
       const actions: string[] = [];
-      if (filters.studentId) actions.push(`Search>keyword=${filters.studentId}`);
+      if (user?.role === 'teacher' && activeStudentId) {
+        actions.push(`Search>student=${activeStudentId}`);
+      }
       if (filters.room && filters.room !== 'all') actions.push(`Filter>room=${filters.room}`);
+      if (filters.date) actions.push(`Filter>date=${filters.date}`);
+      if (filters.timeSlot && filters.timeSlot !== 'all') actions.push(`Filter>time=${filters.timeSlot}`);
       if (filters.status && filters.status !== 'all') actions.push(`Filter>status=${filters.status}`);
       if (actions.length > 0) {
         recordAuditLog(actions.join('; '), token);
@@ -120,10 +138,10 @@ export default function DashboardPage() {
     }
   };
 
-  // Reset filters
+  // Reset filters (ถ้านักศึกษาเป็นผู้ใช้ ให้คงรหัสนักศึกษาของตนเองไว้)
   const handleReset = () => {
     const resetFilters: FilterParams = {
-      studentId: '',
+      studentId: user?.role === 'student' ? (user?.username || '') : '',
       room: 'all',
       date: '',
       timeSlot: 'all',
@@ -252,6 +270,7 @@ export default function DashboardPage() {
           activeRooms={stats.activeRooms}
           totalAccess={stats.totalAccess}
           totalRooms={stats.totalRooms}
+          role={user?.role}
         />
 
         {/* Filter & Search Toolbar */}
@@ -261,6 +280,8 @@ export default function DashboardPage() {
           onSearch={handleSearch}
           onReset={handleReset}
           isLoading={isLoading}
+          role={user?.role}
+          currentUserId={user?.username}
         />
 
         {/* Access Log Table */}

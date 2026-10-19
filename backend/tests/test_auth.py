@@ -67,12 +67,22 @@ def test_protected_logs_with_student_token():
     )
     token = login_res.json()["access_token"]
 
+    # Student can access /api/v1/logs with scoped isolation
     res = client.get(
         "/api/v1/logs",
         headers={"Authorization": f"Bearer {token}"},
     )
-    assert res.status_code == 403
-    assert "requires teacher privileges" in res.json()["detail"]
+    assert res.status_code == 200
+    assert res.json()["role"] == "student"
+    assert res.json()["is_student_isolated"] is True
+
+    # Student is blocked from teacher-only endpoint /api/v1/admin/logs
+    admin_res = client.get(
+        "/api/v1/admin/logs",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert admin_res.status_code == 403
+    assert "requires teacher privileges" in admin_res.json()["detail"]
 
 
 def test_protected_logs_with_teacher_token():

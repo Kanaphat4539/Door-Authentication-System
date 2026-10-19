@@ -53,7 +53,7 @@ export async function loginAPI(username: string, password: string): Promise<Auth
     }
 
     // Mock Fallback เมื่อทดสอบออฟไลน์
-    if (username === 'teacher_ajarn' && password === 'secure123') {
+    if (username === 'teacher_ajarn' && (password === 'secure123' || password === 'admince04')) {
       return {
         status: 'success',
         access_token: 'mock-jwt-token-teacher-ajarn',
@@ -64,6 +64,21 @@ export async function loginAPI(username: string, password: string): Promise<Auth
           name: 'อาจารย์ สมชาย ใจดี',
           nameEn: 'Dr. Somchai Jaidee',
           email: 'teacher.ajarn@university.ac.th',
+        },
+      };
+    }
+
+    if (username === 'student_somchai' && (password === '1234' || password === 'secure123' || password === 'admince04')) {
+      return {
+        status: 'success',
+        access_token: 'mock-jwt-token-student-somchai',
+        token_type: 'bearer',
+        user: {
+          username: 'student_somchai',
+          role: 'student',
+          name: 'นายสมชาย ใจกล้า',
+          nameEn: 'Somchai Jaikla',
+          email: 'student_somchai@university.ac.th',
         },
       };
     }

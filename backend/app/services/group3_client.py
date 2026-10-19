@@ -1,17 +1,27 @@
+import os
 import requests
-from typing import Optional, Dict, Tuple
+import jwt
+from typing import Optional, Dict, Any, Tuple
 from app.core.config import settings
 
-# Mock database สำหรับการพัฒนาและการทดสอบ offline
-MOCK_ACCOUNTS: Dict[str, Dict[str, str]] = {
-    # บัญชีทางการจากกลุ่ม 3 (API-Ser)
-    "student": {"password": "local-demo-password", "role": "student"},
-    # บัญชีทดสอบของกลุ่ม 4 (Web-App)
-    "instructor@university.ac.th": {"password": "Password123", "role": "teacher"},
-    "teacher_ajarn": {"password": "secure123", "role": "teacher"},
-    "teacher_somchai": {"password": "password123", "role": "teacher"},
-    "student_somchai": {"password": "1234", "role": "student"},
-    "student_mori": {"password": "password4321", "role": "student"},
+# Mock database สำหรับการพัฒนาและการทดสอบ offline (รองรับ Dual-Role: Teacher & Student)
+MOCK_ACCOUNTS: Dict[str, Dict[str, Any]] = {
+    # บัญชีทางการและทดสอบอาจารย์ (Teacher)
+    "admin": {"password": "Password1234!", "role": "teacher", "username": "admin"},
+    "instructor@university.ac.th": {"password": "Password123", "role": "teacher", "username": "instructor@university.ac.th"},
+    "teacher_ajarn": {"password": "secure123", "role": "teacher", "username": "teacher_ajarn"},
+    "teacher_somchai": {"password": "password123", "role": "teacher", "username": "teacher_somchai"},
+    "teacher_test": {"password": "Password1234!", "role": "teacher", "username": "teacher_test"},
+
+    # บัญชีทางการและทดสอบนักศึกษา (Student)
+    "student": {"password": "local-demo-password", "role": "student", "username": "student"},
+    "student_somchai": {"password": "1234", "role": "student", "username": "67200367"},
+    "67200367": {"password": "1234", "role": "student", "username": "67200367"},
+    "67200324": {"password": "Password1234!", "role": "student", "username": "67200324"},
+    "6501234567": {"password": "1234", "role": "student", "username": "6501234567"},
+    "student_mori": {"password": "password4321", "role": "student", "username": "student_mori"},
+    "student_test": {"password": "Password1234!", "role": "student", "username": "student_test"},
+    "official_std": {"password": "testpass123", "role": "student", "username": "official_std"},
 }
 
 
@@ -39,11 +49,13 @@ class Group3AuthClient:
             return False
         return True
 
-    def verify(self, username: str, password: str) -> Tuple[bool, Optional[str]]:
+    def verify_with_group3(
+        self, username: str, password: str
+    ) -> Tuple[bool, Optional[str], Optional[str]]:
         """
-        ส่งคำขอยืนยันตัวตนไปยังกลุ่ม 3 ผ่าน HTTP POST
+        ส่งคำขอยืนยันตัวตนไปยังกลุ่ม 3 พร้อมถอดรหัส JWT Token
         Returns:
-            (is_valid: bool, role: Optional[str])
+            (is_valid: bool, role: Optional[str], verified_user: Optional[str])
         """
         if self.is_external_configured():
             try:
@@ -54,23 +66,70 @@ class Group3AuthClient:
                     timeout=self.timeout,
                     headers={"Content-Type": "application/json"},
                 )
+
                 if response.status_code == 200:
                     data = response.json()
-                    role = data.get("role") or data.get("user", {}).get("role", "teacher")
-                    return True, role
+                    token = data.get("access_token")
+
+                    # ถอดรหัส JWT จากกลุ่ม 3 เพื่อเอา Claims (role และ username)
+                    if token:
+                        try:
+                            decoded = jwt.decode(token, options={"verify_signature": False})
+                            role = decoded.get("role", "student")
+                            verified_user = decoded.get("username") or decoded.get("sub", username)
+                            return True, role, verified_user
+                        except Exception:
+                            pass
+
+                    # Fallback กรณีกลุ่ม 3 ส่งข้อมูล User ใน Body โดยตรง
+                    role = (
+                        data.get("role")
+                        or (data.get("user", {}).get("role") if isinstance(data.get("user"), dict) else None)
+                    )
+                    verified_user = (
+                        (data.get("user", {}).get("username") if isinstance(data.get("user"), dict) else None)
+                        or data.get("username", username)
+                    )
+
+                    # หากกลุ่ม 3 ยังไม่ได้คืนฟิลด์ role ใน JSON ให้แมปสิทธิ์ตามข้อตกลงของกลุ่ม 4:
+                    if not role:
+                        uname_lower = username.lower()
+                        if any(kw in uname_lower for kw in ["teacher", "ajarn", "instructor", "prof"]):
+                            role = "teacher"
+                        elif username in MOCK_ACCOUNTS:
+                            role = MOCK_ACCOUNTS[username]["role"]
+                        else:
+                            role = "student"
+
+                    return True, role, verified_user
                 elif response.status_code in (400, 401, 403, 404):
-                    return False, None
+                    return False, None, None
+
             except Exception:
                 if not self.mock_fallback:
-                    return False, None
+                    return False, None, None
 
         if self.mock_fallback:
             account = MOCK_ACCOUNTS.get(username)
             if account and account["password"] == password:
-                return True, account["role"]
-            return False, None
+                return True, account["role"], account.get("username", username)
+            return False, None, None
 
-        return False, None
+        return False, None, None
+
+    def verify(self, username: str, password: str) -> Tuple[bool, Optional[str]]:
+        """
+        ส่งคำขอยืนยันตัวตนไปยังกลุ่ม 3 ผ่าน HTTP POST
+        Returns:
+            (is_valid: bool, role: Optional[str])
+        """
+        is_valid, role, _ = self.verify_with_group3(username, password)
+        return is_valid, role
+
+    def authenticate(self, username: str, password: str) -> Tuple[bool, Optional[str], Optional[str]]:
+        """Alias สำหรับคืนค่า 3 tuple (is_valid, role, verified_username)"""
+        return self.verify_with_group3(username, password)
 
 
 group3_client = Group3AuthClient()
+

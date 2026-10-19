@@ -21,6 +21,9 @@ MOCK_LOGS: List[Dict[str, Any]] = [
     {"id": 10, "timestamp": "2026-10-14 12:55:44", "student_id": "65010666", "student_name": "นางสาวนภัสสร ใจดี", "room": "B218", "status": "OUT"},
     {"id": 11, "timestamp": "2026-10-14 12:30:20", "student_id": "65010444", "student_name": "นายธีรภัทร ชาญวิทย์", "room": "B217", "status": "IN"},
     {"id": 12, "timestamp": "2026-10-14 12:05:06", "student_id": "66010222", "student_name": "นางสาวศิริพร บุญตา", "room": "E107", "status": "OUT"},
+    {"id": 13, "timestamp": "2026-10-14 11:30:00", "student_id": "67200367", "student_name": "นายสมชาย ใจกล้า", "room": "B317", "status": "IN"},
+    {"id": 14, "timestamp": "2026-10-14 11:55:00", "student_id": "67200367", "student_name": "นายสมชาย ใจกล้า", "room": "B317", "status": "OUT"},
+    {"id": 15, "timestamp": "2026-10-14 10:20:00", "student_id": "67200999", "student_name": "นายสมศักดิ์ รักเรียน", "room": "LAB-401", "status": "IN"},
 ]
 
 THAI_MONTHS = (
@@ -87,7 +90,15 @@ def _matches(
     selected_date: Optional[date],
     time_slot: Optional[str],
     status: Optional[str],
+    owner_student_id: Optional[str] = None,
 ) -> bool:
+    if owner_student_id:
+        target_owner = str(owner_student_id).strip().casefold()
+        if target_owner == "student_somchai":
+            target_owner = "67200367"
+        log_std = str(log.get("student_id", "")).strip().casefold()
+        if log_std != target_owner and target_owner not in log_std:
+            return False
     timestamp = _as_datetime(log["timestamp"])
     if student_id:
         kw = student_id.casefold()
@@ -113,7 +124,7 @@ def _matches(
 
 
 def get_all_available_logs() -> List[Dict[str, Any]]:
-    """รวบรวม Logs ที่ซิงก์มาจาก IoT หากยังไม่มีให้พยายาม Pull อัตโนมัติ"""
+    """รวบรวม Logs ที่ซิงก์มาจาก IoT ร่วมกับ Mock Dataset"""
     synced = get_synced_logs()
     if not synced:
         try:
@@ -122,7 +133,7 @@ def get_all_available_logs() -> List[Dict[str, Any]]:
         except Exception:
             pass
     if synced:
-        return synced
+        return synced + MOCK_LOGS
     return MOCK_LOGS
 
 
@@ -132,10 +143,11 @@ def _filtered_mock(
     selected_date: Optional[date],
     time_slot: Optional[str],
     status: Optional[str],
+    owner_student_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     base_logs = get_all_available_logs()
     return sorted(
-        [log for log in base_logs if _matches(log, student_id, room, selected_date, time_slot, status)],
+        [log for log in base_logs if _matches(log, student_id, room, selected_date, time_slot, status, owner_student_id)],
         key=lambda item: _as_datetime(item["timestamp"]),
         reverse=True,
     )
@@ -143,6 +155,7 @@ def _filtered_mock(
 
 def get_dashboard_data(
     student_id: Optional[str] = None,
+    owner_student_id: Optional[str] = None,
     room: Optional[str] = None,
     selected_date: Optional[date] = None,
     time_slot: Optional[str] = None,
@@ -153,7 +166,7 @@ def get_dashboard_data(
 ) -> Dict[str, Any]:
     """
     ดึงข้อมูลประวัติการเข้า-ออกห้องเรียนและสถิติภาพรวม (Member 6)
-    พยายามเชื่อมต่อฐานข้อมูล MariaDB/MySQL ก่อน หากเชื่อมต่อไม่ได้จะดึงข้อมูล IoT Logs ที่ซิงก์ไว้มาแสดงผล
+    รองรับทั้งอาจารย์ (ค้นหาได้ทุกคน) และนักศึกษา (owner_student_id ล็อกเฉพาะตนเอง ป้องกัน IDOR)
     """
     global _last_db_failure_time
     total = 0
@@ -171,9 +184,14 @@ def get_dashboard_data(
             where_clauses = ["1=1"]
             params = {}
 
-            if student_id:
+            # หากระบุ owner_student_id (นักศึกษา) ให้ล็อกเฉพาะรหัสของตนเอง ป้องกัน IDOR
+            if owner_student_id:
+                where_clauses.append("student_id = :owner_id")
+                params["owner_id"] = owner_student_id
+            elif student_id:
                 where_clauses.append("(student_id LIKE :kw OR student_name LIKE :kw)")
                 params["kw"] = f"%{student_id}%"
+
             if room and room != "all":
                 where_clauses.append("room = :room")
                 params["room"] = room
@@ -190,6 +208,7 @@ def get_dashboard_data(
             if status and status != "all":
                 where_clauses.append("status = :status")
                 params["status"] = status
+
 
             where_sql = " AND ".join(where_clauses)
             offset = (page - 1) * limit
@@ -228,7 +247,7 @@ def get_dashboard_data(
 
     # หากไม่ได้ใช้ MariaDB หรือไม่มีข้อมูลใน DB ให้ดึงข้อมูลจาก Synced IoT Storage
     if not used_db or (total == 0 and len(raw_logs) == 0):
-        all_filtered = _filtered_mock(student_id, room, selected_date, time_slot, status)
+        all_filtered = _filtered_mock(student_id, room, selected_date, time_slot, status, owner_student_id)
         total = len(all_filtered)
         start = (page - 1) * limit
         end = start + limit

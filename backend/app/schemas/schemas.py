@@ -77,6 +77,7 @@ class DashboardDataResponse(BaseModel):
     requested_by: Optional[str] = None
     authorized_by: Optional[str] = None
     role: Optional[str] = None
+    is_student_isolated: Optional[bool] = None
 
 
 # -------------------------------------------------------------
