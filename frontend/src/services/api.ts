@@ -2,21 +2,32 @@ import { AuthResponse, DashboardResponse, FilterParams, LogItem, User } from '..
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
 
-// ข้อมูลจำลอง Mock Data ตาม Data Contract ของคนที่ 2 และคนที่ 6
+// ข้อมูลประวัติการแตะบัตรจริงที่ซิงก์มาจาก Group 6 IoT Server (http://172.16.10.200:3000/api/logs)
 const MOCK_DATA: LogItem[] = [
-  { id: "65010234", student_id: "65010234", name: "นายธนภัทร สุขเกษม", student_name: "Thanaphat Sukhasem", room: "B217", roomSub: "Building B / Floor 2", date: "14 ต.ค. 2569", time: "15:30 น.", status: "IN" },
-  { id: "65010567", student_id: "65010567", name: "นางสาวสมหญิง ตั้งใจ", student_name: "Somying Tangjai", room: "E107", roomSub: "Building E / Floor 1", date: "14 ต.ค. 2569", time: "15:15 น.", status: "OUT" },
-  { id: "66010892", student_id: "66010892", name: "นายกิตติศักดิ์ ประเสริฐ", student_name: "Kittisak Prasert", room: "B218", roomSub: "Building B / Floor 2", date: "14 ต.ค. 2569", time: "14:50 น.", status: "IN" },
-  { id: "64010111", student_id: "64010111", name: "นายปิติ มั่นคง", student_name: "Piti Mankong", room: "B316", roomSub: "Building B / Floor 3", date: "14 ต.ค. 2569", time: "14:40 น.", status: "IN" },
-  { id: "65010999", student_id: "65010999", name: "นางสาวมณีรัตน์ แสงแก้ว", student_name: "Maneerat Saengkaew", room: "E111", roomSub: "Building E / Floor 1", date: "14 ต.ค. 2569", time: "14:25 น.", status: "OUT" },
-  { id: "65010345", student_id: "65010345", name: "นายชินวัตร บุญสม", student_name: "Shinawatra Boonsom", room: "B217", roomSub: "Building B / Floor 2", date: "14 ต.ค. 2569", time: "14:10 น.", status: "IN" },
-  { id: "66010777", student_id: "66010777", name: "นายวรพจน์ ศรีสุวรรณ", student_name: "Worapoj Srisuwan", room: "B317", roomSub: "Building B / Floor 3", date: "14 ต.ค. 2569", time: "13:50 น.", status: "OUT" },
-  { id: "65010888", student_id: "65010888", name: "นางสาวพิมพ์ชนก รุ่งเรือง", student_name: "Pimchanok Rungruang", room: "E112", roomSub: "Building E / Floor 1", date: "14 ต.ค. 2569", time: "13:30 น.", status: "IN" },
-  { id: "64010555", student_id: "64010555", name: "นายอนุชา วงศ์สวัสดิ์", student_name: "Anucha Wongsawat", room: "B113", roomSub: "Building B / Floor 1", date: "14 ต.ค. 2569", time: "13:15 น.", status: "IN" },
-  { id: "65010666", student_id: "65010666", name: "นางสาวนภัสสร ใจดี", student_name: "Napatsorn Jaidee", room: "B218", roomSub: "Building B / Floor 2", date: "14 ต.ค. 2569", time: "12:55 น.", status: "OUT" },
-  { id: "65010444", student_id: "65010444", name: "นายธีรภัทร ชาญวิทย์", student_name: "Theeraphat Chanwit", room: "B217", roomSub: "Building B / Floor 2", date: "14 ต.ค. 2569", time: "12:30 น.", status: "IN" },
-  { id: "66010222", student_id: "66010222", name: "นางสาวศิริพร บุญตา", student_name: "Siriporn Boonta", room: "E107", roomSub: "Building E / Floor 1", date: "14 ต.ค. 2569", time: "12:05 น.", status: "OUT" }
+  { id: "22", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "17:46 น.", status: "OUT" },
+  { id: "21", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "17:46 น.", status: "IN" },
+  { id: "20", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "17:21 น.", status: "OUT" },
+  { id: "19", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "17:20 น.", status: "IN" },
+  { id: "18", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "17:20 น.", status: "OUT" },
+  { id: "17", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:43 น.", status: "IN" },
+  { id: "16", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:37 น.", status: "OUT" },
+  { id: "15", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:35 น.", status: "IN" },
+  { id: "14", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:35 น.", status: "OUT" },
+  { id: "13", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:32 น.", status: "IN" },
+  { id: "12", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:12 น.", status: "OUT" },
+  { id: "11", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:11 น.", status: "IN" },
+  { id: "10", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:05 น.", status: "OUT" },
+  { id: "9", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "16:05 น.", status: "IN" },
+  { id: "8", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:50 น.", status: "OUT" },
+  { id: "7", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:50 น.", status: "IN" },
+  { id: "6", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:25 น.", status: "OUT" },
+  { id: "5", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:25 น.", status: "IN" },
+  { id: "4", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:06 น.", status: "OUT" },
+  { id: "3", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B316", roomSub: "Building B / Floor 3", date: "13 ต.ค. 2569", time: "15:06 น.", status: "IN" },
+  { id: "2", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "9 ต.ค. 2569", time: "15:14 น.", status: "OUT" },
+  { id: "1", student_id: "67200324", name: "Leo Ev (67200324)", student_name: "Leo Ev", room: "B317", roomSub: "Building B / Floor 3", date: "9 ต.ค. 2569", time: "15:04 น.", status: "IN" },
 ];
+
 
 export async function loginAPI(username: string, password: string): Promise<AuthResponse> {
   try {
@@ -119,6 +130,12 @@ export async function fetchDashboardData(
       }
       if (room !== 'all' && item.room.toLowerCase() !== room.toLowerCase()) return false;
       if (status !== 'all' && item.status.toLowerCase() !== status.toLowerCase()) return false;
+      if (params.timeSlot && params.timeSlot !== 'all') {
+        const slotClean = params.timeSlot.split('-')[0].trim();
+        const slotHour = parseInt(slotClean.split(':')[0], 10);
+        const itemHour = parseInt(item.time.split(':')[0], 10);
+        if (itemHour !== slotHour) return false;
+      }
       return true;
     });
 
@@ -126,11 +143,12 @@ export async function fetchDashboardData(
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const start = (page - 1) * limit;
     const paginated = filtered.slice(start, start + limit);
+    const inRooms = new Set(filtered.filter(i => i.status.toUpperCase() === 'IN').map(i => i.room));
 
     return {
       status: 'success',
-      activeRooms: 3,
-      totalAccess: total || 142,
+      activeRooms: inRooms.size || 2,
+      totalAccess: total,
       totalRooms: 8,
       pagination: {
         page,

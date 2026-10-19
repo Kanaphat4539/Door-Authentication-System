@@ -240,56 +240,72 @@ def fetch_and_sync_iot_logs(target_url: Optional[str] = None) -> Dict[str, Any]:
     """
     ดึงข้อมูล (Pull) จากเซิร์ฟเวอร์ IoT ผ่าน HTTP GET (รองรับทั้ง Plain text และ JSON)
     URL เริ่มต้น: settings.IOT_LOG_URL (เช่น http://172.16.10.200:3000/api/logs)
+    พร้อม Fallback อัตโนมัติระหว่าง External NAT (172.16.10.200:3000) และ Private VM Network
     """
-    url = target_url or settings.IOT_LOG_URL
-    _last_sync_info["target_url"] = url
-    logger.info(f"🔄 กำลังดึงประวัติ Logs จาก IoT Server: {url}")
+    candidate_urls = []
+    if target_url:
+        candidate_urls.append(target_url)
+    else:
+        candidate_urls.append(settings.IOT_LOG_URL)
+        for fallback in [
+            "http://172.16.10.200:3000/api/logs",
+            "http://192.168.100.106:3000/api/logs",
+            "http://192.168.100.106/api/logs",
+        ]:
+            if fallback not in candidate_urls:
+                candidate_urls.append(fallback)
 
-    try:
-        response = requests.get(url, timeout=5)
-        if response.status_code == 200:
-            content_type = response.headers.get("Content-Type", "").lower()
-            raw_text = response.text.strip()
-            logs_list = []
+    last_error = ""
+    for url in candidate_urls:
+        _last_sync_info["target_url"] = url
+        logger.info(f"🔄 กำลังดึงประวัติ Logs จาก IoT Server: {url}")
 
-            # กรณีที่ข้อมูลเป็น JSON
-            if "application/json" in content_type or raw_text.startswith(("{", "[")):
-                try:
-                    data = response.json()
-                    if isinstance(data, list):
-                        logs_list = data
-                    elif isinstance(data, dict) and "logs" in data:
-                        logs_list = data["logs"]
-                except Exception:
-                    pass
+        try:
+            response = requests.get(url, timeout=3)
+            if response.status_code == 200:
+                content_type = response.headers.get("Content-Type", "").lower()
+                raw_text = response.text.strip()
+                logs_list = []
 
-            # กรณีที่ข้อมูลเป็น Pipe-delimited Text เช่น [2026-10-09 15:04:56] | 67200324 | Leo Ev | B317 | IN
-            if not logs_list and ("|" in raw_text or "[" in raw_text):
-                logs_list = parse_raw_logs(raw_text)
+                # กรณีที่ข้อมูลเป็น JSON
+                if "application/json" in content_type or raw_text.startswith(("{", "[")):
+                    try:
+                        data = response.json()
+                        if isinstance(data, list):
+                            logs_list = data
+                        elif isinstance(data, dict) and "logs" in data:
+                            logs_list = data["logs"]
+                    except Exception:
+                        pass
 
-            if logs_list:
-                result = ingest_logs(logs_list)
-                result["status"] = "success"
-                result["source_url"] = url
-                return result
+                # กรณีที่ข้อมูลเป็น Pipe-delimited Text เช่น [2026-10-09 15:04:56] | 67200324 | Leo Ev | B317 | IN
+                if not logs_list and ("|" in raw_text or "[" in raw_text):
+                    logs_list = parse_raw_logs(raw_text)
+
+                if logs_list:
+                    result = ingest_logs(logs_list)
+                    result["status"] = "success"
+                    result["source_url"] = url
+                    return result
+                else:
+                    logger.warning(f"⚠️ ไม่พบรูปแบบข้อมูล Logs ที่สามารถแปลงได้จาก {url}")
+                    _last_sync_info["last_status"] = "no_logs_found"
             else:
-                logger.warning(f"⚠️ ไม่พบรูปแบบข้อมูล Logs ที่สามารถแปลงได้จาก {url}")
-                _last_sync_info["last_status"] = "no_logs_found"
-        else:
-            logger.warning(f"⚠️ IoT Server ส่งสถานะ HTTP {response.status_code}")
-            _last_sync_info["last_status"] = f"http_error_{response.status_code}"
+                logger.warning(f"⚠️ IoT Server ส่งสถานะ HTTP {response.status_code}")
+                _last_sync_info["last_status"] = f"http_error_{response.status_code}"
 
-    except Exception as exc:
-        logger.warning(f"⚠️ ไม่สามารถเชื่อมต่อไปยัง IoT Server ({url}): {exc}")
-        _last_sync_info["last_status"] = f"error: {str(exc)}"
+        except Exception as exc:
+            last_error = str(exc)
+            logger.warning(f"⚠️ ไม่สามารถเชื่อมต่อไปยัง IoT Server ({url}): {exc}")
 
+    _last_sync_info["last_status"] = f"error: {last_error}" if last_error else "no_logs_found"
     return {
         "status": "error",
         "processed_count": 0,
         "inserted_count": 0,
         "skipped_count": 0,
         "synced_logs_count": len(_synced_logs),
-        "source_url": url,
+        "source_url": candidate_urls[0],
     }
 
 

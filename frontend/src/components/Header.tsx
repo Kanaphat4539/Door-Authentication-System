@@ -23,9 +23,11 @@ export default function Header() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isStudent = user?.role === 'student';
+
   const displayName = lang === 'en' 
-    ? (user?.nameEn || user?.username || 'Teacher') 
-    : (user?.name || user?.username || 'อาจารย์ผู้สอน');
+    ? (user?.nameEn || user?.username || (isStudent ? 'Student' : 'Teacher')) 
+    : (user?.name || user?.username || (isStudent ? 'นักศึกษา' : 'อาจารย์ผู้สอน'));
 
   return (
     <header className="bg-gradient-to-r from-[#172554] to-[#1e3a8a] text-white shadow-md border-b border-blue-900/40">
@@ -108,8 +110,14 @@ export default function Header() {
                     <p className="text-xs text-slate-500 truncate">
                       {user?.email || `${user?.username || 'teacher'}@university.ac.th`}
                     </p>
-                    <span className="inline-block mt-1 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 bg-blue-50 text-blue-700 rounded-full">
-                      {t('lecturerRole')}
+                    <span
+                      className={`inline-block mt-1 text-[10px] font-semibold tracking-wide uppercase px-2 py-0.5 rounded-full ${
+                        isStudent
+                          ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                          : 'bg-blue-50 text-blue-700 border border-blue-200'
+                      }`}
+                    >
+                      {isStudent ? t('studentRole') : t('lecturerRole')}
                     </span>
                   </div>
                 </div>

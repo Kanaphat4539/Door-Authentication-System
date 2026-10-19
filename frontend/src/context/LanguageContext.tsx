@@ -43,9 +43,17 @@ export const translations: Translations = {
     th: 'ยอดรวมการเข้าใช้งานวันนี้',
     en: 'Total Access Events Today',
   },
+  studentStat2Title: {
+    th: 'ยอดเข้าห้องเรียนของฉัน',
+    en: 'My Total Access Events',
+  },
   stat2Desc: {
     th: 'สถิติการเข้าใช้ห้องเรียนรายวัน',
     en: 'Daily access transaction count',
+  },
+  studentStat2Desc: {
+    th: 'จำนวนครั้งที่คุณสแกนเข้า-ออกห้องเรียน',
+    en: 'Your classroom scan transaction count',
   },
   stat2Unit: {
     th: 'ครั้ง',
@@ -130,6 +138,14 @@ export const translations: Translations = {
   lecturerRole: {
     th: 'อาจารย์ผู้สอน',
     en: 'Lecturer',
+  },
+  studentRole: {
+    th: 'นักศึกษา',
+    en: 'Student',
+  },
+  studentLockedLabel: {
+    th: 'รหัสนักศึกษาของคุณ (ล็อกเฉพาะตนเอง)',
+    en: 'Your Student ID (Locked to yourself)',
   },
   logoutBtn: {
     th: 'ออกจากระบบ',

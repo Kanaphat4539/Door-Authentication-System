@@ -2,16 +2,20 @@
 
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { DoorOpen, Users } from 'lucide-react';
 
 interface StatCardProps {
   activeRooms: number;
   totalAccess: number;
   totalRooms?: number;
+  role?: string;
 }
 
-export default function StatCards({ activeRooms, totalAccess, totalRooms = 8 }: StatCardProps) {
+export default function StatCards({ activeRooms, totalAccess, totalRooms = 8, role }: StatCardProps) {
   const { t } = useLanguage();
+  const { user } = useAuth();
+  const isStudent = (role || user?.role) === 'student';
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
@@ -48,10 +52,10 @@ export default function StatCards({ activeRooms, totalAccess, totalRooms = 8 }: 
         <div className="flex items-start justify-between relative z-10">
           <div>
             <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-              {t('stat2Title')}
+              {isStudent ? t('studentStat2Title') : t('stat2Title')}
             </span>
             <p className="text-sm font-medium text-slate-600 mt-0.5">
-              {t('stat2Desc')}
+              {isStudent ? t('studentStat2Desc') : t('stat2Desc')}
             </p>
             <div className="mt-3 flex items-baseline space-x-2">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-600 font-jakarta">

@@ -2,8 +2,9 @@
 
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 import { FilterParams } from '../types';
-import { Search, RotateCcw, Calendar, Clock, DoorClosed, Filter } from 'lucide-react';
+import { Search, RotateCcw, Calendar, Clock, DoorClosed, Filter, Lock, ChevronDown } from 'lucide-react';
 
 interface FilterBarProps {
   filters: FilterParams;
@@ -11,25 +12,35 @@ interface FilterBarProps {
   onSearch: () => void;
   onReset: () => void;
   isLoading: boolean;
+  role?: string;
+  currentUserId?: string;
 }
 
 const ROOMS = ['all', 'B217', 'B218', 'B316', 'B317', 'E107', 'E111', 'E112', 'B113', 'LAB-401', 'SMART-205'];
-const TIME_SLOTS = [
-  'all',
-  '08:00',
-  '09:00',
-  '10:00',
-  '11:00',
-  '12:00',
-  '13:00',
-  '14:00',
-  '15:00',
-  '16:00',
-  '17:00',
-  '18:00',
-  '19:00',
-  '20:00',
-  '21:00',
+
+interface TimeSlotOption {
+  value: string;
+  start: string;
+  end: string;
+}
+
+const TIME_SLOTS: TimeSlotOption[] = [
+  { value: '08:00', start: '08:00', end: '09:00' },
+  { value: '09:00', start: '09:00', end: '10:00' },
+  { value: '10:00', start: '10:00', end: '11:00' },
+  { value: '11:00', start: '11:00', end: '12:00' },
+  { value: '12:00', start: '12:00', end: '13:00' },
+  { value: '13:00', start: '13:00', end: '14:00' },
+  { value: '14:00', start: '14:00', end: '15:00' },
+  { value: '15:00', start: '15:00', end: '16:00' },
+  { value: '16:00', start: '16:00', end: '17:00' },
+  { value: '17:00', start: '17:00', end: '18:00' },
+  { value: '18:00', start: '18:00', end: '19:00' },
+  { value: '19:00', start: '19:00', end: '20:00' },
+  { value: '20:00', start: '20:00', end: '21:00' },
+  { value: '21:00', start: '21:00', end: '22:00' },
+  { value: '22:00', start: '22:00', end: '23:00' },
+  { value: '23:00', start: '23:00', end: '00:00' },
 ];
 
 export default function FilterBar({
@@ -38,8 +49,15 @@ export default function FilterBar({
   onSearch,
   onReset,
   isLoading,
+  role,
+  currentUserId,
 }: FilterBarProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+  const { user } = useAuth();
+
+  const activeRole = role || user?.role || 'teacher';
+  const isStudent = activeRole === 'student';
+  const studentLockId = currentUserId || (isStudent ? user?.username : '') || '';
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,27 +73,54 @@ export default function FilterBar({
         
         {/* Student ID / Name Input */}
         <div className="relative">
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            {t('tableHeaderId')} / {t('tableHeaderName')}
-          </label>
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              id="studentId"
-              value={filters.studentId || ''}
-              onChange={(e) => onChange('studentId', e.target.value)}
-              placeholder={t('filterStudentPlaceholder')}
-              className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800 placeholder-slate-400"
-            />
+          <div className="h-5 flex items-center justify-between mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              {isStudent ? (lang === 'en' ? 'Student ID' : 'รหัสนักศึกษา') : `${t('tableHeaderId')} / ${t('tableHeaderName')}`}
+            </label>
+            {isStudent && (
+              <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-0.5 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 flex-shrink-0" title="ล็อกเฉพาะรหัสของตนเอง">
+                <Lock className="w-2.5 h-2.5" />
+                <span>ล็อกรหัส</span>
+              </span>
+            )}
           </div>
+          {isStudent ? (
+            // 🔒 โหมดนักศึกษา: ล็อกรหัสตนเอง ไม่สามารถพิมพ์เปลี่ยนเป็นรหัสคนอื่นได้
+            <div className="relative">
+              <Lock className="w-4 h-4 text-blue-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                id="studentId"
+                value={studentLockId || filters.studentId || ''}
+                readOnly
+                disabled
+                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-100/90 border border-slate-200 rounded-xl text-slate-700 font-semibold cursor-not-allowed select-none shadow-inner"
+                title="ระบบล็อกให้แสดงเฉพาะข้อมูลของรหัสนักศึกษาตนเองเท่านั้น"
+              />
+            </div>
+          ) : (
+            // 🔓 โหมดอาจารย์: ค้นหาได้อิสระ
+            <div className="relative">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                id="studentId"
+                value={filters.studentId || ''}
+                onChange={(e) => onChange('studentId', e.target.value)}
+                placeholder={t('filterStudentPlaceholder')}
+                className="w-full pl-9 pr-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800 placeholder-slate-400"
+              />
+            </div>
+          )}
         </div>
 
         {/* Room Select */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            {t('tableHeaderRoom')}
-          </label>
+          <div className="h-5 flex items-center mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              {t('tableHeaderRoom')}
+            </label>
+          </div>
           <div className="relative">
             <DoorClosed className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
@@ -91,14 +136,17 @@ export default function FilterBar({
                 </option>
               ))}
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* Date Picker */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            {t('tableHeaderDate')}
-          </label>
+          <div className="h-5 flex items-center mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              {t('tableHeaderDate')}
+            </label>
+          </div>
           <div className="relative">
             <Calendar className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
@@ -113,32 +161,37 @@ export default function FilterBar({
 
         {/* Time Slot Select */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            {t('tableHeaderTime')}
-          </label>
+          <div className="h-5 flex items-center mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              {t('tableHeaderTime')}
+            </label>
+          </div>
           <div className="relative">
             <Clock className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
               id="timeSelect"
               value={filters.timeSlot || 'all'}
               onChange={(e) => onChange('timeSlot', e.target.value)}
-              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800 appearance-none cursor-pointer"
+              className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800 appearance-none cursor-pointer truncate"
             >
               <option value="all">{t('filterAllTimes')}</option>
-              {TIME_SLOTS.filter((ts) => ts !== 'all').map((ts) => (
-                <option key={ts} value={ts}>
-                  {ts}:00 น.
+              {TIME_SLOTS.map((ts) => (
+                <option key={ts.value} value={ts.value}>
+                  {lang === 'en' ? `${ts.start} - ${ts.end}` : `${ts.start} - ${ts.end} น.`}
                 </option>
               ))}
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 
         {/* Status Select */}
         <div>
-          <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
-            {t('tableHeaderStatus')}
-          </label>
+          <div className="h-5 flex items-center mb-1.5">
+            <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
+              {t('tableHeaderStatus')}
+            </label>
+          </div>
           <div className="relative">
             <Filter className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <select
@@ -150,6 +203,7 @@ export default function FilterBar({
               <option value="IN">{t('statusIn')}</option>
               <option value="OUT">{t('statusOut')}</option>
             </select>
+            <ChevronDown className="w-4 h-4 text-slate-400 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
           </div>
         </div>
 

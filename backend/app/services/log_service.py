@@ -182,7 +182,10 @@ def get_dashboard_data(
                 params["sel_date"] = selected_date
             if time_slot and time_slot != "all":
                 slot_clean = time_slot.split("-")[0].strip() if "-" in time_slot else time_slot
-                where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) < ADDTIME(:slot_start, '01:00:00')")
+                if slot_clean.startswith("23:"):
+                    where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) <= '23:59:59'")
+                else:
+                    where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) < ADDTIME(:slot_start, '01:00:00')")
                 params["slot_start"] = slot_clean
             if status and status != "all":
                 where_clauses.append("status = :status")

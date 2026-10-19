@@ -3,7 +3,7 @@
 import React from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { LogItem } from '../types';
-import { ArrowDownRight, ArrowUpRight, Inbox, Loader2 } from 'lucide-react';
+import { ArrowDownRight, ArrowUpRight, Inbox, Loader2, History } from 'lucide-react';
 
 interface LogTableProps {
   logs: LogItem[];
@@ -11,10 +11,31 @@ interface LogTableProps {
 }
 
 export default function LogTable({ logs, isLoading }: LogTableProps) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200/80 shadow-sm overflow-hidden">
+      {/* Table Header Info Bar */}
+      <div className="p-4 sm:px-6 sm:py-4 border-b border-slate-100 flex items-center justify-between bg-white">
+        <div className="flex items-center space-x-3">
+          <div className="w-9 h-9 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100/80 shadow-inner">
+            <History className="w-4 h-4 text-blue-600" />
+          </div>
+          <div>
+            <h3 className="text-sm sm:text-base font-bold text-slate-900">
+              {lang === 'en' ? 'Classroom Access History' : 'ประวัติการเข้า-ออกห้องเรียนล่าสุด'}
+            </h3>
+            <p className="text-xs text-slate-400">
+              {lang === 'en' ? 'Real-time classroom card scan records' : 'บันทึกการแตะบัตรห้องเรียนแบบเรียลไทม์'}
+            </p>
+          </div>
+        </div>
+        <div className="inline-flex items-center space-x-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span>Live Stream</span>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <table className="w-full text-left border-collapse">
           <thead>
