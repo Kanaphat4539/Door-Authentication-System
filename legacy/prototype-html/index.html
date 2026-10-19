@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting - Classroom Access Management System</title>
+    <script>
+        // Root Router Dispatcher: ตรวจสอบสถานะการล็อกอินแล้วเปลี่ยนเส้นทางทันที
+        (function() {
+            var token = localStorage.getItem('token');
+            if (token) {
+                window.location.replace('dashboard/index.html');
+            } else {
+                window.location.replace('login/index.html');
+            }
+        })();
+    </script>
+</head>
+<body>
+    <noscript>
+        <p>JavaScript is disabled. Please go to <a href="login/index.html">Login</a> or <a href="dashboard/index.html">Dashboard</a>.</p>
+    </noscript>
+</body>
+</html>

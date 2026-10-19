@@ -1,274 +1,315 @@
-# 📌 Group 4: Web Application (Access Log & Teacher Dashboard)
+# 🚪 Door Authentication System — กลุ่ม CE04 (Group 4)
+## 📌 Web Application: Access Log & Teacher Dashboard
 
-เอกสารสรุปสถาปัตยกรรมระบบ, โครงสร้างการเชื่อมต่อภายในทีม (Internal Connections), และการเชื่อมต่อกับระบบภายนอก (External Integrations) สำหรับโปรเจกต์ **Group 4 - Web Application**
+> **โครงการ:** Door Authentication System (Security Mini-project)  
+> **กลุ่ม:** Group 4 (CE04) — Web Application (ระบบสืบค้นประวัติการเข้า-ออกห้องเรียนและแดชบอร์ดอาจารย์)  
+> **เซิร์ฟเวอร์ Production:** VM4 บน Proxmox (`192.168.100.104`)
 
 ---
 
 ## 📑 สารบัญ
-1. [ภาพรวมของระบบและบทบาทหน้าที่ (Team Overview)](#-ภาพรวมของระบบและบทบาทหน้าที่-team-overview)
-2. [แผนผังการเชื่อมต่อภายในและภายนอก (Architecture & Connection Diagram)](#-แผนผังการเชื่อมต่อภายในและภายนอก-architecture--connection-diagram)
-   - [2.1 แผนภาพ Mermaid Diagram](#21-แผนภาพ-mermaid-diagram)
-   - [2.2 แผนผัง ASCII Diagram](#22-แผนผัง-ascii-diagram)
-3. [รายละเอียดการเชื่อมต่อและหน้าที่ของสมาชิก (Member Roles & Connections)](#-รายละเอียดการเชื่อมต่อและหน้าที่ของสมาชิก-member-roles--connections)
-   - [คนที่ 1: Frontend Developer (Authentication & User Flow)](#คนที่-1-frontend-developer-authentication--user-flow)
-   - [คนที่ 2: Frontend Developer (Teacher Dashboard & UI Components)](#คนที่-2-frontend-developer-teacher-dashboard--ui-components)
-   - [คนที่ 3: Frontend Developer (State Management & Search Integration)](#คนที่-3-frontend-developer-state-management--search-integration)
-   - [คนที่ 4: Backend Developer (Authentication & Security API)](#คนที่-4-backend-developer-authentication--security-api)
-   - [คนที่ 5: Backend Developer (Data Ingestion & IoT Sync)](#คนที่-5-backend-developer-data-ingestion--iot-sync)
-   - [คนที่ 6: Backend Developer (Search & Filter API)](#คนที่-6-backend-developer-search--filter-api)
-   - [คนที่ 7: Database Administrator, DevOps & Tester](#คนที่-7-database-administrator-devops--tester)
-4. [สรุปจุดเชื่อมต่อกับกลุ่มภายนอก (External Integration Map)](#-สรุปจุดเชื่อมต่อกับกลุ่มภายนอก-external-integration-map)
-5. [สรุปข้อมูลทางเทคนิคและ API Specification (Technical Summary)](#-สรุปข้อมูลทางเทคนิคและ-api-specification-technical-summary)
+1. [ภาพรวมของระบบและบทบาทหน้าที่ของสมาชิก (Team Overview)](#-ภาพรวมของระบบและบทบาทหน้าที่ของสมาชิก-team-overview)
+2. [แผนผังสถาปัตยกรรมและการเชื่อมต่อ (Architecture & Connection Diagram)](#-แผนผังสถาปัตยกรรมและการเชื่อมต่อ-architecture--connection-diagram)
+   - [2.1 แผนภาพการทำงาน (Mermaid Diagram)](#21-แผนภาพการทำงาน-mermaid-diagram)
+   - [2.2 โครงสร้างการไหลของข้อมูล (Data Flow Summary)](#22-โครงสร้างการไหลของข้อมูล-data-flow-summary)
+3. [รายละเอียดหน้าที่ของสมาชิกแต่ละคน (Member Roles & Deliverables)](#-รายละเอียดหน้าที่ของสมาชิกแต่ละคน-member-roles--deliverables)
+4. [การเชื่อมต่อกับกลุ่มภายนอก (External Integrations)](#-การเชื่อมต่อกับกลุ่มภายนอก-external-integrations)
+5. [โครงสร้างไดเรกทอรีของโปรเจกต์ (Repository Structure)](#-โครงสร้างไดเรกทอรีของโปรเจกต์-repository-structure)
+6. [ข้อกำหนดทางเทคนิคและ API Specification (Technical Summary)](#-ข้อกำหนดทางเทคนิคและ-api-specification-technical-summary)
+7. [ขั้นตอนการติดตั้งและรันระบบ (Setup & Deployment Guide)](#-ขั้นตอนการติดตั้งและรันระบบ-setup--deployment-guide)
 
 ---
 
-## 👥 ภาพรวมของระบบและบทบาทหน้าที่ (Team Overview)
+## 👥 ภาพรวมของระบบและบทบาทหน้าที่ของสมาชิก (Team Overview)
 
-| ลำดับ | บทบาท (Role) | สมาชิก / ตำแหน่ง | หน้าที่หลัก (Core Responsibilities) | จุดเชื่อมต่อหลัก |
-| :---: | :--- | :--- | :--- | :--- |
-| **คนที่ 1** | Frontend | Authentication & User Flow | พัฒนาหน้า Login, Form Validation, Route Guard, จัดเก็บ Token | คนที่ 2, 3, 4 |
-| **คนที่ 2** | Frontend | Dashboard & UI Components | ออกแบบ Dashboard อาจารย์, Component ตาราง, ตัวกรอง, Pagination | คนที่ 3 |
-| **คนที่ 3** | Frontend | State Management & Integration | เชื่อมโยง Data State, ต่อ API กับ Backend, จัดการ Loading/Error | คนที่ 1, 2, 6 |
-| **คนที่ 4** | Backend | Authentication & Security API | ตรวจสอบ Auth กับกลุ่ม 3, ออก JWT Token, ทำ Auth Middleware | คนที่ 1, 3, 6, **กลุ่ม 3** |
-| **คนที่ 5** | Backend | Data Ingestion & IoT Sync | Pipeline ดึง/รับ Logs จาก IoT กลุ่ม 6, คัดกรองข้อมูลซ้ำ, บันทึก DB | คนที่ 7, **กลุ่ม 6** |
-| **คนที่ 6** | Backend | Search & Filter API | ทำ Dynamic Query, Filter วันที่/คำค้นหา, Pagination บน Database | คนที่ 3, 4, 7 |
-| **คนที่ 7** | Infra/DB | DBA, DevOps & QA Tester | ออกแบบ Schema/Index, ติดตั้ง Nginx/VM4 บน Proxmox, ทดสอบ E2E | คนที่ 1-6, **กลุ่ม 3, 6 (Network)** |
+ระบบ Web Application ของกลุ่ม 4 พัฒนาขึ้นเพื่อให้อาจารย์ผู้สอนและผู้ดูแลระบบสามารถตรวจสอบ ติดตาม และสืบค้นประวัติการแตะบัตร/สแกนเข้า-ออกห้องเรียนของนักศึกษาได้อย่างเรียลไทม์ พร้อมระบบรักษาความปลอดภัย การยืนยันตัวตนผ่าน JWT และเก็บบันทึกประวัติการสืบค้น (Audit Log)
+
+| ลำดับ | ส่วนงาน | บทบาท (Role) | สมาชิกผู้รับผิดชอบ | หน้าที่หลัก (Core Responsibilities) | จุดเชื่อมต่อหลัก |
+| :---: | :---: | :--- | :--- | :--- | :--- |
+| **คนที่ 1** | Frontend | Authentication & User Flow | **ณัชชา (Natchaya)**<br/>`67200350` | พัฒนาหน้า Login, ฟอร์ม Validation, จัดเก็บ JWT Token, Route Guard ป้องกันผู้ไม่ได้รับอนุญาต | คนที่ 2, 3, 4 |
+| **คนที่ 2** | Frontend | Dashboard & UI Components | **ณัทธิดา (Natthida)**<br/>`ntd` | พัฒนา UI แดชบอร์ดอาจารย์, ตาราง Access Logs, การ์ดสถิติ (StatCards), ตัวกรอง (FilterBar), ระบบสลับภาษา (TH/EN) | คนที่ 3 |
+| **คนที่ 3** | Frontend | State Management & Integration | **พีรพัฒน์ (PP)**<br/>`PP.afk` | เชื่อมต่อ Data State กับ Backend API, ผูก Event ค้นหาและแบ่งหน้า (Pagination), ควบคุม Loading/Error State | คนที่ 1, 2, 6 |
+| **คนที่ 4** | Backend | Authentication & Security API | **ธัญญารัตน์ สงสมใจ**<br/>`Tanyarat Songsomjai` | Gateway ตรวจสอบรหัสผ่านกับกลุ่ม 3, ออก/ตรวจสอบ JWT Token, ทำ Auth Middleware, ระบบ Audit Logging | คนที่ 1, 3, 6, **กลุ่ม 3** |
+| **คนที่ 5** | Backend | Data Ingestion & IoT Sync | **ปิณปิณัฐ เข็มทอง**<br/>`Pinpinat Khemthong` | พัฒนาระบบดึง/รับข้อมูล Access Logs จาก IoT Server กลุ่ม 6, คัดกรองข้อมูลซ้ำ (Deduplication), รัน Background Poller | คนที่ 7, **กลุ่ม 6** |
+| **คนที่ 6** | Backend | Search & Filter API | **สมาชิกคนที่ 6**<br/>`67200050` | พัฒนา API ค้นหาและกรอง Logs (ตามรหัสนักศึกษา, ห้องเรียน, วันที่, ช่วงเวลา, สถานะ), Server-side Pagination | คนที่ 3, 4, 7 |
+| **คนที่ 7** | Infra/DB | DBA, DevOps & QA Tester | **สมาชิกคนที่ 7**<br/>`67200235 (yeonn3)` | ออกแบบ MariaDB Schema/Indexes, ตั้งค่า Docker & Nginx Reverse Proxy, Deploy บน VM4 Proxmox, เขียน E2E Test Suite | คนที่ 1–6, **กลุ่ม 3, 6 (Network)** |
 
 ---
 
-## 🗺️ แผนผังการเชื่อมต่อภายในและภายนอก (Architecture & Connection Diagram)
+## 🗺️ แผนผังสถาปัตยกรรมและการเชื่อมต่อ (Architecture & Connection Diagram)
 
-### 2.1 แผนภาพ Mermaid Diagram
+### 2.1 แผนภาพการทำงาน (Mermaid Diagram)
 
 ```mermaid
 flowchart TD
-    %% Subgraphs definition
-    subgraph Frontend["💻 Frontend Team (Client-side)"]
+    %% Subgraphs
+    subgraph Frontend["💻 Frontend Layer (Next.js 14 / React & Tailwind CSS)"]
         direction TB
-        P1["<b>คนที่ 1: Auth UI</b><br/>Authentication & User Flow"]
-        P2["<b>คนที่ 2: Dashboard UI</b><br/>Teacher Dashboard & Components"]
-        P3["<b>คนที่ 3: State & Search</b><br/>State Management & API Integration"]
+        P1["<b>คนที่ 1: Auth UI</b><br/>Login Page & Route Guard"]
+        P2["<b>คนที่ 2: Dashboard UI</b><br/>Teacher Dashboard & UI Components"]
+        P3["<b>คนที่ 3: State & API Client</b><br/>State Management & API Integration"]
     end
 
-    subgraph Backend["⚙️ Backend & Database Team (VM4 Server)"]
+    subgraph Backend["⚙️ Backend Layer (FastAPI on Port 8000)"]
         direction TB
-        P4["<b>คนที่ 4: Auth API</b><br/>Auth & Security Middleware"]
-        P6["<b>คนที่ 6: Search API</b><br/>Dynamic Search & Filter API"]
-        P5["<b>คนที่ 5: IoT Sync</b><br/>Data Ingestion & Ingest Pipeline"]
-        P7[("<b>คนที่ 7: Database & VM4</b><br/>PostgreSQL/MySQL & Proxmox Deploy")]
+        P4["<b>คนที่ 4: Auth & Security Service</b><br/>JWT Auth, Middleware, Audit Log"]
+        P6["<b>คนที่ 6: Logs Search Service</b><br/>Dynamic Search, Filter & Pagination"]
+        P5["<b>คนที่ 5: IoT Ingestion Service</b><br/>Data Ingest Pipeline & Deduplication"]
     end
 
-    subgraph External["🌐 External Integrations (กลุ่มภายนอก)"]
+    subgraph Database["🗄️ Database Layer (MariaDB 10.11 on Port 3306)"]
+        P7[("<b>คนที่ 7: web_app_db</b><br/>ตาราง web_app (Access Logs)<br/>ตาราง user (Audit Logs)")]
+    end
+
+    subgraph External["🌐 External Integrations (ระบบภายนอก)"]
         direction TB
-        G3["<b>กลุ่ม 3: Authentication API</b><br/>Central Auth Service"]
-        G6["<b>กลุ่ม 6: IoT Server</b><br/>Door Scanner / Access Logs"]
-        NET["<b>Proxmox Network & Firewall</b><br/>Routing & Port Configuration"]
+        G3["<b>กลุ่ม 3: Central Auth API</b><br/>(192.168.100.103:8000)<br/>ตรวจสอบบัญชีผู้ใช้กลาง"]
+        G6["<b>กลุ่ม 6: IoT Server</b><br/>(192.168.100.106)<br/>อุปกรณ์สแกนประตูห้องเรียน"]
+        VM4["<b>VM4 Proxmox & Nginx</b><br/>(192.168.100.104)<br/>Reverse Proxy & Rate Limiter"]
     end
 
     %% Frontend Internal
-    P1 <-->|"แชร์ Auth State / Token"| P2
-    P2 -->|"ส่งมอบ Modular Components"| P3
-    P1 -.->|"ส่งต่อ Token ไปแนบ Header"| P3
+    P1 <-->|"แชร์ Token / User Session"| P2
+    P2 -->|"ส่งมอบ UI Components ให้เชื่อมต่อ State"| P3
+    P1 -.->|"แนบ Authorization Bearer Token"| P3
 
     %% Frontend to Backend
-    P1 -->|"1. POST /api/v1/auth/login<br/>{ username, password }"| P4
-    P4 -->|"2. ส่งกลับ JWT Token / Session"| P1
-    P3 -->|"3. GET /api/v1/logs<br/>(Bearer Token, Search Params)"| P6
+    P1 -->|"1. POST /api/v1/auth/login"| P4
+    P4 -->|"2. คืนค่า JWT Token + User Role"| P1
+    P3 -->|"3. GET /api/v1/logs?student_id=&room=&date="| P6
 
-    %% Backend Internal
-    P4 -.->|"สวม Authorization Middleware"| P6
-    P6 -->|"Query Access Logs"| P7
-    P5 -->|"บันทึก Data Logs ที่ผ่าน Clean/Deduplicate"| P7
-    P7 -.->|"Infrastructure & Reverse Proxy (Nginx) & QA"| P4 & P5 & P6
+    %% Backend to DB & Internal
+    P4 -.->|"RBAC Authorization Middleware"| P6
+    P6 -->|"Query บันทึกการเข้า-ออกห้องเรียน"| P7
+    P4 -->|"บันทึก Audit Logs (ประวัติการสืบค้น)"| P7
+    P5 -->|"บันทึก Access Logs ที่ Clean แล้ว"| P7
 
     %% External Connections
-    P4 <-->|"HTTP POST ยืนยันตัวตนกับ DB หลัก"| G3
-    G6 -->|"Pull (Cron) / Push (Webhook) Access Logs"| P5
-    P7 <-->|"ตั้งค่า Firewall, Port, IP Address"| NET
+    P4 <-->|"ยิงยืนยัน Username & Password"| G3
+    G6 -->|"ดึง Logs (Pull/Polling) หรือรับ Webhook"| P5
+    VM4 -.->|"จัดการ Port, Reverse Proxy & SSL"| Backend & Frontend
 ```
 
----
-
-### 2.2 แผนผัง ASCII Diagram
+### 2.2 โครงสร้างการไหลของข้อมูล (Data Flow Summary)
 
 ```text
-[คนที่ 1: Auth UI] <─────เชื่อมต่อข้อมูล Token/State─────> [คนที่ 2: Dashboard UI]
-        │                                                     │
-        │                                            สร้าง Component ให้
-        ▼                                                     ▼
-[คนที่ 4: Auth API]                                  [คนที่ 3: State & Search]
-        │                                                     │
-        │                                           ดึง API ไปผูกกับ UI
-        │                                                     ▼
-        ├──────────── ยิง Query หา DB ──────────────> [คนที่ 6: Search API]
-        │                                                     │
-        ▼                                                     ▼
-[คนที่ 7: DB & VM4] <────── Sync ข้อมูลบันทึกลง DB ────── [คนที่ 5: IoT Sync]
+[หน้าเว็บอาจารย์ (คนที่ 1, 2, 3)]
+        │
+        ├─ (1) ยืนยันตัวตน ──> [Auth Service (คนที่ 4)] ──> [กลุ่ม 3 (Central Auth API)]
+        │                                 │
+        │                                 ▼ ออก JWT Token
+        │
+        ├─ (2) ค้นหาข้อมูล ──> [Search Service (คนที่ 6)] ──> [MariaDB web_app_db (คนที่ 7)]
+        │                                 │
+        │                                 ▼ บันทึก Audit Log (คนที่ 4 & 7)
+        │
+[อุปกรณ์ประตู (กลุ่ม 6)] ──> [IoT Sync (คนที่ 5)] ───────────> [MariaDB web_app_db (คนที่ 7)]
 ```
 
 ---
 
-## 🔍 รายละเอียดการเชื่อมต่อและหน้าที่ของสมาชิก (Member Roles & Connections)
+## 🔍 รายละเอียดหน้าที่ของสมาชิกแต่ละคน (Member Roles & Deliverables)
 
 ### คนที่ 1: Frontend Developer (Authentication & User Flow)
-* **บทบาท:** ดูแลระบบยืนยันตัวตนฝั่งผู้ใช้งาน (Client-side Authentication)
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 4 (Backend Auth):** ส่งข้อมูล `{ username, password }` ไปยัง Endpoint `POST /api/v1/auth/login` และรอรับ JWT Token / Session กลับมา
-  * **เชื่อมต่อกับ คนที่ 2 & 3 (Frontend Team):** ส่งต่อ Auth State (เช่น สถานะการ Login, User Role ของอาจารย์) และ Token เพื่อให้คนที่ 3 นำไปแนบใน Header (`Authorization: Bearer <token>`) ของ Request อื่นๆ
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * *ไม่มีการเชื่อมต่อโดยตรง* (ส่งผ่าน คนที่ 4 เพื่อไปคุยกับกลุ่ม 3)
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. พัฒนาหน้า Login Interface ที่สวยงามและตอบสนองตามสเปก
-  2. จัดทำ Client-side Form Validation
-  3. จัดเก็บ Token ลงใน Browser Storage อย่างปลอดภัย (เช่น HttpOnly Cookie หรือ In-Memory/Secure LocalStorage)
-  4. จัดทำ Route Guard ป้องกันไม่ให้ผู้ใช้ที่ไม่ผ่านการยืนยันตัวตนเข้าสู่หน้า Dashboard
-
----
+* **ผู้รับผิดชอบ:** ณัชชา (`67200350`)
+* **หน้าที่หลัก:**
+  1. พัฒนาหน้าลงชื่อเข้าใช้งาน ([login/page.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/app/login/page.tsx)) รองรับทั้งภาษาไทยและอังกฤษ
+  2. จัดการ Client-side Validation ตรวจสอบความถูกต้องของ Username และ Password ก่อนส่ง Request
+  3. บันทึกและจัดเก็บ JWT Access Token และ User Profile ลงใน LocalStorage/Cookie
+  4. ทำ Route Guard ป้องกันไม่ให้บุคคลภายนอกเข้าถึงหน้า Dashboard โดยไม่มีสิทธิ์
 
 ### คนที่ 2: Frontend Developer (Teacher Dashboard & UI Components)
-* **บทบาท:** ออกแบบและพัฒนาโครงสร้าง UI หน้า Dashboard สำหรับอาจารย์
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 3 (Frontend State/API):** ส่งมอบ UI Components ที่พัฒนาเสร็จแล้ว (ตาราง, Search Box, Filter Date, Pagination) ให้คนที่ 3 นำไปผูกกับ API ดึงข้อมูล
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * *ไม่มีการเชื่อมต่อโดยตรง*
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. ออกแบบหน้า Teacher Dashboard สำหรับตรวจสอบประวัติการเข้า-ออกห้องเรียน
-  2. พัฒนาตารางแสดงผล Access Logs ที่รองรับข้อมูลจำนวนมาก
-  3. สร้างส่วนติดต่อผู้ใช้สำหรับตัวกรอง (Search & Filter Interfaces) เช่น ค้นหาตามชื่อ, เลือกช่วงวันเวลา, Dropdown สถานะ
-  4. พัฒนาคอมโพเนนต์ในรูปแบบ **Modular Component** เพื่อให้สวมใส่ Data State และ Logic ได้ง่าย
+* **ผู้รับผิดชอบ:** ณัทธิดา (`ntd`)
+* **หน้าที่หลัก:**
+  1. ออกแบบหน้า Dashboard หลัก ([dashboard/page.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/app/dashboard/page.tsx)) สำหรับอาจารย์ตรวจสอบประวัติการเข้าเรียน
+  2. พัฒนา UI Components แบบ Modular:
+     - [LogTable.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/components/LogTable.tsx): ตารางแสดงผล Logs พร้อม Badge สถานะ (เข้า/ออก) และการแสดงผล Responsive
+     - [FilterBar.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/components/FilterBar.tsx): ตัวกรองรหัสนักศึกษา, ห้องเรียน (B217, B218, E107 ฯลฯ), วันที่, และช่วงเวลา
+     - [StatCard.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/components/StatCard.tsx): การ์ดสรุปสถิติผู้เข้าห้อง, ผู้อยู่ในห้องปัจจุบัน, ผู้ที่ออกจากห้องแล้ว
+     - [Header.tsx](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/components/Header.tsx): แถบส่วนหัวแสดงชื่ออาจารย์, สิทธิ์การใช้งาน, ปุ่มเปลี่ยนภาษา (TH/EN), และปุ่มลงชื่อออก
 
----
-
-### คนที่ 3: Frontend Developer (State Management & Search Integration)
-* **บทบาท:** จัดการ Data State และเชื่อมโยง UI เข้ากับ Backend API
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 1 (Frontend Auth):** ดึง Token/Session มาแนบใน Header (`Authorization: Bearer <token>`) เมื่อต้องส่ง Request ดึงข้อมูล
-  * **เชื่อมต่อกับ คนที่ 2 (Frontend UI):** นำ UI Components ที่คนที่ 2 สร้างไว้มาผูกเข้ากับ Data State ของแอปพลิเคชัน
-  * **เชื่อมต่อกับ คนที่ 6 (Backend Search API):** ยิง Request ไปยัง `GET /api/v1/logs` พร้อมแนบ Query Parameters เช่น `keyword`, `date`, `page`, `limit` เพื่อนำข้อมูลมาเรนเดอร์ลงในตาราง
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * *ไม่มีการเชื่อมต่อโดยตรง*
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. จัดการ Application State (State Management) สำหรับการค้นหาและการกรอง
-  2. รับ Input ค่าจากตัวกรอง แล้วส่ง Request ไปยัง API ของคนที่ 6
-  3. จัดการสถานะการแสดงผลต่างๆ บนหน้าเว็บ: **Loading State**, **Empty State**, และ **Error Handling / Notification**
-
----
+### คนที่ 3: Frontend Developer (State Management & Integration)
+* **ผู้รับผิดชอบ:** พีรพัฒน์ (`PP.afk`)
+* **หน้าที่หลัก:**
+  1. พัฒนา [api.ts](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/frontend/src/services/api.ts) สำหรับเชื่อมต่อ API แบบครบวงจร พร้อมระบบแนบ Bearer Token อัตโนมัติ
+  2. จัดการ State การค้นหา, Pagination (เลือกหน้า/จำนวนแถวต่อหน้า), และการกรองข้อมูลแบบ Real-time
+  3. จัดการ UI State: การแสดงผล Spinner ขณะกำลังโหลดข้อมูล (Loading State), หน้าจอเมื่อไม่พบข้อมูล (Empty State), และการแจ้งเตือนข้อผิดพลาด (Error Handling)
 
 ### คนที่ 4: Backend Developer (Authentication & Security API)
-* **บทบาท:** รับผิดชอบระบบยืนยันตัวตน, จัดการสิทธิ์การเข้าถึง และเป็น Gateway สื่อสารกับกลุ่ม 3
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 1 (Frontend Auth):** พัฒนา API Endpoint รับ Request Login จากคนที่ 1 และออก JWT Token กลับไปให้
-  * **เชื่อมต่อกับ คนที่ 3 & 6 (Backend Security):** พัฒนา Authorization Middleware ให้คนที่ 6 นำไปใช้ดักจับ Request จากคนที่ 3 เพื่อตรวจสอบความถูกต้องของ Token และสิทธิ์ของอาจารย์ (Role-Based Access Control)
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * **เชื่อมต่อกับ กลุ่ม 3 (Authentication API):** เมื่อได้รับ Username/Password จากคนที่ 1 จะต้องส่ง HTTP POST Request ไปยัง API ของกลุ่ม 3 เพื่อให้กลุ่ม 3 ตรวจสอบยืนยันตัวตนกับฐานข้อมูลกลาง
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. ทำหน้าที่เป็นตัวกลางตรวจสอบความถูกต้องของรหัสผ่านร่วมกับกลุ่ม 3
-  2. ออกและตรวจสอบความถูกต้องของ JWT Token (Signing & Verification)
-  3. เขียน Middleware จำกัดสิทธิ์ (RBAC) เพื่อปกป้อง Endpoint ภายในระบบ
-
----
+* **ผู้รับผิดชอบ:** ธัญญารัตน์ สงสมใจ
+* **หน้าที่หลัก:**
+  1. พัฒนา Endpoint ยืนยันตัวตน `POST /api/v1/auth/login` ตรวจสอบข้อมูลผู้ใช้ผ่าน [group3_client.py](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/backend/app/services/group3_client.py) ร่วมกับกลุ่ม 3
+  2. จัดทำระบบลงนามและตรวจสอบความถูกต้องของ JWT Token (HS256) พร้อมระบบ Role-Based Access Control
+  3. พัฒนาระบบ Audit Log ([audit_service.py](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/backend/app/services/audit_service.py)) บันทึกพฤติกรรมและการสืบค้นข้อมูลของอาจารย์ลงในตาราง `user` เพื่อความปลอดภัยและการตรวจสอบย้อนหลัง
 
 ### คนที่ 5: Backend Developer (Data Ingestion & IoT Sync)
-* **บทบาท:** รับ-ดึงข้อมูลบันทึกการเข้าห้องจาก IoT Server และทำ Data Pipeline
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 7 (DBA & DevOps):** ร่วมกันออกแบบและนำข้อมูล Access Logs ที่ประมวลผลแล้วบันทึกลง Database Schema ของกลุ่ม 4
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * **เชื่อมต่อกับ กลุ่ม 6 (IoT Server):** ทำการดึงข้อมูล (Pull ผ่าน Cron Job / Scheduled Task) หรือรับข้อมูล (Push ผ่าน Webhook API) ประวัติการเข้า-ออกห้องเรียน (Access Logs) ที่สแกนจากประตู
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. สร้าง Data Ingestion Pipeline เชื่อมต่อไปยัง IoT Server ของกลุ่ม 6
-  2. แปลงโครงสร้างข้อมูล (Data Transformation) ให้อยู่ในรูปแบบที่ระบบของกลุ่ม 4 รองรับ
-  3. กรองข้อมูลซ้ำซ้อน (Data Deduplication) และตรวจสอบความถูกต้องของข้อมูล
-  4. บันทึกข้อมูลลงฐานข้อมูล พร้อมจัดทำระบบ Log Monitoring
-
----
+* **ผู้รับผิดชอบ:** ปิณปิณัฐ เข็มทอง
+* **หน้าที่หลัก:**
+  1. พัฒนาระบบ Ingestion Pipeline ([iot_service.py](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/backend/app/services/iot_service.py)) ดึงข้อมูลประวัติการสแกนบัตรจาก IoT Server ของกลุ่ม 6
+  2. ทำ Background Poller สำหรับดึงข้อมูลอัตโนมัติตามช่วงเวลา (Polling Interval)
+  3. ตรวจสอบความสมบูรณ์และคัดกรองข้อมูลที่ซ้ำซ้อน (Data Deduplication) ก่อนบันทึกลงตาราง `web_app`
 
 ### คนที่ 6: Backend Developer (Search & Filter API)
-* **บทบาท:** พัฒนา REST API สำหรับการค้นหา กรอง และแบ่งหน้าข้อมูล Access Logs
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 4 (Backend Security):** นำ Middleware ของคนที่ 4 มาติดตั้งที่ API Endpoint เพื่อป้องกันการเข้าถึงโดยไม่ได้รับอนุญาต
-  * **เชื่อมต่อกับ คนที่ 3 (Frontend Integration):** ร่วมกำหนด API Contract และพัฒนา Endpoint `GET /api/v1/logs` ให้คนที่ 3 ใช้งาน
-  * **เชื่อมต่อกับ คนที่ 7 (DBA & DevOps):** เขียนคำสั่ง SQL Query ที่มีประสิทธิภาพเพื่อค้นหาข้อมูลจาก Database
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * *ไม่มีการเชื่อมต่อโดยตรง*
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. พัฒนา Dynamic Query ค้นหาและกรองข้อมูลย้อนหลังตามเงื่อนไข (คำค้นหา, ชื่อ-รหัส, ช่วงเวลา, สถานะ)
-  2. ทำระบบ Server-side Pagination เพื่อเพิ่มความเร็วและลดภาระการส่งข้อมูลปริมาณมาก
-  3. จัดเตรียม API Documentation / Contract ให้ฝั่ง Frontend ใช้งานได้ตรงกัน
+* **ผู้รับผิดชอบ:** สมาชิกคนที่ 6 (`67200050`)
+* **หน้าที่หลัก:**
+  1. พัฒนา Search & Filter Endpoint `GET /api/v1/logs` ใน [logs.py](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/backend/app/api/v1/endpoints/logs.py) และ [log_service.py](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/backend/app/services/log_service.py)
+  2. รองรับการค้นหา Dynamic Query ทั้งรหัสนักศึกษา, ชื่อ-นามสกุล, ห้องเรียน, วันที่, ช่วงเวลา และสถานะ (IN / OUT)
+  3. จัดทำ Server-side Pagination และคืนผลสรุปสถิติ (Total, Inside, Outside, Active Rooms) กลับไปพร้อมกับตารางข้อมูล
+
+### คนที่ 7: Database Administrator, DevOps & QA Tester
+* **ผู้รับผิดชอบ:** สมาชิกคนที่ 7 (`67200235`, `yeonn3`)
+* **หน้าที่หลัก:**
+  1. ออกแบบและพัฒนา Database Schema บน MariaDB ([01_create_web_app_table.sql](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/database/01_create_web_app_table.sql) และ [02_create_user_table.sql](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/database/02_create_user_table.sql)) พร้อม Indexes ปรับปรุงประสิทธิภาพ Query
+  2. ติดตั้งและดูแล Server VM4 บนระบบ Proxmox, จัดเตรียม Docker Compose ([docker-compose.vm4.yml](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/deploy/docker-compose.vm4.yml)) และ Nginx Reverse Proxy ([nginx.conf](file:///C:/university/year3/term1/software%20dev/dormhub-git/G4-Web-Appplication-miniproject-Security-/deploy/nginx.conf)) พร้อม Rate Limiting ป้องกัน Brute-force
+  3. จัดทำและรันชุดทดสอบอัตโนมัติ (Automated E2E Test Suite) ทดสอบระบบการทำงานครบทุกมิติ
 
 ---
 
-### คนที่ 7: Database Administrator, DevOps & Tester
-* **บทบาท:** จัดการฐานข้อมูล, ดูแล Server/Infrastructure บน VM4 และทดสอบระบบ End-to-End
-* **การเชื่อมต่อภายในกลุ่ม:**
-  * **เชื่อมต่อกับ คนที่ 4, 5, 6 (Backend Team):** ออกแบบ Database Schema และสร้าง Indexing ให้เหมาะสมกับการบันทึกของคนที่ 5 และการ Query ของคนที่ 6
-  * **เชื่อมต่อกับ คนที่ 1-6 (ทุกคนในทีม):** นำ Web Application (Frontend & Backend) และ Database ไปติดตั้งและ Deploy บน VM4 (Proxmox)
-  * **เชื่อมต่อกับทุกคนในทีมเพื่อทำ QA:** วางแผนและทำการทดสอบระบบแบบ End-to-End (E2E Testing) ตั้งแต่การ Login, การ Sync ข้อมูล ไปจนถึงการแสดงผลบน Dashboard
-* **การทำงานร่วมกับกลุ่มภายนอก:**
-  * **เชื่อมต่อกับ กลุ่ม 3 และ กลุ่ม 6:** ประสานงานด้านระบบเครือข่าย (IP Address, Port, Firewall Rules) บน Proxmox เพื่อให้ VM4 สื่อสารกับเครื่อง Server ของกลุ่ม 3 และกลุ่ม 6 ได้อย่างราบรื่น
-* **รายละเอียดงานที่รับผิดชอบ:**
-  1. ออกแบบและจัดการฐานข้อมูล (Database Schema, Normalization, Data Types)
-  2. ปรับแต่ง Database Indexing เพื่อเพิ่มความเร็วในการ Query
-  3. ติดตั้งและดูแล Server บน VM4 (Proxmox), ทำ Reverse Proxy ด้วย Nginx, ตั้งค่า SSL/TLS (ถ้ามี)
-  4. ทำการทดสอบระบบ (Quality Assurance) และตรวจสอบความถูกต้องของข้อมูลแบบครบวงจร
+## 🌐 การเชื่อมต่อกับกลุ่มภายนอก (External Integrations)
+
+| ระบบภายนอก | ที่อยู่เซิร์ฟเวอร์ (Target) | ผู้รับผิดชอบในกลุ่ม 4 | โปรโตคอล / รูปแบบการเชื่อมต่อ | วัตถุประสงค์ |
+| :--- | :--- | :---: | :--- | :--- |
+| **กลุ่ม 3 (Central Authentication)** | `http://192.168.100.103:8000/auth/login` | **คนที่ 4** | HTTP POST (JSON) | ส่ง Username/Password ไปตรวจสอบกับฐานข้อมูลกลางเพื่อยืนยันตัวตนอาจารย์ |
+| **กลุ่ม 6 (IoT Door Access Server)** | `http://192.168.100.106/api/logs` | **คนที่ 5** | HTTP GET / Webhook | ดึงและรับข้อมูลประวัติการแตะบัตรและเปิดประตูห้องเรียน |
+| **เครือข่าย Proxmox VM4** | `192.168.100.104` | **คนที่ 7** | TCP/IP, Port 80, 443, 3306, 8000 | กำหนดค่า Routing, Port Forwarding และ Firewall ขาเข้า/ขาออก |
 
 ---
 
-## 🌐 สรุปจุดเชื่อมต่อกับกลุ่มภายนอก (External Integration Map)
-
-> [!IMPORTANT]
-> เพื่อความเป็นระเบียบและปลอดภัยของระบบ การสื่อสารกับระบบภายนอกจะทำผ่านตัวแทน (Single Point of Contact) ในแต่ละด้านดังนี้:
+## 📁 โครงสร้างไดเรกทอรีของโปรเจกต์ (Repository Structure)
 
 ```text
-┌─────────────────────────────────┐
-│        กลุ่ม 3 (Auth API)       │
-└────────────────┬────────────────┘
-                 │ (1) ยืนยันตัวตน (POST Username/Password)
-                 ▼
-     ┌───────────────────────┐
-     │ คนที่ 4 (Backend Auth) │
-     └───────────────────────┘
-
-┌─────────────────────────────────┐
-│       กลุ่ม 6 (IoT Server)      │
-└────────────────┬────────────────┘
-                 │ (2) ประวัติการเข้า-ออก (Pull / Push Logs)
-                 ▼
-     ┌───────────────────────┐
-     │ คนที่ 5 (Backend Sync) │
-     └───────────────────────┘
-
-┌─────────────────────────────────┐
-│    เครือข่าย VM / Proxmox       │
-└────────────────┬────────────────┘
-                 │ (3) จัดการ Firewall, IP Address, Port Communication
-                 ▼
-     ┌───────────────────────┐
-     │  คนที่ 7 (DevOps/DBA)  │
-     └───────────────────────┘
+G4-Web-Appplication-miniproject-Security-/
+├── 📄 docker-compose.yml          # Local / Dev Docker Orchestration (MariaDB, Backend, Frontend)
+├── 📄 README.md                   # เอกสารสรุปโครงการและสถาปัตยกรรมของกลุ่ม 4 (ไฟล์นี้)
+├── 📄 .gitignore                  # รายการไฟล์และโฟลเดอร์ที่ไม่นำขึ้นระบบ Git
+│
+├── 📂 backend/                    # Unified FastAPI Application (คนที่ 4, 5, 6)
+│   ├── Dockerfile                 # Production Dockerfile สำหรับ FastAPI
+│   ├── requirements.txt           # Python dependencies (FastAPI, PyMySQL, SQLAlchemy, Jose ฯลฯ)
+│   ├── app/
+│   │   ├── main.py                # จุดเริ่มต้นแอปพลิเคชัน FastAPI, Middleware, Lifespan Poller
+│   │   ├── api/v1/endpoints/      # API Endpoints (auth.py, logs.py, audit.py, iot.py)
+│   │   ├── core/                  # Configuration & Security (JWT, Hash, Settings)
+│   │   ├── db/                    # การเชื่อมต่อ Database Session (SQLAlchemy / PyMySQL)
+│   │   ├── models/                # Database Models (AccessLog, UserAuditLog)
+│   │   ├── schemas/               # Pydantic Schemas สำหรับ Validation & Response
+│   │   └── services/              # Business Logic (group3_client, log_service, iot_service, audit_service)
+│   └── tests/                     # ชุดทดสอบอัตโนมัติ (Auth, Logs, IoT, Audit)
+│
+├── 📂 frontend/                   # Web Application (Next.js 14 / TypeScript / Tailwind CSS) (คนที่ 1, 2, 3)
+│   ├── Dockerfile                 # Production Dockerfile สำหรับ Next.js
+│   ├── package.json               # รายการ Dependencies และ Scripts ของ Node.js
+│   └── src/
+│       ├── app/                   # Next.js App Router (login/page.tsx, dashboard/page.tsx)
+│       ├── components/            # UI Components (Header, LogTable, FilterBar, StatCard, Pagination)
+│       ├── context/               # React Contexts (AuthContext, LanguageContext)
+│       ├── services/api.ts        # API Client เชื่อมต่อ Backend FastAPI
+│       └── types/                 # TypeScript Type Definitions
+│
+├── 📂 database/                   # Database Scripts (คนที่ 7)
+│   ├── 01_create_web_app_table.sql  # สคริปต์สร้างตาราง web_app (เก็บบันทึกประวัติการเข้า-ออก)
+│   ├── 02_create_user_table.sql     # สคริปต์สร้างตาราง user (เก็บบันทึก Audit Log การสืบค้น)
+│   └── 03_seed_mock_data.sql        # ข้อมูลจำลองสำหรับทดสอบระบบ
+│
+├── 📂 deploy/                     # Deployment Scripts สำหรับ VM4 บน Proxmox (คนที่ 7)
+│   ├── docker-compose.vm4.yml     # Compose file สำหรับ Production VM4
+│   └── nginx.conf                 # การตั้งค่า Nginx Reverse Proxy พร้อม Rate Limiting
+│
+├── 📂 docs/                       # เอกสารคู่มือและการส่งมอบงานระหว่างสมาชิก
+│   ├── FOR7_HANDOFF.md            # คู่มือส่งมอบระบบให้คนที่ 7 (Deployment & DevOps)
+│   └── HANDOFF_PERSON3.md         # คู่มือส่งมอบ UI Components ให้คนที่ 3 (State Integration)
+│
+└── 📂 legacy/                     # โค้ดต้นแบบและระบบรุ่นทดลองดั้งเดิม (Archive)
+    ├── archive-backend/           # Backend FOR7 และ IOT-sync เดิม
+    └── prototype-html/            # Static HTML/JS Prototype ก่อนพัฒนาเป็น Next.js
 ```
 
-1. **กลุ่ม 3 (Authentication API):**
-   * **ผู้ประสานงาน:** **คนที่ 4 (Backend Auth)**
-   * **ลักษณะการเชื่อมต่อ:** ส่ง Username & Password ผ่าน HTTP POST Request ไปยืนยันตัวตนกับฐานข้อมูลหลักของกลุ่ม 3 แล้วรับผลการตรวจสอบกลับมาออก Token ให้ Frontend
-2. **กลุ่ม 6 (IoT Server):**
-   * **ผู้ประสานงาน:** **คนที่ 5 (Backend Sync)**
-   * **ลักษณะการเชื่อมต่อ:** เชื่อมต่อเพื่อรับข้อมูลประวัติการสแกนบัตร/ประตูเข้าห้องเรียน (Access Logs) ผ่าน Webhook หรือ Polling/Cron Job นำข้อมูลมา Clean และบันทึกลง Database ของกลุ่ม 4
-3. **เครือข่าย VM / Infrastructure (Proxmox Network):**
-   * **ผู้ประสานงาน:** **คนที่ 7 (DevOps)**
-   * **ลักษณะการเชื่อมต่อ:** กำหนดค่าเครือข่าย, IP Routing, Firewall และ Port บนระบบ Proxmox เพื่อเปิดช่องทางการสื่อสารระหว่าง VM4 ของกลุ่ม 4 กับ VM ของกลุ่ม 3 และกลุ่ม 6
+---
+
+## 🛠️ ข้อกำหนดทางเทคนิคและ API Specification (Technical Summary)
+
+### API Endpoints หลัก (`/api/v1`)
+
+| Method | Endpoint | ผู้รับผิดชอบ | หน้าที่ | พารามิเตอร์สำคัญ |
+| :--- | :--- | :---: | :--- | :--- |
+| `POST` | `/api/v1/auth/login` | คนที่ 4 | ยืนยันตัวตนผู้ใช้ และออก Token | Body: `{ "username": "...", "password": "..." }` |
+| `GET` | `/api/v1/logs` | คนที่ 6 | ค้นหาและกรองประวัติการเข้า-ออก | Query: `student_id`, `keyword`, `room`, `date`, `time_slot`, `status`, `page`, `limit` |
+| `GET` | `/api/v1/audit/logs` | คนที่ 4 | ดึงประวัติการใช้งานหน้าเว็บของอาจารย์ | Query: `username`, `page`, `limit` |
+| `POST` | `/api/v1/iot/sync` | คนที่ 5 | รับข้อมูลประวัติการสแกนบัตรจากกลุ่ม 6 | Body: รายการ Logs จาก IoT Server |
+| `GET` | `/api/get_dashboard_data.php` | คนที่ 6 | Endpoint รองรับ Backward Compatibility | Query Parameters เดียวกับ `/api/v1/logs` |
+
+### ตารางฐานข้อมูลหลัก (`web_app_db`)
+
+1. **ตาราง `web_app` (ประวัติการเข้า-ออกห้องเรียน):**
+   - `id`: รหัสลำดับ (Primary Key, Auto Increment)
+   - `timestamp`: วันและเวลาที่แตะบัตรเข้า-ออก
+   - `student_id`: รหัสนักศึกษา (เช่น `65010234`)
+   - `student_name`: ชื่อและนามสกุลนักศึกษา
+   - `room`: รหัสห้องเรียน (เช่น `B217`, `E107`)
+   - `status`: สถานะการผ่านประตู (`IN` = เข้า, `OUT` = ออก)
+   - `created_at`: วันเวลาที่บันทึกลงในฐานข้อมูล
+
+2. **ตาราง `user` (บันทึก Audit Log พฤติกรรมการสืบค้น):**
+   - `id`: รหัสลำดับบันทึก
+   - `username`: ชื่อผู้เข้าใช้งานหรืออาจารย์ที่ล็อกอิน
+   - `action`: การกระทำหรือเงื่อนไขการค้นหา (เช่น `Login`, `Search>room=B217`)
+   - `timestamp`: วันและเวลาที่เกิดเหตุการณ์
 
 ---
 
-## 🛠️ สรุปข้อมูลทางเทคนิคและ API Specification (Technical Summary)
+## 🚀 ขั้นตอนการติดตั้งและรันระบบ (Setup & Deployment Guide)
 
-### API Endpoints ภายในระบบกลุ่ม 4
+### วิธีที่ 1: รันระบบทั้งหมดด้วย Docker Compose (แนะนำ สะดวกและตรงกับระบบจริง)
 
-| Method | Endpoint | ผู้สร้าง (Provider) | ผู้เรียกใช้ (Consumer) | หน้าที่ | Header / Parameters |
-| :--- | :--- | :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/auth/login` | คนที่ 4 | คนที่ 1 | รับข้อมูลเข้าสู่ระบบและคืน JWT Token | **Body:** `{ "username": "...", "password": "..." }` |
-| `GET` | `/api/v1/logs` | คนที่ 6 | คนที่ 3 | ดึงข้อมูล Access Logs สำหรับ Dashboard | **Header:** `Authorization: Bearer <token>`<br/>**Query:** `keyword`, `date`, `page`, `limit` |
-| `POST` / `PULL` | Data Ingestion Pipeline | คนที่ 5 | กลุ่ม 6 | รับหรือดึง Access Logs จาก IoT Server | JSON Data Schema ของ Access Logs |
+ตรวจสอบว่าได้ติดตั้ง Docker และ Docker Compose บนเครื่องแล้ว จากนั้นรันคำสั่ง:
+
+```bash
+# สั่ง Build และรันทั้ง MariaDB, FastAPI Backend และ Next.js Frontend
+docker compose up -d --build
+```
+
+เมื่อ Container ทำงานครบถ้วน สามารถเข้าใช้งานได้ที่:
+* **Frontend Dashboard:** [http://localhost:3000](http://localhost:3000)
+* **Backend Swagger API Docs:** [http://localhost:8000/docs](http://localhost:8000/docs)
+* **MariaDB Database:** `localhost:3306` (Database: `web_app_db`, User: `app_backend`, Password: `Password1234!`)
+
+คำสั่งหยุดการทำงาน:
+```bash
+docker compose down
+```
 
 ---
 
-> จัดทำขึ้นสำหรับการประสานงานและการส่งมอบงานในโครงการ **Group 4 Web Application**
+### วิธีที่ 2: รันแยกชิ้นส่วนสำหรับ Local Development
+
+#### 1. การเปิดใช้งาน Backend (FastAPI)
+```bash
+cd backend
+python -m venv venv
+
+# บน Windows:
+venv\Scripts\activate
+# บน macOS/Linux:
+source venv/bin/activate
+
+pip install -r requirements.txt
+cp .env.example .env
+
+# รัน FastAPI Server
+uvicorn app.main.py:app --reload --host 0.0.0.0 --port 8000
+```
+
+#### 2. การเปิดใช้งาน Frontend (Next.js)
+```bash
+cd frontend
+npm install
+cp .env.example .env.local
+
+# รัน Next.js Development Server
+npm run dev
+```
+
+---
+
+> จัดทำขึ้นสำหรับโครงการ **Group 4 Web Application — Door Authentication System**  
+> หลักสูตรวิศวกรรมคอมพิวเตอร์ (CE04) สถาบันเทคโนโลยีพระจอมเกล้าเจ้าคุณทหารลาดกระบัง (KMITL)

@@ -1,0 +1,22 @@
+services:
+  auth-service:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    container_name: g4_auth_service
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - ../.env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - g4-network
+
+networks:
+  g4-network:
+    driver: bridge
