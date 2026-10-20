@@ -20,16 +20,16 @@ export default function StatCards({ activeRooms, totalAccess, totalRooms = 8, ro
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
       
-      {/* Card 1: Active Rooms */}
+      {/* Card 1: ห้องที่มีการใช้ทั้งหมดกี่ห้อง */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/70 rounded-full blur-2xl -mr-6 -mt-6 group-hover:scale-125 transition-transform"></div>
         <div className="flex items-start justify-between relative z-10">
           <div>
             <span className="text-xs font-semibold tracking-wider text-slate-400 uppercase">
-              {t('stat1Title')}
+              {isStudent ? t('studentStat1Title') : t('stat1Title')}
             </span>
             <p className="text-sm font-medium text-slate-600 mt-0.5">
-              {t('stat1Desc')}
+              {isStudent ? t('studentStat1Desc') : t('stat1Desc')}
             </p>
             <div className="mt-3 flex items-baseline space-x-2">
               <span className="text-3xl sm:text-4xl font-extrabold text-blue-600 font-jakarta">
@@ -46,7 +46,7 @@ export default function StatCards({ activeRooms, totalAccess, totalRooms = 8, ro
         </div>
       </div>
 
-      {/* Card 2: Total Access Events */}
+      {/* Card 2: สถิติการเข้าใช้ห้องเรียนรายวัน */}
       <div className="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:shadow-md transition-shadow relative overflow-hidden group">
         <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-50/70 rounded-full blur-2xl -mr-6 -mt-6 group-hover:scale-125 transition-transform"></div>
         <div className="flex items-start justify-between relative z-10">

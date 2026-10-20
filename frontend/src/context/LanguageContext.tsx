@@ -28,32 +28,40 @@ export const translations: Translations = {
     en: 'Refresh Data',
   },
   stat1Title: {
-    th: 'ห้องเรียนที่เปิดใช้งานอยู่ขณะนี้',
-    en: 'Currently Active Rooms',
+    th: 'ห้องที่มีการใช้ทั้งหมด',
+    en: 'Total Rooms In Use',
   },
   stat1Desc: {
-    th: 'สถานะห้องเรียนที่เปิดใช้งาน',
-    en: 'Classroom occupancy status',
+    th: 'ห้องที่มีการใช้งานทั้งหมดในระบบ',
+    en: 'Total classrooms in use',
+  },
+  studentStat1Title: {
+    th: 'ห้องที่ฉันเคยเข้าใช้ทั้งหมด',
+    en: 'My Total Accessed Rooms',
+  },
+  studentStat1Desc: {
+    th: 'ห้องเรียนทั้งหมดที่คุณเคยเข้าใช้งาน',
+    en: 'All classrooms you have accessed',
   },
   stat1Unit: {
     th: '/ 8 ห้อง',
     en: '/ 8 rooms',
   },
   stat2Title: {
-    th: 'ยอดรวมการเข้าใช้งานวันนี้',
-    en: 'Total Access Events Today',
+    th: 'สถิติการเข้าใช้ห้องเรียนรายวัน',
+    en: 'Daily Classroom Access Statistics',
   },
   studentStat2Title: {
-    th: 'ยอดเข้าห้องเรียนของฉัน',
-    en: 'My Total Access Events',
+    th: 'สถิติการเข้าใช้ห้องเรียนของฉัน',
+    en: 'My Classroom Access Statistics',
   },
   stat2Desc: {
     th: 'สถิติการเข้าใช้ห้องเรียนรายวัน',
     en: 'Daily access transaction count',
   },
   studentStat2Desc: {
-    th: 'จำนวนครั้งที่คุณสแกนเข้า-ออกห้องเรียน',
-    en: 'Your classroom scan transaction count',
+    th: 'ยอดสถิติการเข้าใช้ห้องเรียนทั้งหมดของคุณ',
+    en: 'Your total classroom access count',
   },
   stat2Unit: {
     th: 'ครั้ง',

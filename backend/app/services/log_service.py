@@ -237,31 +237,39 @@ def get_dashboard_data(
                         "status": row.status,
                     })
 
-                # คำนวณยอดการเข้าใช้รายวัน (totalAccess) ตามขอบเขตบัญชีและฟิลเตอร์ที่ล็อกอิน
-                if status_clean in ("ACTIVE", "CURRENT", "IN_USE"):
-                    total_access = total
-                    active_room_query = text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {where_sql}")
-                    active_rooms = conn.execute(active_room_query, params).scalar() or 0
+                # -------------------------------------------------------------------------
+                # การ์ดสรุปสถิติ (Stat Cards): แสดงข้อมูลภาพรวมทั้งหมดตามบทบาท ไม่ลดทอนตามการค้นหา
+                # - บทบาทอาจารย์: แสดงข้อมูลทั้งหมดของทั้งระบบ
+                #   Card 1 (activeRooms): ห้องที่มีการใช้ทั้งหมดกี่ห้อง
+                #   Card 2 (totalAccess): สถิติการเข้าใช้ห้องเรียนรายวันทั้งหมดของระบบ
+                # - บทบาทนักศึกษา: แสดงข้อมูลทั้งหมดเฉพาะของตนเอง (ไม่ลดทอนตามการค้นหา)
+                #   Card 1 (activeRooms): ห้องที่ตนเองเคยเข้าใช้งานทั้งหมดกี่ห้อง
+                #   Card 2 (totalAccess): สถิติการเข้าใช้ห้องเรียนของตนเองทั้งหมด
+                # -------------------------------------------------------------------------
+                if owner_student_id:
+                    stat_scope_where = "student_id = :stat_owner_id"
+                    stat_scope_params = {"stat_owner_id": owner_student_id}
                 else:
-                    if selected_date:
-                        total_access = total
-                    else:
-                        today_clauses = [c for c in where_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()']
-                        today_query = text(f"SELECT COUNT(*) FROM web_app WHERE {' AND '.join(today_clauses)}")
-                        daily_count = conn.execute(today_query, params).scalar() or 0
-                        total_access = daily_count if daily_count > 0 else total
+                    stat_scope_where = "1=1"
+                    stat_scope_params = {}
 
-                    # คำนวณสถานะห้องเรียนที่เปิดใช้งาน (activeRooms) สรุปจากประวัติการแตะบัตรของบัญชีที่ล็อกอิน
-                    stat_clauses = [c for c in where_clauses if 'status' not in c]
-                    if not selected_date:
-                        stat_today = [c for c in stat_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()', "status = 'IN'"]
-                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_today)}"), params).scalar() or 0
-                        if active_rooms == 0:
-                            stat_all = stat_clauses + ["status = 'IN'"]
-                            active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_all)}"), params).scalar() or 0
-                    else:
-                        stat_date = stat_clauses + ["status = 'IN'"]
-                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_date)}"), params).scalar() or 0
+                # 1. ห้องที่มีการใช้ทั้งหมดกี่ห้อง
+                room_stat_query = text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {stat_scope_where}")
+                active_rooms = conn.execute(room_stat_query, stat_scope_params).scalar() or 0
+
+                # 2. สถิติการเข้าใช้ห้องเรียนรายวัน
+                today_stat_query = text(f"SELECT COUNT(*) FROM web_app WHERE {stat_scope_where} AND DATE(timestamp) = CURDATE()")
+                daily_count = conn.execute(today_stat_query, stat_scope_params).scalar() or 0
+                if daily_count > 0:
+                    total_access = daily_count
+                else:
+                    latest_day_query = text(
+                        f"SELECT COUNT(*) FROM web_app WHERE {stat_scope_where} "
+                        f"AND DATE(timestamp) = (SELECT MAX(DATE(timestamp)) FROM web_app WHERE {stat_scope_where})"
+                    )
+                    latest_count = conn.execute(latest_day_query, stat_scope_params).scalar() or 0
+                    total_access = latest_count if latest_count > 0 else (conn.execute(text(f"SELECT COUNT(*) FROM web_app WHERE {stat_scope_where}"), stat_scope_params).scalar() or 0)
+
                 used_db = True
 
         except Exception as exc:
@@ -270,15 +278,32 @@ def get_dashboard_data(
 
     # หากไม่ได้ใช้ MariaDB หรือไม่มีข้อมูลใน DB ให้ดึงข้อมูลจาก Synced IoT Storage
     if not used_db or (total == 0 and len(raw_logs) == 0):
+        base_logs = get_all_available_logs()
+
+        # กำหนด Scope ข้อมูลตามบทบาท (ไม่ขึ้นกับฟิลเตอร์การค้นหา)
+        if owner_student_id:
+            user_scope_logs = [l for l in base_logs if str(l.get("student_id", "")).strip().casefold() == str(owner_student_id).strip().casefold()]
+        else:
+            user_scope_logs = base_logs
+
+        # 1. ห้องที่มีการใช้ทั้งหมดกี่ห้อง
+        scope_rooms = {l["room"] for l in user_scope_logs if l.get("room")}
+        active_rooms = len(scope_rooms)
+
+        # 2. สถิติการเข้าใช้ห้องเรียนรายวัน
+        today_date = date.today()
+        today_logs = [l for l in user_scope_logs if _as_datetime(l["timestamp"]).date() == today_date]
+        if today_logs:
+            total_access = len(today_logs)
+        else:
+            total_access = len(user_scope_logs)
+
+        # ส่วนตารางรายการให้กรองตามเงื่อนไขการค้นหาตามปกติ
         all_filtered = _filtered_mock(student_id, room, selected_date, time_slot, status, owner_student_id)
         total = len(all_filtered)
         start = (page - 1) * limit
         end = start + limit
         raw_logs = all_filtered[start:end]
-
-        in_rooms = {l["room"] for l in all_filtered if str(l.get("status", "")).upper() == "IN"}
-        active_rooms = len(in_rooms)
-        total_access = total
 
     total_pages = max(1, (total + limit - 1) // limit) if total > 0 else 1
     formatted_logs = [_format_log(l, lang) for l in raw_logs]

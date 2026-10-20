@@ -149,12 +149,15 @@ export async function fetchDashboardData(
     const totalPages = Math.max(1, Math.ceil(total / limit));
     const start = (page - 1) * limit;
     const paginated = filtered.slice(start, start + limit);
-    const inRooms = new Set(filtered.filter(i => i.status.toUpperCase() === 'IN').map(i => i.room));
+
+    // การ์ดสรุปสถิติ: ไม่ลดทอนตามการค้นหา (คำนวณจาก Scope ผู้ใช้ทั้งหมด)
+    const scopeData = kw ? MOCK_DATA.filter(i => i.student_id.toLowerCase() === kw) : MOCK_DATA;
+    const scopeRooms = new Set(scopeData.map(i => i.room));
 
     return {
       status: 'success',
-      activeRooms: inRooms.size,
-      totalAccess: total,
+      activeRooms: scopeRooms.size,
+      totalAccess: scopeData.length,
       totalRooms: 8,
       pagination: {
         page,
@@ -218,4 +221,3 @@ export async function getIoTSyncStatus(): Promise<any> {
   }
   return null;
 }
-
