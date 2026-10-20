@@ -49,7 +49,7 @@ def get_user_profile(current_user: dict = Depends(get_current_user)):
 
     display_name = group3_client.resolve_name_from_db(username, role)
     if not display_name:
-        display_name = "อาจารย์ สมชาย ใจดี" if role == "teacher" else f"นักศึกษา ({username})"
+        display_name = f"อาจารย์ ({username})" if role == "teacher" else f"นักศึกษา ({username})"
 
     email = f"{username}@university.ac.th"
     user_info = {
