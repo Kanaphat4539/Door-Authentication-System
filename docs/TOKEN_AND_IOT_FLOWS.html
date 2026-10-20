@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Token Exchange & IoT Sync Flows — กลุ่ม 4 Classroom Access Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #1e293b;
+      --card-inner: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --green: #10b981;
+      --purple: #8b5cf6;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px 20px 80px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 30px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      margin-bottom: 10px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1.05rem;
+    }
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0 25px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: var(--card-bg);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.92rem;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .btn:hover {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .btn.active {
+      background: var(--primary-dark);
+      border-color: var(--primary);
+      color: #fff;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+    }
+    .diagram-viewport {
+      background: #020617;
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      padding: 20px;
+      overflow-x: auto;
+      text-align: center;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      margin-bottom: 35px;
+    }
+    .diagram-viewport img,
+    .diagram-viewport svg {
+      max-width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 35px 0 18px;
+      padding-left: 12px;
+      border-left: 4px solid var(--primary);
+    }
+    .section-title.iot {
+      border-left-color: var(--green);
+    }
+    .grid-5 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 18px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+    .step-card.token-card {
+      border-top: 3px solid #2563eb;
+    }
+    .step-card.iot-card {
+      border-top: 3px solid #059669;
+    }
+    .step-num {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.85rem;
+      margin-bottom: 10px;
+    }
+    .token-card .step-num {
+      background: #1e3a8a;
+      color: #93c5fd;
+    }
+    .iot-card .step-num {
+      background: #064e3b;
+      color: #a7f3d0;
+    }
+    .step-card h3 {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    .step-card p {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+      margin-bottom: 10px;
+      flex-grow: 1;
+    }
+    .code-block {
+      background: #0a0e17;
+      border: 1px solid #1e293b;
+      border-radius: 6px;
+      padding: 8px 12px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      color: #38bdf8;
+      overflow-x: auto;
+      white-space: pre;
+    }
+    .features-panel {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 35px;
+    }
+    .features-panel h2 {
+      font-size: 1.25rem;
+      color: #fff;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .key-points {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+    .point-box {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .point-box h4 {
+      font-size: 0.98rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+    .point-box p {
+      font-size: 0.86rem;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">ระบบการจัดการและแสดงผลข้อมูลการเข้าใช้ห้องเรียน (กลุ่ม 4)</div>
+      <h1><span>โฟลว์การแลกเปลี่ยน Token</span> และ <span>การซิงก์ข้อมูล IoT</span></h1>
+      <div class="subtitle">Token Exchange & Lifecycle Flow + IoT Sync & Ingestion Pipeline Architecture</div>
+
+      <div class="actions-bar">
+        <a class="btn active" href="TOKEN_AND_IOT_FLOWS.png" target="_blank">📥 เปิดรูป PNG ความละเอียดสูง</a>
+        <a class="btn" href="TOKEN_AND_IOT_FLOWS.svg" target="_blank">🔍 ดูไฟล์ต้นฉบับ SVG</a>
+        <a class="btn" href="TOKEN_AND_IOT_FLOWS.md" target="_blank">📄 เอกสารประกอบสไลด์ (Markdown)</a>
+        <a class="btn" href="SYSTEM_OVERVIEW.html">🌐 ภาพรวมระบบทั้งหมด</a>
+        <a class="btn" href="TOKEN_AND_INTERNAL_SYSTEM.html">🔐 คู่มือกลไก Token ฉบับสมบูรณ์</a>
+      </div>
+    </header>
+
+    <!-- Visual Diagram Viewport -->
+    <div class="diagram-viewport">
+      <img src="TOKEN_AND_IOT_FLOWS.png" alt="Token Exchange & IoT Sync Flows Diagram" />
+    </div>
+
+    <!-- PART 1: TOKEN FLOW EXPLANATION -->
+    <div class="section-title">
+      <span>🔐</span>
+      <span>1. โฟลว์การแลกเปลี่ยน Token (Token Exchange & Lifecycle Flow)</span>
+    </div>
+    <div class="grid-5">
+      <div class="step-card token-card">
+        <div class="step-num">1</div>
+        <h3>ล็อกอินผ่านเซิร์ฟเวอร์กลาง</h3>
+        <p>ผู้ใช้กรอก Username / Password ผ่านหน้าเว็บ กลุ่ม 4 ส่งคำขอ POST ไปยังเซิร์ฟเวอร์กลางของกลุ่ม 3 เพื่อตรวจสอบความถูกต้อง</p>
+        <div class="code-block">POST /api/v1/auth/login
+Target: 192.168.100.103:8000
+Body: { username, password }</div>
+      </div>
+
+      <div class="step-card token-card">
+        <div class="step-num">2</div>
+        <h3>ออก Group 4 JWT Token</h3>
+        <p>เมื่อกลุ่ม 3 ยืนยันรหัสถูกต้อง Backend กลุ่ม 4 ออก Token เฉพาะระบบตนเอง เข้ารหัสลายเซ็น HS256 มีอายุใช้งาน 120 นาที</p>
+        <div class="code-block">{
+  "sub": "67200324",
+  "role": "student",
+  "exp": 1784627200
+}</div>
+      </div>
+
+      <div class="step-card token-card">
+        <div class="step-num">3</div>
+        <h3>จัดเก็บใน Client Storage</h3>
+        <p>เบราว์เซอร์รับ Token แล้วจัดเก็บใน <code>localStorage</code> อย่างปลอดภัย และดักจับแนบไปกับ Header ทุก Request ผ่าน Axios Interceptor</p>
+        <div class="code-block">Authorization: Bearer &lt;token&gt;
+Client: localStorage.setItem(
+  'access_token', token
+)</div>
+      </div>
+
+      <div class="step-card token-card">
+        <div class="step-num">4</div>
+        <h3>ตรวจสอบสิทธิ์ & ป้องกัน IDOR</h3>
+        <p>Backend ถอดรหัส Token และดึง Role/ID โดยตรง หากเป็นนักศึกษา จะบังคับสืบค้นเฉพาะ <code>student_id = token.sub</code> เท่านั้น ป้องกัน IDOR เด็ดขาด</p>
+        <div class="code-block">verify_token() -> Claims
+if role == "student":
+  student_id = claims["sub"]</div>
+      </div>
+
+      <div class="step-card token-card">
+        <div class="step-num">5</div>
+        <h3>บันทึก Audit Log ลง DB</h3>
+        <p>ระบบบันทึกประวัติการเข้าใช้งานลงตาราง <code>user</code> ใน MariaDB แบบ Asynchronous Background Task ไม่หน่วงเวลาการตอบกลับข้อมูล</p>
+        <div class="code-block">INSERT INTO user 
+(student_id, role, last_login)
+VALUES (:sub, :role, NOW())</div>
+      </div>
+    </div>
+
+    <!-- PART 2: IOT SYNC PIPELINE EXPLANATION -->
+    <div class="section-title iot">
+      <span>📡</span>
+      <span>2. โฟลว์การซิงก์ข้อมูล IoT (IoT Ingestion & Real-Time Pipeline)</span>
+    </div>
+    <div class="grid-5">
+      <div class="step-card iot-card">
+        <div class="step-num">A</div>
+        <h3>อุปกรณ์ทาบบัตร RFID</h3>
+        <p>นักศึกษาหรืออาจารย์ทาบบัตร RFID หน้าห้องเรียน เครื่องอ่านบันทึก UID, วันที่, เวลา และรหัสห้องเรียนทันที</p>
+        <div class="code-block">Classroom Readers:
+UID: 04A1B2C3D4
+Room: EN4101
+Time: 2026-10-20 08:30:15</div>
+      </div>
+
+      <div class="step-card iot-card">
+        <div class="step-num">B</div>
+        <h3>IoT Server (กลุ่ม 6)</h3>
+        <p>ฮาร์ดแวร์ส่งสัญญาณผ่าน MQTT / HTTP เข้าสู่เซิร์ฟเวอร์ IoT ของกลุ่ม 6 เพื่อรวมรวมและเปิดบริการ API สำหรับดึงข้อมูล</p>
+        <div class="code-block">GET /api/logs/all
+Host: 192.168.100.106:3000
+Content-Type: application/json</div>
+      </div>
+
+      <div class="step-card iot-card">
+        <div class="step-num">C</div>
+        <h3>Ingestion Worker (กลุ่ม 4)</h3>
+        <p>แบ็กกราวด์เซอร์วิสของกลุ่ม 4 โพลลิ่งข้อมูลทุก 5 วินาที พร้อมระบบ Retry อัตโนมัติ (Exponential Backoff) ป้องกันการเชื่อมต่อล้มเหลว</p>
+        <div class="code-block">Async Loop (interval: 5s)
+httpx.AsyncClient(timeout=5)
+Max Retries: 3 with backoff</div>
+      </div>
+
+      <div class="step-card iot-card">
+        <div class="step-num">D</div>
+        <h3>Cleansing & ตัดข้อมูลซ้ำ</h3>
+        <p>ปรับรูปแบบวันที่เป็น Bangkok Time (GMT+7) และสร้าง Hash ลายนิ้วมือข้อมูลด้วย MD5 เพื่อตัดแถวซ้ำ (Deduplication) ก่อนบันทึก</p>
+        <div class="code-block">hash = MD5(UID + Room + Time)
+if hash in seen_hashes:
+  skip_duplicate()</div>
+      </div>
+
+      <div class="step-card iot-card">
+        <div class="step-num">E</div>
+        <h3>MariaDB & Live Dashboard</h3>
+        <p>บันทึกลงตาราง <code>web_app</code> ในฐานข้อมูล <code>web_app_db</code> พร้อมแจ้ง WebSocket / Auto-refresh ให้แดชบอร์ดอัปเดตแบบเรียลไทม์</p>
+        <div class="code-block">INSERT INTO web_app (...)
+VALUES (...)
+-> Auto-refresh Dashboard</div>
+      </div>
+    </div>
+
+    <!-- SUMMARY / SLIDE HIGHLIGHTS -->
+    <div class="features-panel">
+      <h2>💡 จุดเด่นด้านความมั่นคงปลอดภัย (Security Highlights สำหรับพรีเซนต์)</h2>
+      <div class="key-points">
+        <div class="point-box">
+          <h4>1. สถาปัตยกรรมแยกส่วนการยืนยันตัวตน (Decoupled Auth)</h4>
+          <p>กลุ่ม 4 ไม่ได้เก็บรหัสผ่านของผู้ใช้งานไว้เอง แต่ใช้ Central Auth จากกลุ่ม 3 ลดความเสี่ยงกรณีฐานข้อมูลรั่วไหล และสร้าง Token ภายในที่จำกัดสิทธิ์เฉพาะฟังก์ชันที่จำเป็น</p>
+        </div>
+        <div class="point-box">
+          <h4>2. การป้องกัน IDOR อย่างสมบูรณ์แบบ (Anti-IDOR by Design)</h4>
+          <p>บทบาทนักศึกษาถูกจำกัดให้สืบค้นข้อมูลของตนเองเสมอ โดยระบบดึง <code>student_id</code> จาก Claims ภายใน JWT Token โดยตรง ไม่เปิดช่องให้ส่ง query string มาแอบดูข้อมูลของเพื่อน</p>
+        </div>
+        <div class="point-box">
+          <h4>3. ท่อข้อมูล IoT ที่ทนทานต่อความผิดพลาด (Resilient IoT Pipeline)</h4>
+          <p>มีระบบกรองข้อมูลซ้ำ (Deduplication) ด้วย MD5 fingerprint, ปรับปรุง timezone สู่ Bangkok GMT+7, และกลไก fallback ไม่ให้แดชบอร์ดล่มแม้เครือข่ายกลุ่ม 6 จะมีปัญหาชั่วคราว</p>
+        </div>
+        <div class="point-box">
+          <h4>4. การตรวจสอบย้อนหลัง (Audit Trail Logging)</h4>
+          <p>ทุกการเรียกใช้งาน API ที่สำเร็จและไม่สำเร็จ มีการบันทึกประวัติการเรียกใช้ สิทธิ์ของผู้ใช้ และเวลาลงฐานข้อมูลอย่างเป็นระบบเพื่อการสอบสวนและติดตามย้อนหลัง</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      โครงการ Classroom Access Management & Teacher Dashboard Security System &copy; 2026 กลุ่ม 4 (VM4 Proxmox)
+    </footer>
+  </div>
+</body>
+</html>

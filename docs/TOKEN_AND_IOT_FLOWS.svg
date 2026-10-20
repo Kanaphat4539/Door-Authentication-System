@@ -1,0 +1,325 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1800" height="1200" viewBox="0 0 1800 1200" role="img" aria-labelledby="title desc">
+  <title id="title">Token Exchange &amp; IoT Sync Flows — กลุ่ม 4</title>
+  <desc id="desc">แผนภาพโฟลว์การแลกเปลี่ยน Token และโฟลว์กระบวนการซิงก์ข้อมูล IoT</desc>
+
+  <defs>
+    <!-- Arrowhead markers -->
+    <marker id="arrowBlue" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#2563eb"/>
+    </marker>
+    <marker id="arrowGreen" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#059669"/>
+    </marker>
+    <marker id="arrowPurple" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#7c3aed"/>
+    </marker>
+    <marker id="arrowAmber" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <path d="M0,1 L7,4 L0,7 z" fill="#d97706"/>
+    </marker>
+
+    <!-- Styles -->
+    <style>
+      text { font-family: 'Prompt', 'Segoe UI', Tahoma, sans-serif; }
+      .header-title { font-size: 26px; font-weight: 800; fill: #0f172a; }
+      .header-sub { font-size: 15px; fill: #64748b; }
+      .section-hdr { font-size: 17px; font-weight: 800; }
+      
+      .box-title { font-size: 15px; font-weight: 700; fill: #0f172a; }
+      .box-subtitle { font-size: 11px; fill: #64748b; }
+      .card-title { font-size: 13px; font-weight: 700; }
+      .item-text { font-size: 12px; fill: #334155; }
+      .item-desc { font-size: 11px; fill: #64748b; }
+      .code-font { font-family: 'Fira Code', Consolas, monospace; font-size: 11px; font-weight: 600; }
+
+      .flow-step-num { font-size: 13px; font-weight: 800; fill: #ffffff; text-anchor: middle; }
+      .pill-badge { fill: #ffffff; stroke: #cbd5e1; stroke-width: 1; rx: 10; }
+      .pill-txt { font-size: 11px; font-weight: 600; text-anchor: middle; }
+
+      .line-blue { stroke: #2563eb; stroke-width: 2.2; fill: none; marker-end: url(#arrowBlue); }
+      .line-blue-dash { stroke: #2563eb; stroke-width: 2; stroke-dasharray: 6 5; fill: none; marker-end: url(#arrowBlue); }
+      .line-green { stroke: #059669; stroke-width: 2.2; fill: none; marker-end: url(#arrowGreen); }
+      .line-purple { stroke: #7c3aed; stroke-width: 2.2; fill: none; marker-end: url(#arrowPurple); }
+      .line-amber { stroke: #d97706; stroke-width: 2.2; fill: none; marker-end: url(#arrowAmber); }
+    </style>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1800" height="1200" fill="#f8fafc"/>
+
+  <!-- Top Title Banner -->
+  <text x="60" y="52" class="header-title">ระบบบริหารจัดการประวัติการเข้าห้องเรียน (กลุ่ม 4)</text>
+  <text x="62" y="78" class="header-sub">แผนภาพแสดง 1) โฟลว์การแลกเปลี่ยน Token (JWT Lifecycle) และ 2) โฟลว์กระบวนการซิงก์ข้อมูล IoT (IoT Ingestion Pipeline)</text>
+
+  <!-- Group Badge -->
+  <rect x="1480" y="35" width="260" height="38" rx="19" fill="#dbeafe" stroke="#bfdbfe" stroke-width="1"/>
+  <text x="1610" y="59" font-size="12" font-weight="700" fill="#1d4ed8" text-anchor="middle">GROUP 4 · SECURITY FLOWS</text>
+
+
+  <!-- ========================================================================= -->
+  <!-- PART 1: โฟลว์การแลกเปลี่ยนและใช้งาน Token (Token Exchange & Lifecycle Flow) -->
+  <!-- ========================================================================= -->
+  <rect x="40" y="105" width="1720" height="515" rx="18" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="60" y="120" width="530" height="32" rx="8" fill="#eff6ff"/>
+  <text x="75" y="142" class="section-hdr" style="fill:#1d4ed8;">โฟลว์ที่ 1 : การแลกเปลี่ยน Token ยืนยันตัวตน และควบคุมสิทธิ์ (JWT Lifecycle &amp; RBAC)</text>
+
+  <!-- Step 1: User Login Interaction -->
+  <g transform="translate(65, 170)">
+    <rect width="260" height="425" rx="14" fill="#f8fafc" stroke="#93c5fd" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#2563eb"/>
+    <text x="29" y="34" class="flow-step-num">1</text>
+    <text x="50" y="34" class="box-title" style="fill:#1d4ed8;">ผู้ใช้กรอกข้อมูลล็อกอิน</text>
+    <text x="16" y="65" class="box-subtitle">อาจารย์ / นักศึกษา ที่หน้า /login</text>
+
+    <!-- Details -->
+    <rect x="16" y="80" width="228" height="325" rx="10" fill="#ffffff" stroke="#bfdbfe" stroke-width="1.2"/>
+    <text x="28" y="108" class="card-title" style="fill:#1e40af;">ป้อนข้อมูลบัญชีผู้ใช้</text>
+    <text x="28" y="135" class="item-text">• <tspan font-weight="bold">Username</tspan> : รหัส นศ. หรืออาจารย์</text>
+    <text x="28" y="157" class="item-text">• <tspan font-weight="bold">Password</tspan> : รหัสผ่านบัญชีกลาง</text>
+    
+    <rect x="28" y="175" width="204" height="65" rx="8" fill="#eff6ff" stroke="#bfdbfe" stroke-width="1"/>
+    <text x="38" y="197" class="code-font" style="fill:#1d4ed8;">POST /api/v1/auth/login</text>
+    <text x="38" y="217" class="item-desc">ส่ง Payload ไปยัง Backend API</text>
+
+    <text x="28" y="265" class="item-text">• ไม่เก็บ Password ไว้ในระบบกลุ่ม 4</text>
+    <text x="28" y="287" class="item-text">• ส่งต่อไปตรวจกับเซิร์ฟเวอร์กลาง</text>
+    <text x="28" y="315" class="item-desc" style="color:#0284c7; font-weight:600;">🔒 เข้ารหัสส่งผ่าน HTTPS / REST API</text>
+  </g>
+
+  <!-- Arrow Step 1 -> Step 2 -->
+  <path d="M 325 310 L 405 310" class="line-blue"/>
+  <rect x="330" y="288" width="70" height="20" class="pill-badge"/>
+  <text x="365" y="302" class="pill-txt" style="fill:#2563eb;">1. ส่ง Login</text>
+
+  <!-- Step 2: Backend -> Central Auth (Group 3) -->
+  <g transform="translate(410, 170)">
+    <rect width="280" height="425" rx="14" fill="#fffbeb" stroke="#fde68a" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#d97706"/>
+    <text x="29" y="34" class="flow-step-num">2</text>
+    <text x="50" y="34" class="box-title" style="fill:#b45309;">ยืนยันตัวตนกับกลุ่ม 3</text>
+    <text x="16" y="65" class="box-subtitle">Central Auth (192.168.100.103:8000)</text>
+
+    <rect x="16" y="80" width="248" height="325" rx="10" fill="#ffffff" stroke="#fde68a" stroke-width="1.2"/>
+    <text x="28" y="108" class="card-title" style="fill:#92400e;">ตรวจ Credentials กลาง</text>
+    <text x="28" y="135" class="item-text">• Backend ส่งคำขอต่อไปยังกลุ่ม 3</text>
+    <text x="28" y="157" class="code-font" style="fill:#b45309;">POST /auth/login</text>
+    <text x="28" y="185" class="item-text">• กลุ่ม 3 ตรวจสอบความถูกต้อง:</text>
+    <text x="40" y="207" class="item-desc">✔ ถูกต้อง ➔ คืนค่า Role &amp; Name</text>
+    <text x="40" y="227" class="item-desc">❌ ผิดพลาด ➔ ตอบกลับ 401</text>
+    <text x="28" y="260" class="item-text">• ดึงข้อมูลสิทธิ์ (<tspan class="code-text" fill="#b45309">teacher / student</tspan>)</text>
+    <text x="28" y="285" class="item-desc" style="color:#b45309; font-weight:600;">🔐 เฉพาะบัญชีที่ผ่านกลุ่ม 3 เท่านั้นที่เข้าได้</text>
+  </g>
+
+  <!-- Arrow Step 2 -> Step 3 -->
+  <path d="M 690 310 L 770 310" class="line-amber"/>
+  <rect x="696" y="288" width="70" height="20" class="pill-badge"/>
+  <text x="731" y="302" class="pill-txt" style="fill:#d97706;">2. ยืนยันผล</text>
+
+  <!-- Step 3: Issue Group 4 JWT Token -->
+  <g transform="translate(775, 170)">
+    <rect width="295" height="425" rx="14" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.8"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#7c3aed"/>
+    <text x="29" y="34" class="flow-step-num">3</text>
+    <text x="50" y="34" class="box-title" style="fill:#5b21b6;">ออก Group 4 JWT Token</text>
+    <text x="16" y="65" class="box-subtitle">สร้าง Token ลงลายเซ็นเฉพาะของกลุ่ม 4</text>
+
+    <rect x="16" y="80" width="263" height="325" rx="10" fill="#ffffff" stroke="#ddd6fe" stroke-width="1.2"/>
+    <text x="28" y="108" class="card-title" style="fill:#6d28d9;">โครงสร้าง Payload (Claims)</text>
+    
+    <rect x="28" y="120" width="239" height="110" rx="8" fill="#fdf4ff" stroke="#f0abfc" stroke-width="1"/>
+    <text x="38" y="140" class="code-font" style="fill:#7c3aed;">{</text>
+    <text x="48" y="158" class="code-font" style="fill:#7c3aed;">"sub": "67200324",</text>
+    <text x="48" y="176" class="code-font" style="fill:#7c3aed;">"role": "student",</text>
+    <text x="48" y="194" class="code-font" style="fill:#7c3aed;">"exp": 1784627200 // 120m</text>
+    <text x="38" y="212" class="code-font" style="fill:#7c3aed;">}</text>
+
+    <text x="28" y="250" class="item-text">• เซ็นกำกับด้วย <tspan class="code-font" fill="#6d28d9">HS256</tspan> + <tspan class="code-font">JWT_SECRET</tspan></text>
+    <text x="28" y="272" class="item-text">• กำหนดอายุใช้งาน <tspan font-weight="bold">120 นาที</tspan></text>
+    <text x="28" y="294" class="item-text">• ป้องกันการปลอมแปลงสิทธิ์ 100%</text>
+    <text x="28" y="325" class="item-desc" style="color:#7c3aed; font-weight:600;">⚡ ส่งกลับ: { access_token, user }</text>
+  </g>
+
+  <!-- Arrow Step 3 -> Step 4 -->
+  <path d="M 1070 310 L 1150 310" class="line-blue-dash"/>
+  <rect x="1076" y="288" width="70" height="20" class="pill-badge"/>
+  <text x="1111" y="302" class="pill-txt" style="fill:#2563eb;">3. ส่ง Token</text>
+
+  <!-- Step 4: Client Storage & Header Attach -->
+  <g transform="translate(1155, 170)">
+    <rect width="280" height="425" rx="14" fill="#f8fafc" stroke="#67e8f9" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#0284c7"/>
+    <text x="29" y="34" class="flow-step-num">4</text>
+    <text x="50" y="34" class="box-title" style="fill:#0369a1;">จัดเก็บ &amp; แนบ Token ส่ง API</text>
+    <text x="16" y="65" class="box-subtitle">Client-side Storage &amp; Transmission</text>
+
+    <rect x="16" y="80" width="248" height="325" rx="10" fill="#ffffff" stroke="#a5f3fc" stroke-width="1.2"/>
+    <text x="28" y="108" class="card-title" style="fill:#0284c7;">การเก็บและแนบ Bearer Token</text>
+    <text x="28" y="135" class="item-text">• บันทึกลง <tspan class="code-font" fill="#0369a1">localStorage</tspan></text>
+    <text x="28" y="157" class="item-text">• ผูกกับ <tspan class="code-font">AuthContext</tspan> ใน React</text>
+    
+    <rect x="28" y="175" width="224" height="65" rx="8" fill="#f0fdfa" stroke="#99f6e4" stroke-width="1"/>
+    <text x="36" y="196" class="code-font" style="fill:#0f766e; font-size:10px;">Authorization: Bearer &lt;JWT&gt;</text>
+    <text x="36" y="216" class="item-desc">แนบใน Header ทุกคำขอ API</text>
+
+    <text x="28" y="265" class="item-text">• ส่งคำขอเช่น <tspan class="code-font">GET /api/v1/logs</tspan></text>
+    <text x="28" y="287" class="item-text">• เมื่อ Logout: ลบ Token ออกทันที</text>
+    <text x="28" y="315" class="item-desc" style="color:#0284c7; font-weight:600;">🔒 ป้องกัน Session Hijacking</text>
+  </g>
+
+  <!-- Arrow Step 4 -> Step 5 -->
+  <path d="M 1435 310 L 1515 310" class="line-blue"/>
+  <rect x="1440" y="288" width="70" height="20" class="pill-badge"/>
+  <text x="1475" y="302" class="pill-txt" style="fill:#2563eb;">4. เรียก API</text>
+
+  <!-- Step 5: Verification, RBAC & Anti-IDOR -->
+  <g transform="translate(1520, 170)">
+    <rect width="215" height="425" rx="14" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#059669"/>
+    <text x="29" y="34" class="flow-step-num">5</text>
+    <text x="50" y="34" class="box-title" style="fill:#065f46;">ตรวจสิทธิ์ &amp; Anti-IDOR</text>
+    <text x="16" y="65" class="box-subtitle">Security Guard &amp; Audit Trail</text>
+
+    <rect x="16" y="80" width="183" height="325" rx="10" fill="#ffffff" stroke="#6ee7b7" stroke-width="1.2"/>
+    <text x="24" y="108" class="card-title" style="fill:#047857;">มาตรการตรวจสิทธิ์</text>
+    <text x="24" y="132" class="item-text">✔ ตรวจสอบ Signature</text>
+    <text x="24" y="152" class="item-text">✔ เช็ควันหมดอายุ (120m)</text>
+    <text x="24" y="172" class="item-text">✔ แยกสิทธิ์ <tspan class="code-font" fill="#047857">RBAC</tspan></text>
+    <text x="24" y="200" class="card-title" style="fill:#b91c1c;">Anti-IDOR Guard:</text>
+    <text x="24" y="222" class="item-desc">ถ้านักศึกษาเรียก ระบบล็อก</text>
+    <text x="24" y="240" class="code-font" style="fill:#b91c1c;">owner = token.sub</text>
+    <text x="24" y="260" class="item-desc">ไม่ให้ส่องข้อมูลเพื่อน</text>
+
+    <rect x="24" y="280" width="167" height="50" rx="6" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1"/>
+    <text x="32" y="298" class="item-desc" style="font-weight:700; fill:#6d28d9;">📝 บันทึก Audit Log</text>
+    <text x="32" y="316" class="item-desc" style="font-size:10px;">ลงตาราง user เวลาจริง</text>
+  </g>
+
+
+  <!-- ========================================================================= -->
+  <!-- PART 2: โฟลว์การนำเข้าและซิงก์ข้อมูล IoT (IoT Ingestion & Sync Pipeline)     -->
+  <!-- ========================================================================= -->
+  <rect x="40" y="645" width="1720" height="515" rx="18" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <rect x="60" y="660" width="530" height="32" rx="8" fill="#f0fdf4"/>
+  <text x="75" y="682" class="section-hdr" style="fill:#15803d;">โฟลว์ที่ 2 : กระบวนการนำเข้า ซิงก์ และกรองข้อมูลแตะบัตรจาก IoT (Data Pipeline)</text>
+
+  <!-- Step A: Hardware RFID Tap -->
+  <g transform="translate(65, 710)">
+    <rect width="250" height="425" rx="14" fill="#f8fafc" stroke="#86efac" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#16a34a"/>
+    <text x="29" y="34" class="flow-step-num">A</text>
+    <text x="50" y="34" class="box-title" style="fill:#166534;">เครื่องแตะบัตรหน้าห้อง</text>
+    <text x="16" y="65" class="box-subtitle">RFID / NFC Card Reader Hardware</text>
+
+    <rect x="16" y="80" width="218" height="325" rx="10" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.2"/>
+    <text x="26" y="108" class="card-title" style="fill:#15803d;">บันทึกการแตะบัตรจริง</text>
+    <text x="26" y="135" class="item-text">• ติดตั้งหน้าห้องเรียน เช่น B316</text>
+    <text x="26" y="160" class="item-text">• นักศึกษาแตะบัตรเข้า (<tspan font-weight="bold" fill="#059669">IN</tspan>)</text>
+    <text x="26" y="185" class="item-text">• นักศึกษาแตะบัตรออก (<tspan font-weight="bold" fill="#dc2626">OUT</tspan>)</text>
+    
+    <rect x="26" y="210" width="198" height="70" rx="8" fill="#f0fdf4" stroke="#bbf7d0" stroke-width="1"/>
+    <text x="36" y="232" class="code-font" style="fill:#166534; font-size:10px;">[2026-10-20 22:14:34]</text>
+    <text x="36" y="250" class="code-font" style="fill:#166534; font-size:10px;">67200324 | B316 | IN</text>
+
+    <text x="26" y="315" class="item-desc" style="color:#15803d; font-weight:600;">⚡ ส่งข้อมูลดิบขึ้น IoT Server</text>
+  </g>
+
+  <!-- Arrow Step A -> Step B -->
+  <path d="M 315 850 L 395 850" class="line-green"/>
+  <rect x="320" y="828" width="70" height="20" class="pill-badge"/>
+  <text x="355" y="842" class="pill-txt" style="fill:#059669;">1. ส่ง Log</text>
+
+  <!-- Step B: Group 6 IoT Server -->
+  <g transform="translate(400, 710)">
+    <rect width="280" height="425" rx="14" fill="#f0fdf4" stroke="#86efac" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#16a34a"/>
+    <text x="29" y="34" class="flow-step-num">B</text>
+    <text x="50" y="34" class="box-title" style="fill:#166534;">IoT Server (กลุ่ม 6)</text>
+    <text x="16" y="65" class="box-subtitle">192.168.100.106:3000</text>
+
+    <rect x="16" y="80" width="248" height="325" rx="10" fill="#ffffff" stroke="#bbf7d0" stroke-width="1.2"/>
+    <text x="26" y="108" class="card-title" style="fill:#15803d;">ศูนย์กลางข้อมูล IoT</text>
+    <text x="26" y="135" class="item-text">• รวบรวมข้อมูลแตะบัตรทุกห้อง</text>
+    <text x="26" y="160" class="item-text">• ให้บริการ API Endpoint:</text>
+    <text x="26" y="182" class="code-font" style="fill:#166534;">GET /api/logs</text>
+    <text x="26" y="210" class="item-text">• รองรับทั้งระบบดึง (Polling)</text>
+    <text x="26" y="232" class="item-text">• และ Webhook ส่งข้อมูลทันที</text>
+    <text x="26" y="260" class="item-text">• เชื่อมต่อข้ามเน็ตเวิร์ก Proxmox</text>
+    <text x="26" y="315" class="item-desc" style="color:#15803d; font-weight:600;">📡 จัดเก็บ Raw Access Logs</text>
+  </g>
+
+  <!-- Arrow Step B -> Step C -->
+  <path d="M 680 850 L 760 850" class="line-green"/>
+  <rect x="685" y="828" width="70" height="20" class="pill-badge"/>
+  <text x="720" y="842" class="pill-txt" style="fill:#059669;">2. ดึง 5s</text>
+
+  <!-- Step C: Group 4 Background Ingestion Worker -->
+  <g transform="translate(765, 710)">
+    <rect width="320" height="425" rx="14" fill="#f5f3ff" stroke="#c4b5fd" stroke-width="1.8"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#7c3aed"/>
+    <text x="29" y="34" class="flow-step-num">C</text>
+    <text x="50" y="34" class="box-title" style="fill:#5b21b6;">IoT Sync Worker (กลุ่ม 4)</text>
+    <text x="16" y="65" class="box-subtitle">FastAPI Background Daemon (VM4)</text>
+
+    <rect x="16" y="80" width="288" height="325" rx="10" fill="#ffffff" stroke="#ddd6fe" stroke-width="1.2"/>
+    <text x="26" y="108" class="card-title" style="fill:#6d28d9;">กระบวนการ Polling &amp; Sync</text>
+    <text x="26" y="135" class="item-text">• รันเบื้องหลังอัตโนมัติตลอดเวลา</text>
+    <text x="26" y="160" class="item-text">• <tspan font-weight="bold">ความถี่:</tspan> Polling ทุก 5 วินาที</text>
+    <text x="26" y="182" class="code-font" style="fill:#6d28d9;">POLL_INTERVAL_SECONDS = 5</text>
+    <text x="26" y="210" class="item-text">• รองรับปุ่ม <tspan font-weight="bold">"รีเฟรชข้อมูล"</tspan> บนเว็บ</text>
+    <text x="26" y="235" class="item-text">• สำรองใน <tspan class="code-font">synced_iot_logs.json</tspan></text>
+    <text x="26" y="260" class="item-text">• มีระบบ Circuit Breaker ป้องกันแฮงค์</text>
+    <text x="26" y="315" class="item-desc" style="color:#7c3aed; font-weight:600;">🔄 ทำงาน Asynchronous ไม่บล็อก API</text>
+  </g>
+
+  <!-- Arrow Step C -> Step D -->
+  <path d="M 1085 850 L 1165 850" class="line-purple"/>
+  <rect x="1090" y="828" width="70" height="20" class="pill-badge"/>
+  <text x="1125" y="842" class="pill-txt" style="fill:#7c3aed;">3. คลีนซิ่ง</text>
+
+  <!-- Step D: Data Cleansing & Deduplication -->
+  <g transform="translate(1170, 710)">
+    <rect width="285" height="425" rx="14" fill="#fdf4ff" stroke="#f0abfc" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#a21caf"/>
+    <text x="29" y="34" class="flow-step-num">D</text>
+    <text x="50" y="34" class="box-title" style="fill:#86198f;">กรอง &amp; ป้องกันข้อมูลซ้ำ</text>
+    <text x="16" y="65" class="box-subtitle">Data Cleansing &amp; Deduplication Engine</text>
+
+    <rect x="16" y="80" width="253" height="325" rx="10" fill="#ffffff" stroke="#f0abfc" stroke-width="1.2"/>
+    <text x="26" y="108" class="card-title" style="fill:#a21caf;">การตรวจสอบคุณภาพข้อมูล</text>
+    <text x="26" y="135" class="item-text">• <tspan font-weight="bold">แปลงเวลา:</tspan> เป็น GMT+7 (เวลาไทย)</text>
+    <text x="26" y="160" class="item-text">• <tspan font-weight="bold">ตรวจสถานะ:</tspan> รับเฉพาะ IN และ OUT</text>
+    
+    <rect x="26" y="175" width="233" height="60" rx="8" fill="#fdf4ff" stroke="#f0abfc" stroke-width="1"/>
+    <text x="36" y="197" class="code-font" style="fill:#a21caf; font-size:10px;">MD5(time_student_room_status)</text>
+    <text x="36" y="217" class="item-desc">คำนวณ Hash ป้องกันบันทึกซ้ำ</text>
+
+    <text x="26" y="260" class="item-text">• <tspan font-weight="bold">Name Resolution:</tspan> แมปชื่อจริง นศ.</text>
+    <text x="26" y="285" class="item-text">• บันทึกเฉพาะข้อมูลใหม่เท่านั้น</text>
+    <text x="26" y="315" class="item-desc" style="color:#a21caf; font-weight:600;">🛡️ ข้อมูลถูกต้อง ไม่ซ้ำซ้อน</text>
+  </g>
+
+  <!-- Arrow Step D -> Step E -->
+  <path d="M 1455 850 L 1535 850" class="line-green"/>
+  <rect x="1460" y="828" width="70" height="20" class="pill-badge"/>
+  <text x="1495" y="842" class="pill-txt" style="fill:#059669;">4. เขียน DB</text>
+
+  <!-- Step E: MariaDB & Live Dashboard -->
+  <g transform="translate(1540, 710)">
+    <rect width="195" height="425" rx="14" fill="#ecfdf5" stroke="#a7f3d0" stroke-width="1.6"/>
+    <rect x="16" y="16" width="26" height="26" rx="8" fill="#059669"/>
+    <text x="29" y="34" class="flow-step-num">E</text>
+    <text x="50" y="34" class="box-title" style="fill:#065f46;">MariaDB &amp; Live UI</text>
+    <text x="16" y="65" class="box-subtitle">ตาราง web_app พร้อมแสดงผล</text>
+
+    <rect x="16" y="80" width="163" height="325" rx="10" fill="#ffffff" stroke="#6ee7b7" stroke-width="1.2"/>
+    <text x="24" y="108" class="card-title" style="fill:#047857;">ผลลัพธ์พร้อมใช้งาน</text>
+    <text x="24" y="135" class="item-text">• บันทึกลงตาราง</text>
+    <text x="24" y="152" class="code-font" style="fill:#047857;">web_app</text>
+    <text x="24" y="175" class="item-text">• รัน ID ต่อจากเดิม</text>
+    <text x="24" y="200" class="item-text">• <tspan font-weight="bold">Live Dashboard:</tspan></text>
+    <text x="32" y="222" class="item-desc">ตารางอัปเดตทันที</text>
+    <text x="32" y="242" class="item-desc">สถิติคงที่ตาม Role</text>
+    <text x="32" y="262" class="item-desc">คำนวณ <tspan font-weight="bold" fill="#059669">ACTIVE</tspan> ล่าสุด</text>
+    <text x="24" y="315" class="item-desc" style="color:#047857; font-weight:600;">📊 Real-time Monitoring</text>
+  </g>
+
+</svg>
