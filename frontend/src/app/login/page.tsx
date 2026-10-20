@@ -5,14 +5,14 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { useAuth } from '../../context/AuthContext';
 import { loginAPI } from '../../services/api';
-import { Mail, Key, Eye, EyeOff, AlertCircle, Loader2, Sparkles } from 'lucide-react';
+import { Mail, Key, Eye, EyeOff, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function LoginPage() {
   const router = useRouter();
   const { isAuthenticated, isLoading, login } = useAuth();
 
-  const [username, setUsername] = useState('teacher_ajarn');
-  const [password, setPassword] = useState('secure123');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -44,28 +44,6 @@ export default function LoginPage() {
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const handleDemoLogin = () => {
-    login('mock-jwt-bearer-token-teacher-dev', {
-      username: 'teacher_ajarn',
-      name: 'อาจารย์ สมชาย ใจดี',
-      nameEn: 'Dr. Somchai Jaidee',
-      role: 'teacher',
-      email: 'teacher.ajarn@university.ac.th',
-    });
-    router.replace('/dashboard');
-  };
-
-  const handleStudentDemoLogin = () => {
-    login('mock-jwt-bearer-token-student-dev', {
-      username: '67200324',
-      name: 'นายสมชาย ใจกล้า',
-      nameEn: 'Leo Ev',
-      role: 'student',
-      email: 'leo.ev@university.ac.th',
-    });
-    router.replace('/dashboard');
   };
 
   return (
@@ -157,33 +135,6 @@ export default function LoginPage() {
             </div>
           </div>
 
-          {/* Quick Credential Fillers for Group 3 & Teacher */}
-          <div className="flex flex-wrap items-center gap-1.5 pt-1">
-            <span className="text-[10px] text-slate-600 font-bold uppercase font-jakarta">Quick Fill:</span>
-            <button
-              type="button"
-              onClick={() => {
-                setUsername('67200324');
-                setPassword('67200324');
-                setErrorMessage(null);
-              }}
-              className="text-[11px] px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold border border-orange-200/60 transition-colors"
-            >
-              Student (Group 3: 67200324)
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setUsername('teacher_ajarn');
-                setPassword('secure123');
-                setErrorMessage(null);
-              }}
-              className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
-            >
-              Teacher (Ajarn)
-            </button>
-          </div>
-
           {/* Forgot link */}
           <div className="flex justify-end pt-0.5">
             <a
@@ -214,30 +165,6 @@ export default function LoginPage() {
               <span>Sign In</span>
             )}
           </button>
-
-          {/* Demo Login Buttons */}
-          <div className="pt-3 border-t border-slate-100 space-y-2.5">
-            <button
-              type="button"
-              id="btnDemoLogin"
-              onClick={handleDemoLogin}
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold border border-slate-200 shadow-sm transition-all flex items-center justify-center space-x-2"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-              <span>เข้าสู่ระบบด้วยบัญชีทดสอบ (Demo Teacher)</span>
-            </button>
-            <button
-              type="button"
-              id="btnStudentDemoLogin"
-              onClick={handleStudentDemoLogin}
-              disabled={isSubmitting}
-              className="w-full py-2.5 px-4 bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 rounded-xl text-xs font-semibold border border-slate-200 shadow-sm transition-all flex items-center justify-center space-x-2"
-            >
-              <Sparkles className="w-3.5 h-3.5 text-slate-400" />
-              <span>เข้าสู่ระบบด้วยบัญชีทดสอบ (Demo Student)</span>
-            </button>
-          </div>
 
         </form>
 
