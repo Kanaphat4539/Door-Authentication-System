@@ -222,11 +222,26 @@ def get_dashboard_data(
                         "status": row.status,
                     })
 
-                stat_query = text("SELECT COUNT(DISTINCT room) FROM web_app WHERE status = 'IN' AND DATE(timestamp) = CURDATE()")
-                active_rooms = conn.execute(stat_query).scalar() or 0
+                # คำนวณยอดการเข้าใช้รายวัน (totalAccess) ตามขอบเขตบัญชีและฟิลเตอร์ที่ล็อกอิน
+                if selected_date:
+                    total_access = total
+                else:
+                    today_clauses = [c for c in where_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()']
+                    today_query = text(f"SELECT COUNT(*) FROM web_app WHERE {' AND '.join(today_clauses)}")
+                    daily_count = conn.execute(today_query, params).scalar() or 0
+                    total_access = daily_count if daily_count > 0 else total
 
-                access_query = text("SELECT COUNT(*) FROM web_app WHERE DATE(timestamp) = CURDATE()")
-                total_access = conn.execute(access_query).scalar() or total
+                # คำนวณสถานะห้องเรียนที่เปิดใช้งาน (activeRooms) สรุปจากประวัติการแตะบัตรของบัญชีที่ล็อกอิน
+                stat_clauses = [c for c in where_clauses if 'status' not in c]
+                if not selected_date:
+                    stat_today = [c for c in stat_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()', "status = 'IN'"]
+                    active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_today)}"), params).scalar() or 0
+                    if active_rooms == 0:
+                        stat_all = stat_clauses + ["status = 'IN'"]
+                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_all)}"), params).scalar() or 0
+                else:
+                    stat_date = stat_clauses + ["status = 'IN'"]
+                    active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_date)}"), params).scalar() or 0
                 used_db = True
 
         except Exception as exc:

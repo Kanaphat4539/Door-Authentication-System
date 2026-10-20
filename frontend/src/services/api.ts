@@ -141,7 +141,7 @@ export async function fetchDashboardData(
 
     return {
       status: 'success',
-      activeRooms: inRooms.size || 2,
+      activeRooms: inRooms.size,
       totalAccess: total,
       totalRooms: 8,
       pagination: {
