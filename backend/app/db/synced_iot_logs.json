@@ -1,5 +1,85 @@
 [
   {
+    "id": 32,
+    "timestamp": "2026-10-20 19:14:32",
+    "student_id": "67200412",
+    "student_name": "นศ. 67200412",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 31,
+    "timestamp": "2026-10-20 19:14:14",
+    "student_id": "67200412",
+    "student_name": "นศ. 67200412",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 30,
+    "timestamp": "2026-10-20 19:13:30",
+    "student_id": "67200258",
+    "student_name": "นศ. 67200258",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 29,
+    "timestamp": "2026-10-20 19:11:33",
+    "student_id": "67200324",
+    "student_name": "นศ. 67200324",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 28,
+    "timestamp": "2026-10-20 19:11:24",
+    "student_id": "67200324",
+    "student_name": "นศ. 67200324",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
+    "id": 27,
+    "timestamp": "2026-10-20 18:39:04",
+    "student_id": "67200258",
+    "student_name": "นศ. 67200258",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 26,
+    "timestamp": "2026-10-20 18:38:54",
+    "student_id": "67200030",
+    "student_name": "นศ. 67200030",
+    "room": "B317",
+    "status": "OUT"
+  },
+  {
+    "id": 25,
+    "timestamp": "2026-10-20 18:38:50",
+    "student_id": "67200030",
+    "student_name": "นศ. 67200030",
+    "room": "B317",
+    "status": "IN"
+  },
+  {
+    "id": 24,
+    "timestamp": "2026-10-20 18:38:40",
+    "student_id": "67200030",
+    "student_name": "นศ. 67200030",
+    "room": "B316",
+    "status": "OUT"
+  },
+  {
+    "id": 23,
+    "timestamp": "2026-10-20 18:38:02",
+    "student_id": "67200030",
+    "student_name": "นศ. 67200030",
+    "room": "B316",
+    "status": "IN"
+  },
+  {
     "id": 22,
     "timestamp": "2026-10-13 17:46:51",
     "student_id": "67200324",

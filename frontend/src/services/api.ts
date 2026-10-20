@@ -1,6 +1,18 @@
 import { AuthResponse, DashboardResponse, FilterParams, LogItem, User } from '../types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || (typeof window !== 'undefined' ? '/api/v1' : 'http://localhost:8000/api/v1');
+// Always resolve to relative '/api/v1' in browser so reverse-proxy (Nginx / VM4) correctly forwards to backend
+const getApiBaseUrl = (): string => {
+  if (typeof window !== 'undefined') {
+    const configured = process.env.NEXT_PUBLIC_API_URL;
+    if (configured && !configured.includes('localhost:8000') && !configured.includes('127.0.0.1:8000')) {
+      return configured;
+    }
+    return '/api/v1';
+  }
+  return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api/v1';
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // ข้อมูลประวัติการแตะบัตรจริงที่ซิงก์มาจาก Group 6 IoT Server (http://172.16.10.200:3000/api/logs)
 const MOCK_DATA: LogItem[] = [

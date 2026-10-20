@@ -157,6 +157,33 @@ export default function LoginPage() {
             </div>
           </div>
 
+          {/* Quick Credential Fillers for Group 3 & Teacher */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-1">
+            <span className="text-[10px] text-slate-600 font-bold uppercase font-jakarta">Quick Fill:</span>
+            <button
+              type="button"
+              onClick={() => {
+                setUsername('67200324');
+                setPassword('67200324');
+                setErrorMessage(null);
+              }}
+              className="text-[11px] px-2.5 py-1 rounded-lg bg-orange-50 hover:bg-orange-100 text-orange-700 font-semibold border border-orange-200/60 transition-colors"
+            >
+              Student (Group 3: 67200324)
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setUsername('teacher_ajarn');
+                setPassword('secure123');
+                setErrorMessage(null);
+              }}
+              className="text-[11px] px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition-colors"
+            >
+              Teacher (Ajarn)
+            </button>
+          </div>
+
           {/* Forgot link */}
           <div className="flex justify-end pt-0.5">
             <a
