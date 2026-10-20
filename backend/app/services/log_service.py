@@ -78,8 +78,6 @@ def _matches(
 ) -> bool:
     if owner_student_id:
         target_owner = str(owner_student_id).strip().casefold()
-        if target_owner in ("student_somchai", "somchai", "67200324"):
-            target_owner = "67200324"
         log_std = str(log.get("student_id", "")).strip().casefold()
         if log_std != target_owner and target_owner not in log_std:
             return False
