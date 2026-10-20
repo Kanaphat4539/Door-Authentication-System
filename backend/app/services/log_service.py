@@ -157,6 +157,12 @@ def get_dashboard_data(
     total_access = 0
     used_db = False
 
+    # ดึงข้อมูลล่าสุดจาก Group 6 IoT Server เสมอ เพื่อให้การเข้าห้องอัปเดตแบบ Real-time
+    try:
+        fetch_and_sync_iot_logs()
+    except Exception:
+        pass
+
     # ตรวจสอบว่า MariaDB อยู่ในช่วง Cooldown หรือไม่
     now_time = pytime.time()
     db_cooling_down = (now_time - _last_db_failure_time) < _DB_COOLDOWN_SECONDS

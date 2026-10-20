@@ -32,8 +32,8 @@ class Settings:
     )
 
     # IoT Ingestion & Sync (Member 5 - Group 6 IoT Server)
-    IOT_LOG_URL: str = os.getenv("IOT_LOG_URL", "http://172.16.10.200:3000/api/logs")
-    POLL_INTERVAL_SECONDS: int = int(os.getenv("POLL_INTERVAL_SECONDS", "20"))
+    IOT_LOG_URL: str = os.getenv("IOT_LOG_URL", "http://192.168.100.106:3000/api/logs")
+    POLL_INTERVAL_SECONDS: int = int(os.getenv("POLL_INTERVAL_SECONDS", "5"))
     IOT_SYNC_ENABLED: bool = os.getenv("IOT_SYNC_ENABLED", "true").lower() in ("true", "1", "yes")
 
     # CORS settings

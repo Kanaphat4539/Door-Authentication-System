@@ -128,8 +128,8 @@ def validate_log_entry(entry: Dict[str, str]) -> Tuple[bool, Optional[str]]:
     if not ts or not student_id or not student_name or not room or not status_val:
         return False, "ฟิลด์ข้อมูลไม่ครบถ้วน"
 
-    if len(student_id) != STUDENT_ID_LENGTH:
-        return False, f"รหัสนักศึกษาต้องมีความยาว {STUDENT_ID_LENGTH} หลัก"
+    if not student_id or len(student_id) > 20:
+        return False, "รหัสผู้ใช้/นักศึกษาต้องมีความยาวไม่เกิน 20 ตัวอักษร"
 
     if len(student_name) > MAX_STUDENT_NAME_LENGTH:
         return False, f"ชื่อนักศึกษายาวเกิน {MAX_STUDENT_NAME_LENGTH} ตัวอักษร"
@@ -248,8 +248,8 @@ def fetch_and_sync_iot_logs(target_url: Optional[str] = None) -> Dict[str, Any]:
     else:
         candidate_urls.append(settings.IOT_LOG_URL)
         for fallback in [
-            "http://172.16.10.200:3000/api/logs",
             "http://192.168.100.106:3000/api/logs",
+            "http://172.16.10.200:3000/api/logs",
             "http://192.168.100.106/api/logs",
         ]:
             if fallback not in candidate_urls:
