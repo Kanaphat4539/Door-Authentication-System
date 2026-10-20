@@ -3,15 +3,15 @@ USE `web_app_db`;
 -- สร้างตารางสำหรับเก็บประวัติการใช้งานหน้าเว็บของผู้ใช้ (ใช้ชื่อตาราง user)
 CREATE TABLE IF NOT EXISTS `user` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'ลำดับเหตุการณ์',
+    `timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'วันเวลาที่เกิดเหตุการณ์ (UTC+7)',
     `username` VARCHAR(100) NOT NULL COMMENT 'ชื่อผู้เข้าใช้งาน (Username/รหัสอาจารย์/รหัสนักศึกษา)',
     `role` ENUM('teacher', 'student') NOT NULL DEFAULT 'teacher' COMMENT 'บทบาทผู้เข้าใช้งาน เช่น teacher หรือ student',
     `action` VARCHAR(255) NOT NULL COMMENT 'การกระทำบนหน้าเว็บ เช่น Login>Search>Username',
-    `timestamp` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'วันเวลาที่เกิดเหตุการณ์ (UTC+7)',
     
     PRIMARY KEY (`id`),
+    INDEX `idx_timestamp` (`timestamp`),
     INDEX `idx_username` (`username`),
     INDEX `idx_role` (`role`),
-    INDEX `idx_timestamp` (`timestamp`),
     INDEX `idx_user_action_search` (`username`, `timestamp`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='ตารางเก็บประวัติการใช้งานหน้าเว็บ';
 

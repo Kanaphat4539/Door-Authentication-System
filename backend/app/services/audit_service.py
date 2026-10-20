@@ -10,8 +10,8 @@ logger = logging.getLogger("audit_logger")
 def _execute_insert(username: str, action: str, role: str = "teacher") -> bool:
     try:
         sql = text(
-            "INSERT INTO user (username, role, action, timestamp) "
-            "VALUES (:username, :role, :action, NOW());"
+            "INSERT INTO user (timestamp, username, role, action) "
+            "VALUES (NOW(), :username, :role, :action);"
         )
         with engine.begin() as conn:
             conn.execute(sql, {"username": username, "role": role, "action": action})

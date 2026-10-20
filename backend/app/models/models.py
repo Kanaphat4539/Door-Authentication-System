@@ -36,16 +36,16 @@ class UserAudit(Base):
     __tablename__ = "user"
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
+    timestamp = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"), index=True)
     username = Column(String(100), nullable=False, index=True)
     role = Column(Enum("teacher", "student", name="user_role_enum"), nullable=False, default="teacher", server_default=text("'teacher'"), index=True)
     action = Column(String(255), nullable=False)
-    timestamp = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"), index=True)
 
     def to_dict(self):
         return {
             "id": self.id,
+            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
             "username": self.username,
             "role": self.role,
             "action": self.action,
-            "timestamp": self.timestamp.isoformat() if self.timestamp else None,
         }
