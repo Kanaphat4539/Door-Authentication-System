@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>โฟลว์การทำงานของระบบเว็บกลุ่ม 4 (Simple Workflow)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Sarabun';
+      line-height: 1.6;
+      color: #334155;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      background: white;
+      padding: 36px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    h1 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+    h2 { color: #2563eb; margin-top: 28px; }
+    h3 { color: #0f766e; }
+    .mermaid {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    .card {
+      background: #f8fafc;
+      border-left: 4px solid #3b82f6;
+      padding: 16px;
+      margin-bottom: 16px;
+      border-radius: 0 8px 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>💡 โฟลว์การทำงานของระบบเว็บแอปพลิเคชันกลุ่ม 4 แบบเข้าใจง่าย</h1>
+    <p><strong>โครงการ:</strong> ระบบจัดการการเข้าห้องเรียนอัจฉริยะ (Classroom Access Management System) | <strong>เครื่องแม่ข่าย:</strong> VM4 (172.16.10.200:3001)</p>
+    
+    <h2>🖼️ แผนภาพโฟลว์การทำงาน</h2>
+    <div class="mermaid">
+flowchart TD
+    subgraph Step1 ["1. การแตะบัตรเข้าห้องเรียน (IoT กลุ่ม 6)"]
+        A["💳 คนแตะบัตร RFID หน้าห้องเรียน (IN / OUT)"] --> B["📡 ส่งข้อมูลมาบันทึกลง Database ของเราแบบ Real-time"]
+    end
+
+    subgraph Step2 ["2. การเข้าสู่ระบบหน้าเว็บ (Auth กลุ่ม 3)"]
+        C["👤 กรอก Username & Password"] --> D{"🔐 กลุ่ม 3 ตรวจสอบว่าเป็นใคร?"}
+    end
+
+    subgraph Step3 ["3. การแสดงผลหน้า Dashboard (กลุ่ม 4)"]
+        D -->|เป็น นักศึกษา| E["🧑‍🎓 หน้าจอนักศึกษา (Student)<br>- เห็นเฉพาะประวัติของตัวเอง<br>- ซ่อนช่องค้นหาคนอื่น (IDOR Guard)<br>- การ์ดสรุปยอดการเข้าห้องของตนเอง"]
+        D -->|เป็น อาจารย์| F["👨‍🏫 หน้าจออาจารย์ (Teacher)<br>- เห็นประวัติของทุกคนทุกห้องเรียน<br>- มีช่องค้นหารหัสนักศึกษา<br>- การ์ดสรุปภาพรวมห้องที่เปิดใช้งานทั้งหมด"]
+    end
+
+    subgraph Step4 ["4. ตรวจสอบคนในห้องเรียน"]
+        E --> G["🟢 เลือกสถานะ 'กำลังใช้งาน'<br>แสดงเฉพาะคนที่แตะบัตรเข้า (IN) แล้วยังไม่ได้แตะออก (OUT)"]
+        F --> G
+    end
+
+    B -.->|ดึงข้อมูลมาแสดง| Step3
+    </div>
+
+    <h2>📝 รายละเอียดการทำงาน 4 ขั้นตอน</h2>
+    
+    <div class="card">
+      <h3>1. แตะบัตรหน้าห้องเรียน (IoT Data Ingestion)</h3>
+      <p>นักศึกษาหรืออาจารย์แตะบัตรที่หน้าห้องเรียน (เช่น B316, B317) ข้อมูลเวลาสแกนจะไหลจากเครื่องแตะบัตรกลุ่ม 6 เข้ามาบันทึกในตาราง <code>web_app</code> อัตโนมัติทุก 5 วินาที</p>
+    </div>
+
+    <div class="card">
+      <h3>2. ล็อกอินเข้าสู่ระบบ (Authentication via Group 3)</h3>
+      <p>ผู้ใช้เปิดหน้าเว็บแล้วกรอกรหัส ระบบจะส่งไปตรวจกับ API กลุ่ม 3 เพื่อยืนยันตัวตนและตรวจสอบสิทธิ์ว่าเป็น <strong>"นักศึกษา" (Student)</strong> หรือ <strong>"อาจารย์" (Teacher)</strong></p>
+    </div>
+
+    <div class="card">
+      <h3>3. แยกหน้าจอตามบทบาท (Role-based View & Security)</h3>
+      <ul>
+        <li><strong>นักศึกษา (Student):</strong> ล็อกสิทธิ์ให้ดูได้เฉพาะประวัติของตนเองเท่านั้น ซ่อนช่องค้นหาคนอื่น (IDOR Protection)</li>
+        <li><strong>อาจารย์ (Teacher):</strong> ดูประวัติของทุกคนทุกห้องเรียนได้ มีช่องค้นหารหัสนักศึกษา และดูสถิติภาพรวมทั้งมหาวิทยาลัย</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3>4. ตรวจเช็กคนในห้องเรียนแบบ Real-time (Active Occupancy Tracking)</h3>
+      <p>เมื่อเลือกสถานะ <strong>"กำลังใช้งาน" (ACTIVE)</strong> ระบบจะแสดงเฉพาะคนที่แตะบัตรเข้าห้อง (IN) และยังไม่ได้แตะบัตรออก (OUT) ทำให้รู้ได้ทันทีว่าใครอยู่ในห้องขณะนี้</p>
+    </div>
+  </div>
+</body>
+</html>

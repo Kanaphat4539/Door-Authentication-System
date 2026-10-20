@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>Use Case Diagram - กลุ่ม 4</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <script>mermaid.initialize({ startOnLoad: true, theme: 'default' });</script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif, 'Sarabun';
+      line-height: 1.6;
+      color: #334155;
+      background-color: #f8fafc;
+      margin: 0;
+      padding: 24px;
+    }
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      background: white;
+      padding: 36px;
+      border-radius: 16px;
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+    }
+    h1 { color: #1e293b; border-bottom: 2px solid #e2e8f0; padding-bottom: 12px; }
+    h2 { color: #2563eb; margin-top: 28px; }
+    .mermaid {
+      background: #f1f5f9;
+      padding: 20px;
+      border-radius: 12px;
+      margin: 20px 0;
+      text-align: center;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+    th, td {
+      border: 1px solid #cbd5e1;
+      padding: 10px 14px;
+      text-align: left;
+    }
+    th {
+      background-color: #f1f5f9;
+      font-weight: 600;
+      color: #1e293b;
+    }
+    tr:nth-child(even) { background-color: #f8fafc; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>📊 Use Case Diagram - ระบบเว็บแอปพลิเคชันกลุ่ม 4</h1>
+    <p><strong>โครงการ:</strong> ระบบจัดการการเข้าห้องเรียนอัจฉริยะ (Classroom Access Management System) | <strong>เครื่องแม่ข่าย:</strong> VM4 (172.16.10.200:3001)</p>
+    
+    <h2>🖼️ แผนภาพ Use Case Diagram</h2>
+    <div class="mermaid">
+flowchart LR
+    Student["🧑‍🎓 นักศึกษา (Student)"]
+    Teacher["👨‍🏫 อาจารย์ (Teacher)"]
+
+    subgraph System ["ระบบจัดการการเข้าห้องเรียนและสถิติ (Classroom Access System)"]
+        UC_Login(["1. เข้าสู่ระบบ (Login)"])
+        UC_Logout(["2. ออกจากระบบ (Logout)"])
+        UC_Lang(["3. สลับภาษา (TH / EN)"])
+
+        UC_ViewOwn(["4. ดูประวัติการแตะบัตรเฉพาะของตนเอง (IDOR Guard)"])
+        UC_FilterOwn(["5. กรองประวัติตนเอง (ห้องเรียน / วันที่ / เวลา)"])
+        UC_ActiveOwn(["6. ตรวจสอบสถานะ 'กำลังใช้งาน' ของตนเอง"])
+        UC_StatOwn(["7. ดูการ์ดสถิติส่วนบุคคล (ยอดเข้าห้องของฉัน)"])
+
+        UC_ViewAll(["8. ดูประวัติการแตะบัตรของทุกคนทุกห้องเรียน (RBAC)"])
+        UC_Search(["9. ค้นหาประวัติตามรหัสนักศึกษา (Search Keyword)"])
+        UC_FilterAll(["10. กรองประวัติภาพรวม (ห้องเรียน / วันที่ / เวลา)"])
+        UC_ActiveAll(["11. ตรวจสอบคนกำลังใช้งานห้องล่าสุด (มีเฉพาะ IN ยังไม่ OUT)"])
+        UC_StatAll(["12. ดูการ์ดสถิติภาพรวม (ห้องที่เปิดใช้งาน / ยอดรวมทั้งหมด)"])
+    end
+
+    subgraph External ["ระบบภายนอก (External Systems)"]
+        G3["🔐 Central Auth API (กลุ่ม 3)"]
+        G6["📡 IoT Card Readers (กลุ่ม 6)"]
+    end
+
+    Student --> UC_Login
+    Student --> UC_Logout
+    Student --> UC_Lang
+    Student --> UC_StatOwn
+    Student --> UC_ViewOwn
+    Student --> UC_FilterOwn
+    Student --> UC_ActiveOwn
+
+    Teacher --> UC_Login
+    Teacher --> UC_Logout
+    Teacher --> UC_Lang
+    Teacher --> UC_StatAll
+    Teacher --> UC_ViewAll
+    Teacher --> UC_Search
+    Teacher --> UC_FilterAll
+    Teacher --> UC_ActiveAll
+
+    UC_Login -.->|"<<include>> ยืนยันรหัสผ่าน & สิทธิ์"| G3
+    UC_ViewOwn -.->|"<<include>> ข้อมูลแตะบัตร Real-time"| G6
+    UC_ViewAll -.->|"<<include>> ข้อมูลแตะบัตร Real-time"| G6
+    UC_ActiveAll -.->|"<<include>> ข้อมูลแตะบัตร Real-time"| G6
+    </div>
+
+    <h2>📋 ตารางเปรียบเทียบสิทธิ์และ Use Cases (Student vs Teacher)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Use Case (ฟังก์ชันการใช้งาน)</th>
+          <th style="text-align: center;">นักศึกษา (Student)</th>
+          <th style="text-align: center;">อาจารย์ (Teacher)</th>
+          <th>คำอธิบายและความปลอดภัย</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1. เข้าสู่ระบบ (Login)</td>
+          <td style="text-align: center;">✅</td>
+          <td style="text-align: center;">✅</td>
+          <td>ส่งไปตรวจสอบ Username/Password กับ API กลุ่ม 3</td>
+        </tr>
+        <tr>
+          <td>2. ออกจากระบบ (Logout)</td>
+          <td style="text-align: center;">✅</td>
+          <td style="text-align: center;">✅</td>
+          <td>ลบ Token ออกจาก Browser Session</td>
+        </tr>
+        <tr>
+          <td>3. สลับภาษา (TH / EN)</td>
+          <td style="text-align: center;">✅</td>
+          <td style="text-align: center;">✅</td>
+          <td>สลับภาษาในหน้า Dashboard และตารางข้อมูล</td>
+        </tr>
+        <tr>
+          <td>4. ขอบเขตข้อมูลประวัติแตะบัตร</td>
+          <td style="text-align: center;"><strong>เฉพาะของตนเอง</strong></td>
+          <td style="text-align: center;"><strong>ทุกคนทุกห้อง</strong></td>
+          <td><strong>IDOR Protection:</strong> ล็อก Scope ให้นักศึกษาดูได้เฉพาะของตนเอง</td>
+        </tr>
+        <tr>
+          <td>5. ค้นหารหัสนักศึกษาคนอื่น</td>
+          <td style="text-align: center;">❌ (ซ่อนช่องค้นหา)</td>
+          <td style="text-align: center;">✅</td>
+          <td>อาจารย์สามารถพิมพ์ค้นหารหัสนักศึกษาคนใดก็ได้</td>
+        </tr>
+        <tr>
+          <td>6. กรองตามห้องเรียน / วันที่ / เวลา</td>
+          <td style="text-align: center;">✅ (ของตนเอง)</td>
+          <td style="text-align: center;">✅ (ของทุกคน)</td>
+          <td>กรองตามห้องเรียน วันที่ และช่วงเวลา</td>
+        </tr>
+        <tr>
+          <td>7. ค้นหาสถานะ "กำลังใช้งาน" (ACTIVE)</td>
+          <td style="text-align: center;">✅</td>
+          <td style="text-align: center;">✅</td>
+          <td>แสดงเฉพาะคนที่กำลังใช้งานห้องเรียนล่าสุด (มีแค่ IN ยังไม่ OUT)</td>
+        </tr>
+        <tr>
+          <td>8. การ์ดสถานะห้องเรียน (activeRooms)</td>
+          <td style="text-align: center;">ห้องที่ตนเองเข้าวันนี้</td>
+          <td style="text-align: center;">ทุกห้องที่เปิดใช้งานวันนี้</td>
+          <td>คำนวณจำนวนห้องที่ active ตามบทบาท</td>
+        </tr>
+        <tr>
+          <td>9. การ์ดยอดการเข้าใช้งาน (totalAccess)</td>
+          <td style="text-align: center;">ยอดสแกนบัตรของฉัน</td>
+          <td style="text-align: center;">ยอดสแกนบัตรของทุกคน</td>
+          <td>สรุปจำนวนครั้งการแตะบัตรเข้า-ออกห้องเรียน</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
