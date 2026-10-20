@@ -9,6 +9,9 @@ from app.config import Settings
 
 _DICTIONARY = """ATTRIBUTE User-Name 1 string
 ATTRIBUTE User-Password 2 octets
+ATTRIBUTE Filter-Id 11 string
+ATTRIBUTE Reply-Message 18 string
+ATTRIBUTE Class 25 octets
 ATTRIBUTE NAS-Identifier 32 string
 ATTRIBUTE Message-Authenticator 80 octets
 """
@@ -16,6 +19,46 @@ ATTRIBUTE Message-Authenticator 80 octets
 
 class AuthenticationUnavailable(Exception):
     """The authentication backend cannot complete the request."""
+
+
+class AuthResult:
+    def __init__(self, accepted: bool, role: str | None = None, user_id: str | None = None):
+        self.accepted = accepted
+        self.role = role
+        self.user_id = user_id
+
+    def __bool__(self) -> bool:
+        return self.accepted
+
+
+ROLE_MAP = {
+    "STUDENT": "student",
+    "PROFESSOR": "teacher",
+    "TEACHER": "teacher",
+    "ADMIN": "admin",
+    "STAFF": "staff",
+}
+
+
+def normalize_role(role: str | None) -> str:
+    if not role:
+        return "student"
+    clean = role.strip()
+    return ROLE_MAP.get(clean.upper(), clean.lower())
+
+
+def _infer_role(username: str) -> str:
+    clean = username.strip()
+    if clean.isdigit():
+        return "student"
+    lower = clean.lower()
+    if any(lower.startswith(prefix) for prefix in ("prof", "teacher", "dr", "aj")):
+        return "teacher"
+    if "admin" in lower:
+        return "admin"
+    if "staff" in lower:
+        return "staff"
+    return "student"
 
 
 def _exchange(request: AuthPacket, settings: Settings) -> bytes:
@@ -38,14 +81,19 @@ def _exchange(request: AuthPacket, settings: Settings) -> bytes:
     raise TimeoutError()
 
 
-def authenticate(username: str, password: str, settings: Settings) -> bool:
+def authenticate(username: str, password: str, settings: Settings) -> AuthResult:
     if settings.auth_mode == "mock":
         expected_password = settings.mock_password.get_secret_value()
         if not settings.mock_username or not expected_password:
             raise AuthenticationUnavailable("Mock credentials are not configured")
         user_matches = hmac.compare_digest(username.encode(), settings.mock_username.encode())
         password_matches = hmac.compare_digest(password.encode(), expected_password.encode())
-        return user_matches and password_matches
+        if not (user_matches and password_matches):
+            return AuthResult(accepted=False)
+        return AuthResult(
+            accepted=True,
+            role=normalize_role(settings.mock_role or _infer_role(username)),
+        )
 
     secret = settings.radius_secret.get_secret_value()
     if not settings.radius_host.strip() or not secret:
@@ -72,7 +120,27 @@ def authenticate(username: str, password: str, settings: Settings) -> bool:
         raise AuthenticationUnavailable("RADIUS request failed") from exc
 
     if reply.code == AccessAccept:
-        return True
+        role = None
+        if "Filter-Id" in reply:
+            val = reply["Filter-Id"]
+            role = val[0] if isinstance(val, list) else val
+        elif "Class" in reply:
+            val = reply["Class"]
+            if isinstance(val, list):
+                val = val[0]
+            if isinstance(val, bytes):
+                val = val.decode("utf-8", errors="ignore")
+            role = val
+        elif "Reply-Message" in reply:
+            val = reply["Reply-Message"]
+            val = val[0] if isinstance(val, list) else val
+            if str(val).strip().lower() in ("student", "teacher", "professor", "admin", "staff"):
+                role = str(val).strip()
+
+        if not role:
+            role = _infer_role(username)
+
+        return AuthResult(accepted=True, role=normalize_role(role))
     if reply.code == AccessReject:
-        return False
+        return AuthResult(accepted=False)
     raise AuthenticationUnavailable("Unsupported RADIUS response (challenge/MFA is not implemented)")

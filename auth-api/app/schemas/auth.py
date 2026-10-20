@@ -29,3 +29,7 @@ class TokenResponse(BaseModel):
 
 class UserResponse(BaseModel):
     username: str
+    role: str | None = None
+    user_id: str | None = None
+    first_name: str | None = None
+    last_name: str | None = None

@@ -34,10 +34,11 @@ def test_login_and_me_round_trip():
     assert "test-password" not in str(result)
     claims = jwt.decode(result["access_token"], KEY, algorithms=["HS256"], audience="door-system", issuer="auth-api")
     assert claims["sub"] == "student"
+    assert claims["role"] == "student"
     assert "password" not in claims
     me = api.get("/auth/me", headers={"Authorization": f"Bearer {result['access_token']}"})
     assert me.status_code == 200
-    assert me.json() == {"username": "student"}
+    assert me.json() == {"username": "student", "role": "student"}
     assert response.headers["cache-control"] == "no-store"
 
 

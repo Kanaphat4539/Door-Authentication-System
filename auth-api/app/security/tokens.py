@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import jwt
 
@@ -16,17 +17,28 @@ def _signing_key(settings: Settings) -> str:
     return key
 
 
-def create_access_token(username: str, settings: Settings) -> str:
+def create_access_token(
+    username: str,
+    settings: Settings,
+    role: str | None = None,
+    user_id: str | None = None,
+) -> str:
     now = datetime.now(timezone.utc)
-    return jwt.encode(
-        {"sub": username, "iat": now,
-         "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
-         "iss": settings.jwt_issuer, "aud": settings.jwt_audience},
-        _signing_key(settings), algorithm="HS256",
-    )
+    payload: dict[str, Any] = {
+        "sub": username,
+        "iat": now,
+        "exp": now + timedelta(minutes=settings.access_token_expire_minutes),
+        "iss": settings.jwt_issuer,
+        "aud": settings.jwt_audience,
+    }
+    if role is not None:
+        payload["role"] = role
+    if user_id is not None:
+        payload["user_id"] = user_id
+    return jwt.encode(payload, _signing_key(settings), algorithm="HS256")
 
 
-def decode_access_token(token: str, settings: Settings) -> str:
+def decode_access_token(token: str, settings: Settings) -> dict[str, Any]:
     claims = jwt.decode(
         token, _signing_key(settings), algorithms=["HS256"],
         audience=settings.jwt_audience, issuer=settings.jwt_issuer,
@@ -35,4 +47,4 @@ def decode_access_token(token: str, settings: Settings) -> str:
     subject = claims["sub"]
     if not isinstance(subject, str) or not subject.strip():
         raise jwt.InvalidTokenError("Invalid subject")
-    return subject
+    return claims

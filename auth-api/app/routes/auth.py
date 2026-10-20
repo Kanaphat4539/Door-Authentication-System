@@ -7,6 +7,7 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.config import Settings
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 from app.security.tokens import TokenConfigurationError, create_access_token, decode_access_token
+from app.services.database import DatabaseConnectionError, get_user_profile
 from app.services.radius import AuthenticationUnavailable, authenticate
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -30,15 +31,37 @@ def login(
         raise HTTPException(status_code=503, detail=str(exc)) from exc
     if not accepted:
         raise HTTPException(status_code=401, detail="Invalid username or password")
+
+    user_role: str | None = accepted.role
+    user_id: str | None = accepted.user_id
+    if settings.db_host:
+        try:
+            profile = get_user_profile(body.username, settings)
+        except DatabaseConnectionError as exc:
+            raise HTTPException(status_code=503, detail="Database service unavailable") from exc
+        if profile is None:
+            raise HTTPException(status_code=403, detail="User record not found in system database")
+        if not profile["is_active"]:
+            raise HTTPException(status_code=403, detail="Account is disabled")
+        user_role = profile["role"]
+        user_id = profile["user_id"]
+    elif settings.auth_mode == "mock" and settings.mock_role:
+        user_role = settings.mock_role
+
     response.headers["Cache-Control"] = "no-store"
     response.headers["Pragma"] = "no-cache"
     return TokenResponse(
-        access_token=create_access_token(body.username, settings),
+        access_token=create_access_token(
+            body.username,
+            settings,
+            role=user_role,
+            user_id=user_id,
+        ),
         expires_in=settings.access_token_expire_minutes * 60,
     )
 
 
-@router.get("/me", response_model=UserResponse)
+@router.get("/me", response_model=UserResponse, response_model_exclude_none=True)
 def me(
     response: Response,
     credentials: Annotated[HTTPAuthorizationCredentials | None, Depends(bearer)],
@@ -51,10 +74,14 @@ def me(
     if credentials is None:
         raise unauthorized
     try:
-        username = decode_access_token(credentials.credentials, settings)
+        claims = decode_access_token(credentials.credentials, settings)
     except jwt.InvalidTokenError as exc:
         raise unauthorized from exc
     except TokenConfigurationError as exc:
         raise HTTPException(status_code=503, detail="JWT signing is not configured") from exc
     response.headers["Cache-Control"] = "no-store"
-    return UserResponse(username=username)
+    return UserResponse(
+        username=claims["sub"],
+        role=claims.get("role"),
+        user_id=claims.get("user_id"),
+    )

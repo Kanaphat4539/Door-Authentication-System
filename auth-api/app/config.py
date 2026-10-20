@@ -26,6 +26,15 @@ class Settings(BaseSettings):
 
     mock_username: str = ""
     mock_password: SecretStr = SecretStr("")
+    mock_role: str | None = None
+
+    # Database (PostgreSQL - Group 2)
+    db_host: str = ""
+    db_port: int = Field(default=5432, ge=1, le=65535)
+    db_name: str = "cedatabase"
+    db_user: str = "auth_reader"
+    db_password: SecretStr = SecretStr("")
+    db_timeout: float = Field(default=3, gt=0, le=30)
 
     @field_validator("radius_nas_identifier")
     @classmethod
