@@ -26,7 +26,7 @@ export default function RadiusIntegrationTab({ users }: RadiusIntegrationTabProp
     # PostgreSQL Database Connection Settings (เครือข่าย VM ภายใน)
     server = "192.168.100.102"
     port = 5432
-    login = "radius_reader"
+    login = "<บัญชี DB ที่กลุ่ม 1 ใช้อยู่>"
     password = "<รหัสผ่านที่ได้รับจากกลุ่ม 2>"
     radius_db = "cedatabase"
 
@@ -75,7 +75,7 @@ WHERE is_active = TRUE;`;
           </div>
           <div className="bg-white/10 backdrop-blur-md rounded-xl p-4 text-center border border-white/10 shrink-0">
             <div className="text-3xl font-bold">{activeUsers.length}</div>
-            <div className="text-xs text-blue-200">บัญชีที่ RADIUS ยอมรับ (Active)</div>
+            <div className="text-xs text-blue-200">บัญชีที่เปิดสิทธิ์ RADIUS</div>
           </div>
         </div>
       </div>

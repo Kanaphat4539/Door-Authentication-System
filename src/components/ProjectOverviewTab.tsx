@@ -14,10 +14,10 @@ export default function ProjectOverviewTab() {
   };
 
   const tunnelCommand = `python3 scripts/start_tunnel.py`;
-  const sshDirect = `ssh -L 5432:localhost:5432 root@172.16.10.200 -p 2202`;
-  const group3Query = `SELECT user_id, username, password, is_active, role_id 
-FROM users 
-WHERE username = $1 AND is_active = TRUE;`;
+  const sshDirect = `ssh -N -L 127.0.0.1:5432:127.0.0.1:5432 -p 2202 -o ExitOnForwardFailure=yes root@172.16.10.200`;
+  const roleQuery = `SELECT user_id, username, role_code, api_role
+FROM public.radius_user_roles
+WHERE username = $1;`;
 
   return (
     <div className="space-y-8 animate-in fade-in duration-200">
@@ -70,7 +70,7 @@ WHERE username = $1 AND is_active = TRUE;`;
           <div className="p-3.5 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-900/40 space-y-1">
             <span className="font-bold text-emerald-900 dark:text-emerald-300">กลุ่ม 3 (Auth API Server)</span>
             <p className="text-zinc-600 dark:text-zinc-400">
-              เชื่อมต่อเข้ามาตรวจสอบข้อมูลผู้ใช้ เพื่อให้บริการ API สำหรับ Web App (กลุ่ม 4) และ IoT Server (กลุ่ม 6)
+              ยืนยันตัวตนและรับบทบาทผ่าน RADIUS กลุ่ม 1 แล้วออก JWT ให้ Web App โดยไม่เชื่อมฐานข้อมูลโดยตรง
             </p>
           </div>
         </div>
@@ -192,14 +192,14 @@ WHERE username = '%{SQL-User-Name}';`}
           <div className="p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 space-y-2">
             <h4 className="font-bold text-zinc-900 dark:text-zinc-100 flex items-center gap-1.5">
               <Database className="w-4 h-4 text-emerald-500" />
-              สำหรับกลุ่ม 3 (Auth API Server)
+              บทบาทสำหรับกลุ่ม 1 ส่งต่อให้ Auth API
             </h4>
             <p className="text-zinc-500 dark:text-zinc-400">
-              API ตรวจสอบข้อมูลผู้ใช้จากตาราง <code className="font-mono text-emerald-600">users</code>
+              กลุ่ม 1 อ่านบทบาทจาก <code className="font-mono text-emerald-600">radius_user_roles</code> แล้วส่งผ่าน RADIUS Attribute ที่ตกลงกับกลุ่ม 3
             </p>
             <div className="relative">
               <pre className="p-2 bg-zinc-950 text-emerald-400 rounded-lg font-mono text-[11px] overflow-x-auto">
-                {group3Query}
+                {roleQuery}
               </pre>
             </div>
           </div>
