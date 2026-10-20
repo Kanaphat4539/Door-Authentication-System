@@ -232,3 +232,32 @@ nano .env
   }
   ```
 
+
+---
+
+### 🌐 วิธีทดสอบ API บน Proxmox VM ผ่าน Postman (SSH Port Forwarding)
+
+> [!NOTE]
+> IP `192.168.100.103` เป็น **Private IP วงใน** ของ Proxmox ทำให้ Postman บนคอมส่วนตัวยิงเข้าไปตรงๆ ไม่ได้ (จะเกิด `Error: Request timed out`)
+> คุณสามารถเปิดช่องทาง **SSH Tunnel** เพื่อดึงพอร์ต `8000` จาก VM มาที่เครื่องส่วนตัวได้ ดังนี้:
+
+#### 1. เปิด Terminal บนเครื่องคอมของคุณ แล้วรันคำสั่ง SSH Port Forwarding:
+```bash
+ssh -L 8000:localhost:8000 root@172.16.10.200 -p 2203
+```
+*(ใส่รหัสผ่าน SSH `admince04` แล้วเปิดหน้าต่าง Terminal นี้ค้างไว้)*
+
+#### 2. ใน Postman สามารถยิงหา `127.0.0.1:8000` ได้ทันที:
+- **Health Check:** `GET http://127.0.0.1:8000/health`
+- **Login:**
+  ```text
+  POST http://127.0.0.1:8000/auth/login
+  ```
+  **Body (JSON):**
+  ```json
+  {
+    "username": "67200030",
+    "password": "***"
+  }
+  ```
+คำขอจาก Postman จะมุดท่อ SSH Tunnel ไปประมวลผลที่ API บน VM โดยตรง
