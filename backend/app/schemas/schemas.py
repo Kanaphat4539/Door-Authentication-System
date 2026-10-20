@@ -7,8 +7,8 @@ from pydantic import BaseModel, Field
 # Auth Schemas (Member 1 & 4)
 # -------------------------------------------------------------
 class LoginRequest(BaseModel):
-    username: str = Field(..., examples=["teacher_ajarn"], description="ชื่อผู้ใช้งาน")
-    password: str = Field(..., examples=["secure123"], description="รหัสผ่าน")
+    username: str = Field(..., examples=["67200324"], description="ชื่อผู้ใช้งาน")
+    password: str = Field(..., examples=["67200324"], description="รหัสผ่าน")
 
 
 class UserInfo(BaseModel):

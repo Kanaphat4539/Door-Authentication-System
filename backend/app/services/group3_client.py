@@ -4,48 +4,25 @@ import jwt
 from typing import Optional, Dict, Any, Tuple
 from app.core.config import settings
 
-# Mock database สำหรับการพัฒนาและการทดสอบ offline (รองรับ Dual-Role: Teacher & Student)
-MOCK_ACCOUNTS: Dict[str, Dict[str, Any]] = {
-    # บัญชีทางการและทดสอบอาจารย์ (Teacher)
-    "admin": {"password": "Password1234!", "role": "teacher", "username": "admin", "name": "อาจารย์ผู้ดูแลระบบ"},
-    "instructor@university.ac.th": {"password": "Password123", "role": "teacher", "username": "instructor@university.ac.th", "name": "อาจารย์ สมชาย ใจดี"},
-    "teacher_ajarn": {"password": "secure123", "role": "teacher", "username": "teacher_ajarn", "name": "อาจารย์ สมชาย ใจดี"},
-    "teacher_somchai": {"password": "password123", "role": "teacher", "username": "teacher_somchai", "name": "อาจารย์ สมชาย ใจดี"},
-    "teacher_test": {"password": "Password1234!", "role": "teacher", "username": "teacher_test", "name": "อาจารย์ผู้สอน (ทดสอบ)"},
-
-    # บัญชีทางการและทดสอบนักศึกษา (Student)
-    "student": {"password": "local-demo-password", "role": "student", "username": "student", "name": "นักศึกษา ทดสอบ"},
-    "student_somchai": {"password": "1234", "role": "student", "username": "67200367", "name": "นายสมชาย ใจกล้า"},
-    "67200367": {"password": "1234", "role": "student", "username": "67200367", "name": "นายสมชาย ใจกล้า"},
-    "67200324": {"password": "Password1234!", "role": "student", "username": "67200324", "name": "Leo Ev (67200324)"},
-    "6501234567": {"password": "1234", "role": "student", "username": "6501234567", "name": "นักศึกษา 6501234567"},
-    "student_mori": {"password": "password4321", "role": "student", "username": "student_mori", "name": "Mori Kogoro"},
-    "student_test": {"password": "Password1234!", "role": "student", "username": "student_test", "name": "นักศึกษา ทดสอบ"},
-    "official_std": {"password": "testpass123", "role": "student", "username": "official_std", "name": "นักศึกษา บัญชีทางการ"},
-}
-
 
 class Group3AuthClient:
     """
     Client สำหรับเชื่อมต่อไปยัง Central Authentication Service (กลุ่ม 3)
     ตามข้อกำหนดของ Group 4 Member 4
+    เฉพาะบัญชีที่ยืนยันตัวตนสำเร็จจากระบบกลางกลุ่ม 3 เท่านั้นที่จะสามารถเข้าสู่ระบบได้
     """
 
     def __init__(
         self,
         api_url: Optional[str] = None,
         timeout: Optional[float] = None,
-        mock_fallback: Optional[bool] = None,
     ):
         self.api_url = api_url if api_url is not None else settings.GROUP3_AUTH_URL
         self.timeout = timeout if timeout is not None else settings.GROUP3_TIMEOUT_SECONDS
-        self.mock_fallback = mock_fallback if mock_fallback is not None else settings.USE_MOCK_FALLBACK
 
     def is_external_configured(self) -> bool:
         """ตรวจสอบว่ามีการระบุ URL กลุ่ม 3 ภายนอกจริงหรือไม่"""
         if not self.api_url:
-            return False
-        if "mock" in self.api_url.lower():
             return False
         return True
 
@@ -70,6 +47,7 @@ class Group3AuthClient:
     ) -> Dict[str, Any]:
         """
         ตรวจสอบตัวตนกับกลุ่ม 3 พร้อมดึงโปรไฟล์ผู้ใช้
+        ต้องผ่านการตรวจสอบจาก Group 3 API (http://192.168.100.103:8000/auth/login) เท่านั้น
         Returns dict:
             {
                 "is_valid": bool,
@@ -80,7 +58,6 @@ class Group3AuthClient:
                 "external": bool
             }
         """
-        # 1. พยายามยืนยันตัวตนกับ Central Auth Service ของกลุ่ม 3 เป็นลำดับแรก
         if self.is_external_configured():
             try:
                 payload = {"username": username, "password": password}
@@ -129,7 +106,7 @@ class Group3AuthClient:
                         except Exception:
                             pass
 
-                    # Fallback role ถ้ากลุ่ม 3 ไม่ได้ระบุ
+                    # กำหนด role ถ้ากลุ่ม 3 ไม่ได้ระบุ
                     if not role:
                         uname_lower = verified_user.lower()
                         if any(kw in uname_lower for kw in ["teacher", "ajarn", "instructor", "prof"]):
@@ -143,7 +120,7 @@ class Group3AuthClient:
 
                     if not display_name:
                         if role == "teacher":
-                            display_name = "อาจารย์ผู้สอน (Classroom Instructor)"
+                            display_name = f"อาจารย์ ({verified_user})"
                         else:
                             display_name = f"นักศึกษา ({verified_user})"
 
@@ -159,28 +136,9 @@ class Group3AuthClient:
                     }
 
             except Exception:
-                # กรณีเชื่อมต่อกลุ่ม 3 ไม่ได้ หรือ Timeout จะปล่อยให้ Fallback ทำงานต่อ
                 pass
 
-        # 2. Mock Fallback (กรณีออฟไลน์ หรือบัญชีทดสอบที่กำหนดไว้)
-        if self.mock_fallback and username in MOCK_ACCOUNTS:
-            account = MOCK_ACCOUNTS[username]
-            if account["password"] == password:
-                role = account["role"]
-                actual_user = account.get("username", username)
-                display_name = account.get("name") or self.resolve_name_from_db(actual_user, role)
-                if not display_name:
-                    display_name = "อาจารย์ สมชาย ใจดี" if role == "teacher" else f"นักศึกษา ({actual_user})"
-
-                return {
-                    "is_valid": True,
-                    "role": role,
-                    "username": actual_user,
-                    "name": display_name,
-                    "email": f"{actual_user}@university.ac.th",
-                    "external": False,
-                }
-
+        # ไม่อนุญาตให้ล็อกอิน หากกลุ่ม 3 ไม่ตอบรับ หรือยืนยันตัวตนไม่ผ่าน
         return {
             "is_valid": False,
             "role": None,

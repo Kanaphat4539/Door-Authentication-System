@@ -53,48 +53,16 @@ export async function loginAPI(username: string, password: string): Promise<Auth
       throw new Error('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง');
     }
     if (!res.ok) {
-      throw new Error(`เข้าสู่ระบบไม่สำเร็จ (${res.status})`);
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error(errJson.detail || `เข้าสู่ระบบไม่สำเร็จ (${res.status})`);
     }
 
     const data = await res.json();
     return data;
   } catch (err: any) {
-    // กรณีที่ FastAPI backend ยังไม่ได้รัน หรือ Network ขัดข้อง
     if (err.message && err.message.includes('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')) {
       throw err;
     }
-
-    // Mock Fallback เมื่อทดสอบออฟไลน์
-    if (username === 'teacher_ajarn' && (password === 'secure123' || password === 'admince04')) {
-      return {
-        status: 'success',
-        access_token: 'mock-jwt-token-teacher-ajarn',
-        token_type: 'bearer',
-        user: {
-          username: 'teacher_ajarn',
-          role: 'teacher',
-          name: 'อาจารย์ สมชาย ใจดี',
-          nameEn: 'Dr. Somchai Jaidee',
-          email: 'teacher.ajarn@university.ac.th',
-        },
-      };
-    }
-
-    if (username === 'student_somchai' && (password === '1234' || password === 'secure123' || password === 'admince04')) {
-      return {
-        status: 'success',
-        access_token: 'mock-jwt-token-student-somchai',
-        token_type: 'bearer',
-        user: {
-          username: 'student_somchai',
-          role: 'student',
-          name: 'นายสมชาย ใจกล้า',
-          nameEn: 'Somchai Jaikla',
-          email: 'student_somchai@university.ac.th',
-        },
-      };
-    }
-
     throw new Error(err.message || 'ไม่สามารถเชื่อมต่อกับเซิร์ฟเวอร์ Backend ได้');
   }
 }

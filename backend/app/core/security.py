@@ -26,29 +26,12 @@ def create_access_token(username: str, role: str) -> str:
     return jwt.encode(payload, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
 
 
-MOCK_DEV_TOKENS: Dict[str, Dict[str, str]] = {
-    "mock-jwt-bearer-token-teacher-dev": {"sub": "teacher_ajarn", "role": "teacher"},
-    "mock-jwt-token-teacher-ajarn": {"sub": "teacher_ajarn", "role": "teacher"},
-    "mock-jwt-bearer-token-student-dev": {"sub": "67200324", "role": "student"},
-    "mock-jwt-token-student-somchai": {"sub": "67200324", "role": "student"},
-}
-
-
 def verify_token(credentials: HTTPAuthorizationCredentials = Security(security_bearer)) -> Dict[str, Any]:
     """
     Middleware ดักตรวจ Token จาก Authorization: Bearer <token>
+    ยอมรับเฉพาะ Token ที่ออกให้ผู้ใช้ที่ยืนยันตัวตนผ่านกลุ่ม 3 เท่านั้น
     """
     token = credentials.credentials
-
-    # รองรับ Mock/Demo Token สำหรับการทดสอบ Frontend Demo และ Offline Mode
-    if settings.USE_MOCK_FALLBACK and token in MOCK_DEV_TOKENS:
-        info = MOCK_DEV_TOKENS[token]
-        return {
-            "sub": info["sub"],
-            "role": info["role"],
-            "iat": int(datetime.now(timezone.utc).timestamp()),
-            "exp": int((datetime.now(timezone.utc) + timedelta(hours=24)).timestamp()),
-        }
 
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])

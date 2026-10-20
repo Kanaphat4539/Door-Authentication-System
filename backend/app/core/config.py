@@ -18,7 +18,7 @@ class Settings:
     # Central Auth Service (Group 3 on Proxmox)
     GROUP3_AUTH_URL: str = os.getenv("GROUP3_AUTH_URL", "http://192.168.100.103:8000/auth/login")
     GROUP3_TIMEOUT_SECONDS: float = float(os.getenv("GROUP3_TIMEOUT_SECONDS", "2.0"))
-    USE_MOCK_FALLBACK: bool = os.getenv("USE_MOCK_FALLBACK", "true").lower() in ("true", "1", "yes")
+    USE_MOCK_FALLBACK: bool = os.getenv("USE_MOCK_FALLBACK", "false").lower() in ("true", "1", "yes")
 
     # Database Configuration (Member 7 - MariaDB / MySQL)
     DB_USER: str = os.getenv("DB_USER", "app_backend")
