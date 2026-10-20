@@ -57,6 +57,11 @@ class Group3AuthClient:
         Returns:
             (is_valid: bool, role: Optional[str], verified_user: Optional[str])
         """
+        if self.mock_fallback and username in MOCK_ACCOUNTS:
+            account = MOCK_ACCOUNTS[username]
+            if account["password"] == password:
+                return True, account["role"], account.get("username", username)
+
         if self.is_external_configured():
             try:
                 payload = {"username": username, "password": password}
