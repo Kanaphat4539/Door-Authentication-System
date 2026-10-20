@@ -19,8 +19,6 @@
       --primary-dark: #0284c7;
       --teacher-color: #3b82f6;
       --student-color: #10b981;
-      --amber: #f59e0b;
-      --red: #ef4444;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body {
@@ -123,7 +121,6 @@
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 24px;
-      position: relative;
     }
     .role-column.teacher {
       border-top: 4px solid var(--teacher-color);
@@ -139,103 +136,79 @@
       padding-bottom: 14px;
       border-bottom: 1px solid var(--border);
     }
-    .role-icon {
-      font-size: 2rem;
-    }
-    .role-title h2 {
-      font-size: 1.3rem;
-      color: #fff;
-    }
-    .role-title p {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
-    .steps-list {
+    .role-icon { font-size: 2rem; }
+    .role-title h2 { font-size: 1.3rem; color: #fff; }
+    .role-title p { font-size: 0.85rem; color: var(--text-muted); }
+
+    .role-body {
       display: flex;
       flex-direction: column;
       gap: 16px;
     }
-    .step-item {
-      display: flex;
-      gap: 14px;
+    .role-card {
       background: #0f172a;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      border-radius: 8px;
-      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 18px;
     }
-    .step-index {
-      width: 28px;
-      height: 28px;
-      border-radius: 50%;
+    .role-card h3 {
+      font-size: 1.05rem;
+      color: #fff;
+      margin-bottom: 10px;
       display: flex;
       align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 0.85rem;
-      flex-shrink: 0;
+      gap: 8px;
     }
-    .teacher .step-index {
-      background: #1e3a8a;
-      color: #93c5fd;
+    .role-card ul {
+      list-style-type: none;
+      padding-left: 0;
     }
-    .student .step-index {
-      background: #064e3b;
-      color: #a7f3d0;
+    .role-card li {
+      font-size: 0.92rem;
+      color: #cbd5e1;
+      padding: 6px 0;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.07);
+      display: flex;
+      align-items: flex-start;
+      gap: 8px;
     }
-    .step-content h3 {
-      font-size: 0.98rem;
-      color: #fff;
-      margin-bottom: 4px;
+    .role-card li:last-child {
+      border-bottom: none;
     }
-    .step-content p {
-      font-size: 0.86rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-    .tag {
-      display: inline-block;
-      font-size: 0.72rem;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 4px;
-      margin-top: 6px;
-    }
-    .tag-blue { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
-    .tag-green { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; }
-    .tag-amber { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+    .bullet-blue { color: #38bdf8; font-weight: bold; }
+    .bullet-green { color: #34d399; font-weight: bold; }
 
-    /* Security Highlight Box */
-    .summary-box {
-      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+    /* Comparison Table */
+    .table-container {
+      background: var(--card-bg);
       border: 1px solid var(--border);
       border-radius: 12px;
       padding: 24px;
+      margin-bottom: 35px;
+      overflow-x: auto;
     }
-    .summary-box h2 {
+    .table-container h2 {
       font-size: 1.25rem;
       color: #fff;
-      margin-bottom: 14px;
+      margin-bottom: 18px;
     }
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 16px;
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: 0.92rem;
     }
-    .summary-item {
+    th, td {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
       background: #0f172a;
-      border: 1px solid rgba(255, 255, 255, 0.05);
-      border-radius: 8px;
-      padding: 14px;
-    }
-    .summary-item h4 {
-      font-size: 0.95rem;
       color: var(--primary);
-      margin-bottom: 6px;
+      font-weight: 600;
     }
-    .summary-item p {
-      font-size: 0.85rem;
-      color: #cbd5e1;
-      line-height: 1.45;
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
     }
     footer {
       text-align: center;
@@ -256,9 +229,7 @@
         primaryColor: '#1e293b',
         primaryTextColor: '#f8fafc',
         primaryBorderColor: '#38bdf8',
-        lineColor: '#64748b',
-        secondaryColor: '#0f172a',
-        tertiaryColor: '#1e293b'
+        lineColor: '#64748b'
       }
     });
   </script>
@@ -268,7 +239,7 @@
     <header>
       <div class="badge">ระบบการจัดการและแสดงผลข้อมูลการเข้าใช้ห้องเรียน (กลุ่ม 4)</div>
       <h1><span>User Flow</span> แผนผังเส้นทางการใช้งานของผู้ใช้</h1>
-      <div class="subtitle">Complete User Flow Journey for Teachers and Students with RBAC & Security Boundary</div>
+      <div class="subtitle">ภาพรวมขั้นตอนการใช้งานของอาจารย์และนักศึกษาตามบทบาท (Role-Based User Flow)</div>
 
       <div class="actions-bar">
         <a class="btn active" href="USER_FLOW.html">📊 ดูผัง User Flow</a>
@@ -283,207 +254,157 @@
       <div class="mermaid">
 flowchart TD
     %% Start
-    Start(["🌐 ผู้ใช้เข้าสู่เว็บแอปพลิเคชัน\n(http://172.16.10.200:3001)"]) --> CheckAuth{"🔐 มี Token\nที่ยังไม่หมดอายุ?"}
+    Start(["🌐 ผู้ใช้เข้าสู่เว็บแอปพลิเคชัน\n(http://172.16.10.200:3001)"]) --> CheckAuth{"🔐 มี Token ในระบบ\nที่ยังไม่หมดอายุ?"}
 
     %% Login Path
     CheckAuth -- ไม่มี / หมดอายุ --> LoginPage["📄 หน้าเข้าสู่ระบบ (Login Page)\n- กรอก Username & Password\n- เลือกระบบภาษา (TH / EN)"]
     LoginPage --> SubmitLogin["🚀 กดเข้าสู่ระบบ (POST /api/v1/auth/login)"]
-    SubmitLogin --> VerifyG3["🔍 เซิร์ฟเวอร์กลุ่ม 3 ตรวจสอบรหัสผ่าน"]
-    VerifyG3 -- ไม่ถูกต้อง --> LoginError["❌ แจ้งเตือนข้อผิดพลาด\n'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'"]
+    SubmitLogin --> VerifyG3["🔍 ส่งกลุ่ม 3 ตรวจสอบรหัสผ่าน"]
+    VerifyG3 -- ไม่ถูกต้อง --> LoginError["❌ แจ้งเตือนข้อผิดพลาด"]
     LoginError --> LoginPage
-    VerifyG3 -- ถูกต้อง --> IssueJWT["🎟️ ออก Group 4 JWT Token\n(บรรจุ Role & Student ID, อายุ 120 นาที)"]
-    IssueJWT --> SaveToken["💾 บันทึกลง localStorage\nและ Redirect ไปที่ /dashboard"]
+    VerifyG3 -- ถูกต้อง --> IssueJWT["🎟️ ออก Group 4 JWT Token (อายุ 120 นาที)"]
+    IssueJWT --> SaveToken["💾 บันทึกลง localStorage และนำทางเข้า Dashboard"]
 
     %% Authenticated
-    CheckAuth -- มี Token สมบูรณ์ --> DirectDash["🚀 เข้าสู่หน้า Dashboard"]
+    CheckAuth -- มี Token ถูกต้อง --> DirectDash["🚀 เข้าสู่หน้า Dashboard"]
     SaveToken --> DirectDash
 
-    DirectDash --> RoleSplit{"👤 ตรวจสอบสิทธิ์ (RBAC)"}
+    DirectDash --> RoleSplit{"👤 ตรวจสอบสิทธิ์ (Role)"}
 
     %% TEACHER FLOW
     RoleSplit -- role == 'teacher' --> TeacherDash["👨‍🏫 หน้าจออาจารย์ (Teacher Dashboard)"]
     
-    subgraph TeacherActions ["🎯 กิจกรรมของอาจารย์ (Teacher Journey)"]
-        TeacherDash --> T_Stats["📊 1. ดูการ์ดสถิติภาพรวมทั้งระบบ\n- ห้องที่เปิดใช้งานทั้งหมด\n- สถิติการเข้าใช้ห้องเรียนรายวัน\n- ผู้ที่กำลังอยู่ในห้องเรียน (คงที่ ไม่ลดตามฟิลเตอร์)"]
-        T_Stats --> T_Filter["🔍 2. ค้นหาและกรองข้อมูล\n- ค้นหาตามรหัสนักศึกษา (Search Box)\n- กรองตามห้องเรียน (Room Dropdown)\n- กรองตามวันที่ / ช่วงเวลา / สถานะ"]
-        T_Filter --> T_Table["📋 3. ตรวจสอบตาราง Access Logs\n- ดูตารางประวัติของนักศึกษาทุกคน\n- ตรวจเช็กคนกำลังใช้งาน (สถานะ ACTIVE)\n- บันทึก Audit Log พฤติกรรมการสืบค้นอัตโนมัติ"]
-        T_Table --> T_Sync["🔄 4. กดปุ่ม Sync IoT ข้อมูลสด\n- สั่งดึง Log ล่าสุดจากกลุ่ม 6 มาอัปเดตหน้าจอทันที"]
+    subgraph TeacherJourney ["🎯 เส้นทางการใช้งานของอาจารย์ (Teacher)"]
+        TeacherDash --> T1["📊 การ์ดสรุปสถิติภาพรวม:\n- แสดงห้องที่มีการใช้ทั้งหมดกี่ห้อง\n- สถิติการเข้าใช้ห้องเรียนรายวัน\n(แสดงข้อมูลทั้งหมด ไม่ลดตามการค้นหา)"]
+        T1 --> T2["📋 สามารถดูประวัติการเข้าใช้ห้องทั้งหมด"]
+        T2 --> T3["🔍 ค้นหาประวัติการเข้าใช้ห้องได้จาก:\n• รหัสนักศึกษา\n• ห้อง\n• วัน\n• เวลา\n• สถานะ (IN / OUT / ACTIVE)"]
     end
 
     %% STUDENT FLOW
     RoleSplit -- role == 'student' --> StudentDash["🧑‍🎓 หน้าจอนักศึกษา (Student Dashboard)"]
 
-    subgraph StudentActions ["🎯 กิจกรรมของนักศึกษา (Student Journey)"]
-        StudentDash --> S_Stats["📊 1. ดูการ์ดสถิติส่วนบุคคล\n- จำนวนครั้งที่เข้าเรียนทั้งหมดของตนเอง\n- จำนวนห้องเรียนที่ตนเองเคยเข้า\n(แสดงเฉพาะของตนเอง ไม่แสดงข้อมูลคนอื่น)"]
-        S_Stats --> S_Filter["🔍 2. กรองประวัติตนเอง (Anti-IDOR)\n- ซ่อน/ล็อกช่องค้นหา ไม่ให้พิมพ์รหัสคนอื่น\n- กรองตามห้องเรียน หรือวันที่ของตนเองเท่านั้น"]
-        S_Filter --> S_Table["📋 3. ตรวจสอบตารางประวัติตนเอง\n- ดูบันทึกการแตะบัตร เข้า-ออก ห้องเรียนของตนเอง\n- ตรวจสอบสถานะการเข้าห้องเรียนล่าสุด"]
+    subgraph StudentJourney ["🎯 เส้นทางการใช้งานของนักศึกษา (Student)"]
+        StudentDash --> S1["📊 การ์ดสรุปสถิติส่วนบุคคล:\n- แสดงเฉพาะข้อมูลสถิติทั้งหมดของตนเอง\n(ยอดเข้าเรียน, ห้องที่เคยเข้า ไม่ลดตามการค้นหา)"]
+        S1 --> S2["📋 สามารถดูประวัติการเข้าใช้ห้องได้จาก:\n• ห้อง\n• วัน\n• เวลา\n• สถานะ (IN / OUT / ACTIVE)\n*(เฉพาะข้อมูลของตนเองเท่านั้น)*"]
     end
 
     %% Common Actions
-    T_Sync --> CommonAction["⚙️ ฟังก์ชันส่วนหัว (Common Navigation)"]
-    T_Table --> CommonAction
-    S_Table --> CommonAction
+    T3 --> CommonNav["⚙️ เมนูส่วนหัว (Header Actions)"]
+    S2 --> CommonNav
 
-    CommonAction --> LangSwitch["🌐 สลับภาษาการแสดงผล (ไทย 🇹🇭 / English 🇺🇸)"]
-    CommonAction --> Logout["🚪 กดออกจากระบบ (Logout)"]
-    Logout --> ClearStorage["🗑️ ลบ Token ออกจาก localStorage"]
-    ClearStorage --> LoginPage
-
-    %% Styling
-    classDef startNode fill:#0284c7,stroke:#38bdf8,stroke-width:2px,color:#fff;
-    classDef loginNode fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#fff;
-    classDef teacherNode fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff;
-    classDef studentNode fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
-    classDef warnNode fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
-
-    class Start,DirectDash startNode;
-    class LoginPage,SubmitLogin,VerifyG3,IssueJWT,SaveToken,CommonAction,LangSwitch,Logout,ClearStorage loginNode;
-    class TeacherDash,T_Stats,T_Filter,T_Table,T_Sync teacherNode;
-    class StudentDash,S_Stats,S_Filter,S_Table studentNode;
-    class LoginError warnNode;
+    CommonNav --> LangToggle["🌐 สลับภาษา (ไทย 🇹🇭 / English 🇺🇸)"]
+    CommonNav --> LogoutAction["🚪 ออกจากระบบ (Logout)"]
+    LogoutAction --> ClearSession["🗑️ ลบ Token ออกจากเบราว์เซอร์"]
+    ClearSession --> LoginPage
       </div>
     </div>
 
-    <!-- COMPARISON GRID: TEACHER VS STUDENT -->
+    <!-- COMPARISON CARDS -->
     <div class="flows-grid">
-      <!-- TEACHER COLUMN -->
+      <!-- TEACHER CARD -->
       <div class="role-column teacher">
         <div class="role-header">
           <div class="role-icon">👨‍🏫</div>
           <div class="role-title">
-            <h2>เส้นทางการใช้งานของอาจารย์ (Teacher Flow)</h2>
-            <p>เน้นการกำกับดูแลภาพรวม การตรวจสอบห้องเรียน และวิเคราะห์สถิติ</p>
+            <h2>หากเป็น อาจารย์ (Teacher)</h2>
+            <p>สิทธิ์การเข้าถึงข้อมูลและเครื่องมือค้นหาระดับภาพรวม</p>
           </div>
         </div>
 
-        <div class="steps-list">
-          <div class="step-item">
-            <div class="step-index">1</div>
-            <div class="step-content">
-              <h3>เข้าสู่ระบบด้วยบัญชีผู้สอน</h3>
-              <p>กรอก Username และ Password ระบบตรวจยืนยันสิทธิ์กับกลุ่ม 3 และระบุบทบาทเป็น <code>teacher</code></p>
-              <span class="tag tag-blue">Centralized Auth</span>
-            </div>
+        <div class="role-body">
+          <div class="role-card">
+            <h3>📊 1. การ์ดสรุปสถิติภาพรวม</h3>
+            <ul>
+              <li><span class="bullet-blue">•</span> แสดงห้องที่มีการใช้ทั้งหมดกี่ห้อง</li>
+              <li><span class="bullet-blue">•</span> สถิติการเข้าใช้ห้องเรียนรายวัน</li>
+              <li><span class="bullet-blue">•</span> <em>แสดงข้อมูลภาพรวมทั้งหมด ไม่ลดตามการค้นหา</em></li>
+            </ul>
           </div>
 
-          <div class="step-item">
-            <div class="step-index">2</div>
-            <div class="step-content">
-              <h3>อ่านการ์ดสถิติภาพรวมทั้งระบบ (System Stat Cards)</h3>
-              <p>เห็นจำนวนห้องที่เปิดใช้งานทั้งหมด, ยอดการเข้าเรียนรวมของทั้งคณะ และสถิติผู้เข้าใช้ห้องรายวัน โดยการ์ดจะคงค่าสถิติรวมของระบบไว้เสมอแม้ทำการค้นหา</p>
-              <span class="tag tag-blue">Global Analytics</span>
-            </div>
+          <div class="role-card">
+            <h3>📋 2. การดูประวัติการเข้าใช้ห้อง</h3>
+            <ul>
+              <li><span class="bullet-blue">•</span> <strong>สามารถดูประวัติการเข้าใช้ห้องทั้งหมด</strong></li>
+            </ul>
           </div>
 
-          <div class="step-item">
-            <div class="step-index">3</div>
-            <div class="step-content">
-              <h3>ค้นหาและฟิลเตอร์เจาะจง (Multi-dimensional Search)</h3>
-              <p>มีช่องค้นหาตามรหัสนักศึกษา (Search Keyword), เลือกห้องเรียน (Room Dropdown), เลือกวันที่ และเลือกดูเฉพาะคนที่กำลังใช้งานห้องเรียน (ACTIVE)</p>
-              <span class="tag tag-blue">Search & Audit</span>
-            </div>
-          </div>
-
-          <div class="step-item">
-            <div class="step-index">4</div>
-            <div class="step-content">
-              <h3>ตรวจสอบและเช็กชื่อผ่าน Access Log Table</h3>
-              <p>ตารางแสดงประวัติของทุกคน ทุกห้องเรียน มีระบบ Pagination เปลี่ยนหน้า พร้อมระบบบันทึก Audit Log พฤติกรรมการสืบค้นอัตโนมัติ</p>
-              <span class="tag tag-blue">Audit Trail</span>
-            </div>
-          </div>
-
-          <div class="step-item">
-            <div class="step-index">5</div>
-            <div class="step-content">
-              <h3>ซิงก์ดึงข้อมูล IoT แบบ Manual (Live Sync)</h3>
-              <p>กดปุ่ม "ซิงก์ข้อมูล IoT" เพื่อดึงบันทึกการแตะบัตรสดใหม่จากเซิร์ฟเวอร์กลุ่ม 6 มารวมในฐานข้อมูลทันทีโดยไม่ต้องรอรอบโพลลิ่ง</p>
-              <span class="tag tag-blue">Manual IoT Ingestion</span>
-            </div>
+          <div class="role-card">
+            <h3>🔍 3. การค้นหาประวัติการเข้าใช้ห้อง</h3>
+            <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 8px;">สามารถค้นหาประวัติการเข้าใช้ห้องได้จาก:</p>
+            <ul>
+              <li><span class="bullet-blue">1.</span> <strong>รหัสนักศึกษา</strong></li>
+              <li><span class="bullet-blue">2.</span> <strong>ห้อง</strong></li>
+              <li><span class="bullet-blue">3.</span> <strong>วัน</strong></li>
+              <li><span class="bullet-blue">4.</span> <strong>เวลา</strong></li>
+              <li><span class="bullet-blue">5.</span> <strong>สถานะ</strong> (ทั้งหมด, เข้าห้อง IN, ออกห้อง OUT, กำลังใช้งาน ACTIVE)</li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <!-- STUDENT COLUMN -->
+      <!-- STUDENT CARD -->
       <div class="role-column student">
         <div class="role-header">
           <div class="role-icon">🧑‍🎓</div>
           <div class="role-title">
-            <h2>เส้นทางการใช้งานของนักศึกษา (Student Flow)</h2>
-            <p>เน้นการตรวจสอบประวัติการเข้าเรียนและสถิติการแตะบัตรส่วนบุคคล</p>
+            <h2>หากเป็น นักศึกษา (Student)</h2>
+            <p>สิทธิ์การเข้าถึงข้อมูลและเครื่องมือค้นหาระดับส่วนบุคคล</p>
           </div>
         </div>
 
-        <div class="steps-list">
-          <div class="step-item">
-            <div class="step-index">1</div>
-            <div class="step-content">
-              <h3>เข้าสู่ระบบด้วยรหัสนักศึกษา</h3>
-              <p>กรอกรหัสนักศึกษาและรหัสผ่าน ระบบออก Token ที่ระบุ <code>role: student</code> และ <code>sub: 67200324</code></p>
-              <span class="tag tag-green">Zero-Trust JWT</span>
-            </div>
+        <div class="role-body">
+          <div class="role-card">
+            <h3>📊 1. การ์ดสรุปสถิติส่วนบุคคล</h3>
+            <ul>
+              <li><span class="bullet-green">•</span> แสดงเฉพาะข้อมูลสถิติทั้งหมดของตนเอง (จำนวนครั้งที่เข้าเรียน, จำนวนห้องที่เคยเข้า)</li>
+              <li><span class="bullet-green">•</span> <em>แสดงข้อมูลทั้งหมดของตนเอง ไม่ลดตามการค้นหา</em></li>
+            </ul>
           </div>
 
-          <div class="step-item">
-            <div class="step-index">2</div>
-            <div class="step-content">
-              <h3>อ่านการ์ดสถิติส่วนบุคคล (Personal Stat Cards)</h3>
-              <p>การ์ดแสดงเฉพาะยอดการเข้าเรียนของตนเอง เช่น เข้าเรียนแล้วกี่ครั้ง เข้าใช้ไปกี่ห้องเรียน ไม่แสดงสถิติรวมของเพื่อนหรือภาพรวมระบบ</p>
-              <span class="tag tag-green">Personal Privacy</span>
-            </div>
-          </div>
-
-          <div class="step-item">
-            <div class="step-index">3</div>
-            <div class="step-content">
-              <h3>ป้องกัน IDOR โดยอัตโนมัติ (Anti-IDOR Protection)</h3>
-              <p>ระบบล็อกช่องค้นหารหัสและซ่อนช่องป้อนรหัสนักศึกษาคนอื่น นักศึกษาทำได้เพียงกรองห้องเรียนหรือวันที่ของตนเองเท่านั้น</p>
-              <span class="tag tag-green">IDOR Guard</span>
-            </div>
-          </div>
-
-          <div class="step-item">
-            <div class="step-index">4</div>
-            <div class="step-content">
-              <h3>ตรวจสอบประวัติการแตะบัตรตนเอง (Personal Logs)</h3>
-              <p>ตรวจสอบความถูกต้องว่าเครื่องทาบบัตร RFID หน้าห้องเรียนบันทึกเวลาเข้าเรียน (IN) หรือแตะออก (OUT) ถูกต้องครบถ้วนหรือไม่</p>
-              <span class="tag tag-green">Attendance Check</span>
-            </div>
-          </div>
-
-          <div class="step-item">
-            <div class="step-index">5</div>
-            <div class="step-content">
-              <h3>สลับภาษาและออกจากระบบอย่างปลอดภัย</h3>
-              <p>สามารถสลับภาษาเมนูเป็นอังกฤษ/ไทยได้ และเมื่อออกจากระบบ ระบบจะทำลาย Token ในเครื่องทันที</p>
-              <span class="tag tag-green">Secure Logout</span>
-            </div>
+          <div class="role-card">
+            <h3>📋 2. การดูประวัติและการค้นหาประวัติการเข้าใช้ห้อง</h3>
+            <p style="color: #94a3b8; font-size: 0.88rem; margin-bottom: 8px;">สามารถดูและค้นหาประวัติการเข้าใช้ห้องได้จาก:</p>
+            <ul>
+              <li><span class="bullet-green">1.</span> <strong>ห้อง</strong></li>
+              <li><span class="bullet-green">2.</span> <strong>วัน</strong></li>
+              <li><span class="bullet-green">3.</span> <strong>เวลา</strong></li>
+              <li><span class="bullet-green">4.</span> <strong>สถานะ</strong> (ทั้งหมด, เข้าห้อง IN, ออกห้อง OUT, กำลังใช้งาน ACTIVE)</li>
+              <li style="color: #6ee7b7; font-size: 0.82rem; margin-top: 4px;">* ดูได้เฉพาะข้อมูลประวัติตนเองเท่านั้น ไม่มีช่องให้ค้นหารหัสนักศึกษาคนอื่น (Anti-IDOR)</li>
+            </ul>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- SECURITY & ARCHITECTURAL HIGHLIGHTS -->
-    <div class="summary-box">
-      <h2>🛡️ จุดเด่นด้าน UX และ Security ใน User Flow ของกลุ่ม 4</h2>
-      <div class="summary-grid">
-        <div class="summary-item">
-          <h4>1. การแบ่งบทบาทแบบเบ็ดเสร็จ (Role-Based Divergence)</h4>
-          <p>ผู้ใช้ล็อกอินผ่านประตูเดียว แต่หน้าจอและการอนุญาตเข้าถึงฟังก์ชันจะปรับเปลี่ยนตาม Claims ใน Token อัตโนมัติ ป้องกันความสับสนในการใช้งาน</p>
-        </div>
-        <div class="summary-item">
-          <h4>2. ความสม่ำเสมอของสถิติ (Consistent Stat Cards)</h4>
-          <p>การ์ดสรุปสถิติด้านบนจะคงค่าสถิติหลักของบทบาทนั้นเสมอ (อาจารย์เห็นสถิติรวมทั้งระบบ / นักศึกษาเห็นสถิติรวมของตนเอง) ไม่ลดจำนวนลงตามการกดฟิลเตอร์ตาราง</p>
-        </div>
-        <div class="summary-item">
-          <h4>3. ความมั่นคงปลอดภัยระดับ Zero-Trust & Anti-IDOR</h4>
-          <p>แม้ผู้ใช้ฝั่งนักศึกษาจะพยายามดัดแปลง JavaScript ในเบราว์เซอร์หรือยิง API หลังบ้าน ระบบ Backend จะบังคับ override ด้วยรหัสนักศึกษาจาก Token เสมอ</p>
-        </div>
-        <div class="summary-item">
-          <h4>4. การตรวจสอบคนอยู่ในห้อง (Active Room Occupancy)</h4>
-          <p>อาจารย์และนักศึกษาสามารถเลือกดูสถานะ "กำลังใช้งาน" เพื่อทราบว่าขณะนี้มีใครยังอยู่ในห้องเรียนแบบเรียลไทม์จากการประมวลผลคู่ IN/OUT ของ IoT</p>
-        </div>
-      </div>
+    <!-- COMPARISON TABLE -->
+    <div class="table-container">
+      <h2>⚖️ ตารางสรุปเปรียบเทียบการใช้งานระหว่าง อาจารย์ vs นักศึกษา</h2>
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 28%;">หัวข้อ</th>
+            <th style="width: 36%;">บทบาท อาจารย์ (Teacher)</th>
+            <th style="width: 36%;">บทบาท นักศึกษา (Student)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>การ์ดสรุปสถิติ</strong></td>
+            <td>แสดงห้องที่มีการใช้ทั้งหมดกี่ห้อง, สถิติการเข้าใช้ห้องเรียนรายวัน (แสดงข้อมูลภาพรวมทั้งหมด ไม่ลดตามการค้นหา)</td>
+            <td>แสดงเฉพาะข้อมูลสถิติทั้งหมดของตนเอง (ไม่ลดตามการค้นหา)</td>
+          </tr>
+          <tr>
+            <td><strong>การดูประวัติการเข้าใช้ห้อง</strong></td>
+            <td><strong style="color: #93c5fd;">สามารถดูประวัติการเข้าใช้ห้องทั้งหมด</strong></td>
+            <td><strong style="color: #a7f3d0;">สามารถดูประวัติการเข้าใช้ห้องเฉพาะของตนเอง</strong></td>
+          </tr>
+          <tr>
+            <td><strong>เงื่อนไขที่สามารถค้นหาได้</strong></td>
+            <td>ค้นหาได้จาก: <strong>รหัสนักศึกษา, ห้อง, วัน, เวลา, สถานะ</strong></td>
+            <td>ค้นหาได้จาก: <strong>ห้อง, วัน, เวลา, สถานะ</strong> (ไม่มีรหัสนักศึกษา)</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <footer>
