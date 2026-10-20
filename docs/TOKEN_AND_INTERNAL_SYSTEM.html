@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>คู่มือการส่ง Token และกลไกภายในระบบ - กลุ่ม 4</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #4338ca;
+      --primary-light: #6366f1;
+      --accent: #06b6d4;
+      --bg-dark: #0f172a;
+      --card-bg: #1e293b;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --border-color: #334155;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Prompt', sans-serif;
+      background-color: var(--bg-dark);
+      color: var(--text-main);
+      line-height: 1.7;
+      padding: 30px 20px;
+    }
+
+    .container {
+      max-width: 1100px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 40px;
+      border-radius: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      border: 1px solid var(--border-color);
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      color: #38bdf8;
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .meta {
+      font-size: 0.95rem;
+      color: var(--text-muted);
+      margin-bottom: 30px;
+      padding-bottom: 15px;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    h2 {
+      font-size: 1.5rem;
+      color: #a5b4fc;
+      margin-top: 35px;
+      margin-bottom: 16px;
+      padding-left: 12px;
+      border-left: 4px solid var(--primary-light);
+    }
+
+    h3 {
+      font-size: 1.2rem;
+      color: #e2e8f0;
+      margin-top: 22px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      margin-bottom: 16px;
+      color: #cbd5e1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      margin-right: 6px;
+    }
+    .badge-primary { background: #312e81; color: #a5b4fc; }
+    .badge-success { background: #064e3b; color: #6ee7b7; }
+    .badge-warning { background: #78350f; color: #fde68a; }
+    .badge-danger { background: #7f1d1d; color: #fca5a5; }
+
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 20px;
+      margin: 25px 0;
+    }
+
+    .card {
+      background: #0f172a;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 20px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+
+    .card:hover {
+      transform: translateY(-3px);
+      border-color: var(--primary-light);
+    }
+
+    .card h4 {
+      color: #38bdf8;
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+    }
+
+    .card p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    .mermaid {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 25px;
+      margin: 25px 0;
+      display: flex;
+      justify-content: center;
+    }
+
+    code, pre {
+      font-family: 'Fira Code', monospace;
+    }
+
+    pre {
+      background: #090d16;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 16px;
+      overflow-x: auto;
+      margin: 15px 0 20px;
+      font-size: 0.9rem;
+      color: #f1f5f9;
+    }
+
+    code {
+      background: #090d16;
+      color: #38bdf8;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 25px 0;
+      font-size: 0.95rem;
+      background: #0f172a;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border-color);
+    }
+
+    th, td {
+      padding: 12px 16px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background: #1e1b4b;
+      color: #c7d2fe;
+      font-weight: 600;
+    }
+
+    tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .callout {
+      background: rgba(99, 102, 241, 0.1);
+      border-left: 4px solid var(--primary-light);
+      padding: 16px 20px;
+      border-radius: 0 8px 8px 0;
+      margin: 20px 0;
+    }
+
+    .callout-title {
+      font-weight: 600;
+      color: #a5b4fc;
+      margin-bottom: 6px;
+    }
+
+    .callout p {
+      margin: 0;
+      font-size: 0.95rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🔐 การส่ง Token และกลไกภายในระบบ (กลุ่ม 4)</h1>
+    <div class="meta">
+      ระบบจัดการประวัติการเข้า-ออกห้องเรียนและแดชบอร์ดอาจารย์ | VM4 Proxmox (IP: <code>172.16.10.200:3001</code> / <code>192.168.100.104</code>)
+    </div>
+
+    <h2>1. ภาพรวมการทำงานด้วย JWT Token</h2>
+    <p>ระบบกลุ่ม 4 นำมาตรฐาน <strong>JSON Web Token (JWT)</strong> มาใช้ในการระบุตัวตนและตรวจสอบสิทธิ์ของผู้ใช้งานในรูปแบบ <strong>Stateless Authentication</strong> เพื่อความปลอดภัยสูงและการตอบสนองที่รวดเร็ว</p>
+
+    <div class="card-grid">
+      <div class="card">
+        <h4>🔐 1. Centralized Auth</h4>
+        <p>ยืนยัน Username/Password จากระบบกลางของ <strong>กลุ่ม 3 (192.168.100.103:8000)</strong> เท่านั้น</p>
+      </div>
+      <div class="card">
+        <h4>✍️ 2. Signed by Group 4</h4>
+        <p>ออก Token เฉพาะของกลุ่ม 4 พร้อม Digital Signature ด้วย <code>HS256</code> และความลับ <code>JWT_SECRET</code></p>
+      </div>
+      <div class="card">
+        <h4>🛡️ 3. RBAC & IDOR Guard</h4>
+        <p>แยกสิทธิ์ระหว่าง <strong>อาจารย์ (Teacher)</strong> และ <strong>นักศึกษา (Student)</strong> ป้องกันการแอบดูข้อมูลผู้อื่น</p>
+      </div>
+      <div class="card">
+        <h4>⏱️ 4. Expiration Policy</h4>
+        <p>กำหนดอายุ Token ไว้อย่างเข้มงวด <strong>120 นาที</strong> เมื่อหมดอายุต้องเข้าสู่ระบบใหม่</p>
+      </div>
+    </div>
+
+    <h2>2. โครงสร้างของ Token (JWT Claims)</h2>
+    <p>Token มีองค์ประกอบ 3 ส่วนคั่นด้วยจุด (<code>.</code>) คือ <code>Header.Payload.Signature</code></p>
+
+    <pre><code>// ส่วนของ Payload (Claims)
+{
+  "sub": "67200324",            // รหัสผู้ใช้งาน (รหัสนักศึกษา หรือ Username ของอาจารย์)
+  "role": "student",            // ระดับสิทธิ์: "teacher" หรือ "student"
+  "iat": 1784620000,            // เวลาที่ออก Token (Unix Timestamp)
+  "exp": 1784627200             // เวลาหมดอายุของ Token (120 นาที)
+}</code></pre>
+
+    <h2>3. ลำดับการส่ง Token ในระบบ (Sequence Diagram)</h2>
+    <div class="mermaid">
+sequenceDiagram
+    autonumber
+    actor User as 👤 ผู้ใช้ (อาจารย์ / นศ.)
+    participant FE as 💻 Frontend (Browser)
+    participant LocalStorage as 🗄️ LocalStorage
+    participant BE as ⚙️ Backend API (FastAPI)
+    participant G3 as 🔐 เซิร์ฟเวอร์กลุ่ม 3 (Auth)
+    participant DB as 💾 MariaDB (web_app_db)
+
+    Note over User, DB: ขั้นตอนที่ 1: การล็อกอินและรับ Token
+    User->>FE: 1. ป้อน Username/Password
+    FE->>BE: 2. POST /api/v1/auth/login
+    BE->>G3: 3. ส่งตรวจกับกลุ่ม 3 (POST /auth/login)
+    G3-->>BE: 4. ยืนยันสำเร็จ + ส่งข้อมูล Role
+    BE->>BE: 5. ออก Group 4 JWT (sub, role, exp=120m)
+    BE-->>FE: 6. ตอบกลับ { access_token, user }
+    FE->>LocalStorage: 7. จัดเก็บ Token ลง LocalStorage
+    FE-->>User: 8. แสดงหน้า Dashboard
+
+    Note over User, DB: ขั้นตอนที่ 2: การส่ง Token ไปขอข้อมูล API
+    User->>FE: 9. ค้นหาประวัติแตะบัตร
+    FE->>LocalStorage: 10. ดึง access_token
+    FE->>BE: 11. GET /api/v1/logs (Header: Authorization: Bearer &lt;token&gt;)
+    BE->>BE: 12. Middleware ตรวจลายเซ็น & วันหมดอายุ
+    BE->>BE: 13. ตรวจสอบสิทธิ์ (ถ้าเป็น student ดูได้เฉพาะรหัสตัวเอง)
+    BE-)DB: 14. [Async] บันทึก Audit Log ลงตาราง user
+    BE->>DB: 15. ดึงข้อมูลจากตาราง web_app
+    DB-->>BE: 16. ส่งผลลัพธ์รายการแตะบัตร
+    BE-->>FE: 17. ส่ง JSON Dashboard Response
+    FE-->>User: 18. อัปเดตตารางข้อมูลบนหน้าจอ
+    </div>
+
+    <h2>4. กลไกการทำงานภายในระบบ (Internal System Architecture)</h2>
+    <div class="mermaid">
+flowchart TB
+    subgraph Client["1️⃣ Presentation Layer (Next.js 14)"]
+        UI["🎨 UI Views (Dashboard / Login)"]
+        Context["📦 AuthContext (จัดเก็บ Token ใน LocalStorage)"]
+        API_Client["🔌 api.ts (แนบ Authorization Header)"]
+    end
+
+    subgraph Proxy["2️⃣ Network & Proxy (VM4)"]
+        Nginx["🌐 Nginx Web Server (Port 80)
+        - Route '/' -> Next.js Static Export
+        - Route '/api/v1/' -> FastAPI"]
+    end
+
+    subgraph Application["3️⃣ Application & Security (FastAPI)"]
+        AuthMiddleware["🛡️ Security Middleware
+        - verify_token
+        - require_teacher_role
+        - get_current_user (IDOR Isolator)"]
+        LogService["📊 Log Search Engine (คนที่ 6)"]
+        AuditWorker["📝 Non-blocking Audit Logger (คนที่ 4)"]
+        IoTEngine["📡 IoT Sync Ingestion Worker (คนที่ 5)"]
+    end
+
+    subgraph Database["4️⃣ Database Layer (MariaDB 10.11)"]
+        DB_User[("👤 ตาราง user
+        Audit Trail (เวลาจริง timestamp, username, role, action)")]
+        DB_WebApp[("🚪 ตาราง web_app
+        IoT Card Taps (id รันจาก 1, timestamp, student_id, room, status)")]
+    end
+
+    subgraph External["5️⃣ ระบบภายนอก"]
+        G3["🔐 กลุ่ม 3 Central Auth (192.168.100.103:8000)"]
+        G6["📡 กลุ่ม 6 IoT Server (192.168.100.106:3000)"]
+    end
+
+    UI --> Context --> API_Client
+    API_Client <-->|HTTP Request + Bearer Token| Nginx
+    Nginx -->|Proxy Pass| AuthMiddleware
+    AuthMiddleware <-->|ยืนยันรหัสผ่าน| G3
+    AuthMiddleware --> LogService
+    LogService --> DB_WebApp
+    AuthMiddleware -.->|Background Thread| AuditWorker -.-> DB_User
+    IoTEngine <-->|Polling ทุก 5 วินาที| G6
+    IoTEngine -->|Deduplicate & Cleanse| DB_WebApp
+    </div>
+
+    <h2>5. ตารางตรวจสอบสิทธิ์ระดับ API (Access Control Matrix)</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Endpoint</th>
+          <th>Method</th>
+          <th>Token?</th>
+          <th>Middleware</th>
+          <th>ระดับสิทธิ์ที่อนุญาต</th>
+          <th>คำอธิบาย</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><code>/api/v1/auth/login</code></td>
+          <td><span class="badge badge-primary">POST</span></td>
+          <td>❌</td>
+          <td>Public</td>
+          <td>ทุกคน</td>
+          <td>ส่ง Username/Password เพื่อขอรับ Token</td>
+        </tr>
+        <tr>
+          <td><code>/api/v1/auth/me</code></td>
+          <td><span class="badge badge-success">GET</span></td>
+          <td>✅</td>
+          <td><code>get_current_user</code></td>
+          <td>Teacher, Student</td>
+          <td>ขอข้อมูลโปรไฟล์ตนเองจาก Token</td>
+        </tr>
+        <tr>
+          <td><code>/api/v1/logs</code></td>
+          <td><span class="badge badge-success">GET</span></td>
+          <td>✅</td>
+          <td><code>get_current_user</code></td>
+          <td><strong>Teacher:</strong> ดูได้ทุกคน<br/><strong>Student:</strong> ดูได้เฉพาะตนเอง (IDOR Guard)</td>
+          <td>ค้นหาและกรองประวัติการแตะบัตร</td>
+        </tr>
+        <tr>
+          <td><code>/api/v1/admin/logs</code></td>
+          <td><span class="badge badge-success">GET</span></td>
+          <td>✅</td>
+          <td><code>require_teacher_role</code></td>
+          <td><span class="badge badge-danger">Teacher เท่านั้น</span></td>
+          <td>ระบบสืบค้นขั้นสูงสำหรับอาจารย์</td>
+        </tr>
+        <tr>
+          <td><code>/api/v1/audit/log</code></td>
+          <td><span class="badge badge-primary">POST</span></td>
+          <td>✅</td>
+          <td><code>verify_token</code></td>
+          <td>Teacher, Student</td>
+          <td>บันทึกพฤติกรรมผู้ใช้ลงตาราง user</td>
+        </tr>
+        <tr>
+          <td><code>/api/v1/iot/sync</code></td>
+          <td><span class="badge badge-primary">POST</span></td>
+          <td>⚙️</td>
+          <td>Internal / Admin</td>
+          <td>System Daemon / Admin</td>
+          <td>ซิงก์ข้อมูลแตะบัตรจากกลุ่ม 6 เข้าสู่ระบบ</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">💡 จุดเด่นด้านความปลอดภัยของกลุ่ม 4</div>
+      <p>1. <strong>Anti-IDOR:</strong> รหัสนักศึกษาถูกฝังอยู่ใน Token (<code>sub</code>) ทำให้นักศึกษาไม่สามารถแก้ไข URL เพื่อดูประวัติของเพื่อนได้<br/>
+      2. <strong>Non-blocking Audit Logging:</strong> บันทึกประวัติลงตาราง <code>user</code> แบบ Asynchronous เบื้องหลัง หน้าเว็บจึงทำงานรวดเร็วไม่สะดุด<br/>
+      3. <strong>Strict Signature Verification:</strong> หาก Token ถูกดัดแปลงแม้แต่ตัวอักษรเดียว ระบบจะส่ง <code>401 Unauthorized</code> ทันที</p>
+    </div>
+
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#090d16',
+        primaryColor: '#4338ca',
+        primaryTextColor: '#f8fafc',
+        primaryBorderColor: '#6366f1',
+        lineColor: '#38bdf8',
+        secondaryColor: '#1e293b',
+        tertiaryColor: '#0f172a'
+      }
+    });
+  </script>
+</body>
+</html>
