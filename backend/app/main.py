@@ -5,6 +5,7 @@ from typing import Optional, Dict, Any
 from datetime import date
 
 from fastapi import FastAPI, Depends, Query
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
@@ -96,3 +97,9 @@ def root():
 @app.get("/health", tags=["Health Check"])
 def health_check():
     return {"status": "healthy"}
+
+
+@app.get('/api/docs', include_in_schema=False)
+@app.get('/api/docs/', include_in_schema=False)
+def redirect_to_docs():
+    return RedirectResponse(url='/docs')
