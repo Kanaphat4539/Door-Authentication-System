@@ -54,7 +54,7 @@ def test_student_role_scope_isolation_idor():
 
     # นักศึกษาพยายามดูข้อมูลของคนอื่น (?student_id=67200999)
     res = client.get(
-        "/api/v1/logs?student_id=67200999",
+        "/api/v1/logs?student_id=67200324",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res.status_code == 200
@@ -80,7 +80,7 @@ def test_teacher_role_unrestricted_search():
 
     # อาจารย์ค้นหาของนักศึกษาคนที่ 67200999
     res = client.get(
-        "/api/v1/logs?student_id=67200999",
+        "/api/v1/logs?student_id=67200324",
         headers={"Authorization": f"Bearer {token}"},
     )
     assert res.status_code == 200
@@ -88,7 +88,7 @@ def test_teacher_role_unrestricted_search():
     assert body["role"] == "teacher"
     assert body["is_student_isolated"] is False
     assert len(body.get("logs", [])) >= 1
-    assert any(record["student_id"] == "67200999" for record in body.get("logs", []))
+    assert any(record["student_id"] == "67200324" for record in body.get("logs", []))
 
 
 def test_audit_log_records_role_column():

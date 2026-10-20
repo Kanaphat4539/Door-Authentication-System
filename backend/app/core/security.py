@@ -29,8 +29,8 @@ def create_access_token(username: str, role: str) -> str:
 MOCK_DEV_TOKENS: Dict[str, Dict[str, str]] = {
     "mock-jwt-bearer-token-teacher-dev": {"sub": "teacher_ajarn", "role": "teacher"},
     "mock-jwt-token-teacher-ajarn": {"sub": "teacher_ajarn", "role": "teacher"},
-    "mock-jwt-bearer-token-student-dev": {"sub": "student_somchai", "role": "student"},
-    "mock-jwt-token-student-somchai": {"sub": "student_somchai", "role": "student"},
+    "mock-jwt-bearer-token-student-dev": {"sub": "67200324", "role": "student"},
+    "mock-jwt-token-student-somchai": {"sub": "67200324", "role": "student"},
 }
 
 

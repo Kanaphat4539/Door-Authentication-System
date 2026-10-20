@@ -241,18 +241,6 @@ export default function DashboardPage() {
               </span>
             )}
 
-            {/* IoT Sync Button */}
-            <button
-              onClick={handleSyncIoT}
-              disabled={isLoading || isSyncingIoT}
-              id="syncIotBtn"
-              title="ดึงประวัติการสแกนบัตรล่าสุดจาก IoT Server (http://172.16.10.200:3000/api/logs)"
-              className="inline-flex items-center space-x-2 px-3.5 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-xl text-sm font-medium shadow-sm transition-all disabled:opacity-50"
-            >
-              <Radio className={`w-4 h-4 text-blue-600 ${isSyncingIoT ? 'animate-pulse' : ''}`} />
-              <span>{isSyncingIoT ? 'กำลังซิงก์ IoT...' : 'ดึงข้อมูล IoT'}</span>
-            </button>
-            
             <button
               onClick={handleRefresh}
               disabled={isLoading || isRefreshing}

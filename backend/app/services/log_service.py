@@ -8,23 +8,7 @@ from app.services.iot_service import get_synced_logs, fetch_and_sync_iot_logs
 
 logger = logging.getLogger(__name__)
 
-MOCK_LOGS: List[Dict[str, Any]] = [
-    {"id": 1, "timestamp": "2026-10-14 15:30:12", "student_id": "65010234", "student_name": "นายธนภัทร สุขเกษม", "room": "B217", "status": "IN"},
-    {"id": 2, "timestamp": "2026-10-14 15:15:28", "student_id": "65010567", "student_name": "นางสาวสมหญิง ตั้งใจ", "room": "E107", "status": "OUT"},
-    {"id": 3, "timestamp": "2026-10-14 14:50:05", "student_id": "66010892", "student_name": "นายกิตติศักดิ์ ประเสริฐ", "room": "B218", "status": "IN"},
-    {"id": 4, "timestamp": "2026-10-14 14:40:50", "student_id": "64010111", "student_name": "นายปิติ มั่นคง", "room": "B316", "status": "IN"},
-    {"id": 5, "timestamp": "2026-10-14 14:25:19", "student_id": "65010999", "student_name": "นางสาวมณีรัตน์ แสงแก้ว", "room": "E111", "status": "OUT"},
-    {"id": 6, "timestamp": "2026-10-14 14:10:02", "student_id": "65010345", "student_name": "นายชินวัตร บุญสม", "room": "B217", "status": "IN"},
-    {"id": 7, "timestamp": "2026-10-14 13:50:41", "student_id": "66010777", "student_name": "นายวรพจน์ ศรีสุวรรณ", "room": "B317", "status": "OUT"},
-    {"id": 8, "timestamp": "2026-10-14 13:30:03", "student_id": "65010888", "student_name": "นางสาวพิมพ์ชนก รุ่งเรือง", "room": "E112", "status": "IN"},
-    {"id": 9, "timestamp": "2026-10-14 13:15:15", "student_id": "64010555", "student_name": "นายอนุชา วงศ์สวัสดิ์", "room": "B113", "status": "IN"},
-    {"id": 10, "timestamp": "2026-10-14 12:55:44", "student_id": "65010666", "student_name": "นางสาวนภัสสร ใจดี", "room": "B218", "status": "OUT"},
-    {"id": 11, "timestamp": "2026-10-14 12:30:20", "student_id": "65010444", "student_name": "นายธีรภัทร ชาญวิทย์", "room": "B217", "status": "IN"},
-    {"id": 12, "timestamp": "2026-10-14 12:05:06", "student_id": "66010222", "student_name": "นางสาวศิริพร บุญตา", "room": "E107", "status": "OUT"},
-    {"id": 13, "timestamp": "2026-10-14 11:30:00", "student_id": "67200367", "student_name": "นายสมชาย ใจกล้า", "room": "B317", "status": "IN"},
-    {"id": 14, "timestamp": "2026-10-14 11:55:00", "student_id": "67200367", "student_name": "นายสมชาย ใจกล้า", "room": "B317", "status": "OUT"},
-    {"id": 15, "timestamp": "2026-10-14 10:20:00", "student_id": "67200999", "student_name": "นายสมศักดิ์ รักเรียน", "room": "LAB-401", "status": "IN"},
-]
+MOCK_LOGS: List[Dict[str, Any]] = []
 
 THAI_MONTHS = (
     "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
@@ -94,16 +78,16 @@ def _matches(
 ) -> bool:
     if owner_student_id:
         target_owner = str(owner_student_id).strip().casefold()
-        if target_owner == "student_somchai":
-            target_owner = "67200367"
+        if target_owner in ("student_somchai", "somchai", "67200324"):
+            target_owner = "67200324"
         log_std = str(log.get("student_id", "")).strip().casefold()
         if log_std != target_owner and target_owner not in log_std:
             return False
     timestamp = _as_datetime(log["timestamp"])
     if student_id:
-        kw = student_id.casefold()
-        combined = f"{str(log['student_id']).casefold()} {str(log['student_name']).casefold()}"
-        if kw not in combined:
+        kw = str(student_id).strip().casefold()
+        std_id_str = str(log.get('student_id', '')).strip().casefold()
+        if kw not in std_id_str:
             return False
     if room and room != "all" and room.casefold() != str(log["room"]).casefold():
         return False
@@ -133,8 +117,8 @@ def get_all_available_logs() -> List[Dict[str, Any]]:
         except Exception:
             pass
     if synced:
-        return synced + MOCK_LOGS
-    return MOCK_LOGS
+        return synced
+    return []
 
 
 def _filtered_mock(
@@ -189,7 +173,7 @@ def get_dashboard_data(
                 where_clauses.append("student_id = :owner_id")
                 params["owner_id"] = owner_student_id
             elif student_id:
-                where_clauses.append("(student_id LIKE :kw OR student_name LIKE :kw)")
+                where_clauses.append("student_id LIKE :kw")
                 params["kw"] = f"%{student_id}%"
 
             if room and room != "all":

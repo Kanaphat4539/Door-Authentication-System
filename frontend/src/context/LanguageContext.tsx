@@ -60,8 +60,8 @@ export const translations: Translations = {
     en: 'times',
   },
   filterStudentPlaceholder: {
-    th: 'ค้นหารหัสนักศึกษา หรือชื่อ-นามสกุล...',
-    en: 'Search student ID or name...',
+    th: 'ค้นหารหัสนักศึกษา...',
+    en: 'Search student ID...',
   },
   filterAllRooms: {
     th: 'ห้องทั้งหมด (ทุกห้อง)',

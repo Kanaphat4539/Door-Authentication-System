@@ -59,11 +59,11 @@ export default function LoginPage() {
 
   const handleStudentDemoLogin = () => {
     login('mock-jwt-bearer-token-student-dev', {
-      username: 'student_somchai',
+      username: '67200324',
       name: 'นายสมชาย ใจกล้า',
-      nameEn: 'Somchai Jaikla',
+      nameEn: 'Leo Ev',
       role: 'student',
-      email: 'student_somchai@university.ac.th',
+      email: 'leo.ev@university.ac.th',
     });
     router.replace('/dashboard');
   };
@@ -97,7 +97,7 @@ export default function LoginPage() {
           </div>
           <h2 className="text-2xl font-bold tracking-tight text-slate-900 font-jakarta">Sign In</h2>
           <p className="text-xs text-slate-500 mt-1 max-w-xs leading-relaxed">
-            นักศึกษาใช้รหัสนักศึกษา อาจารย์ใช้ Username พร้อมรหัสผ่านเพื่อเข้าสู่ระบบ
+            Enter your account credentials to access the classroom tracking system
           </p>
         </div>
 
@@ -115,7 +115,7 @@ export default function LoginPage() {
           {/* Username Field */}
           <div>
             <label htmlFor="username" className="block text-[11px] font-bold text-slate-600 tracking-wider uppercase mb-1.5 font-jakarta">
-              รหัสนักศึกษา / USERNAME อาจารย์
+              USERNAME
             </label>
             <div className="relative">
               <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -210,9 +210,6 @@ export default function LoginPage() {
               <Sparkles className="w-3.5 h-3.5 text-slate-400" />
               <span>เข้าสู่ระบบด้วยบัญชีทดสอบ (Demo Student)</span>
             </button>
-            <p className="text-xs text-slate-400 text-center leading-relaxed">
-              ทดลองหน้าจอด้วยบัญชีอาจารย์หรือนักศึกษา (student_somchai) โดยไม่ต้องกรอกรหัสผ่าน
-            </p>
           </div>
 
         </form>

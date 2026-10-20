@@ -11,7 +11,7 @@ router = APIRouter(tags=["Member 6 - Access Logs"])
 
 @router.get("/logs", response_model=DashboardDataResponse)
 def search_access_logs(
-    student_id: Optional[str] = Query(None, description="ค้นหารหัสนักศึกษา หรือชื่อ-นามสกุล", max_length=150),
+    student_id: Optional[str] = Query(None, description="ค้นหารหัสนักศึกษา", max_length=50),
     keyword: Optional[str] = Query(None, description="คำค้นหา (Alias ของ student_id)"),
     room: str = Query("all", description="กรองห้องเรียน เช่น B217, E107", max_length=10),
     selected_date: Optional[date] = Query(None, alias="date", description="กรองตามวันที่ (YYYY-MM-DD)"),
@@ -82,7 +82,7 @@ def search_access_logs(
 
 @router.get("/admin/logs", response_model=DashboardDataResponse)
 def admin_search_access_logs(
-    student_id: Optional[str] = Query(None, description="ค้นหารหัสนักศึกษา หรือชื่อ-นามสกุล", max_length=150),
+    student_id: Optional[str] = Query(None, description="ค้นหารหัสนักศึกษา", max_length=50),
     keyword: Optional[str] = Query(None, description="คำค้นหา (Alias ของ student_id)"),
     room: str = Query("all", description="กรองห้องเรียน เช่น B217, E107", max_length=10),
     selected_date: Optional[date] = Query(None, alias="date", description="กรองตามวันที่ (YYYY-MM-DD)"),

@@ -16,7 +16,7 @@ interface FilterBarProps {
   currentUserId?: string;
 }
 
-const ROOMS = ['all', 'B217', 'B218', 'B316', 'B317', 'E107', 'E111', 'E112', 'B113', 'LAB-401', 'SMART-205'];
+const ROOMS = ['all', 'B217', 'B218', 'B316', 'B317', 'E107', 'E111', 'E112', 'B113'];
 
 interface TimeSlotOption {
   value: string;
@@ -75,7 +75,7 @@ export default function FilterBar({
         <div className="relative">
           <div className="h-5 flex items-center justify-between mb-1.5">
             <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider truncate">
-              {isStudent ? (lang === 'en' ? 'Student ID' : 'รหัสนักศึกษา') : `${t('tableHeaderId')} / ${t('tableHeaderName')}`}
+              {t('tableHeaderId')}
             </label>
             {isStudent && (
               <span className="text-[10px] text-blue-600 font-semibold flex items-center gap-0.5 bg-blue-50 px-1.5 py-0.5 rounded border border-blue-100 flex-shrink-0" title="ล็อกเฉพาะรหัสของตนเอง">

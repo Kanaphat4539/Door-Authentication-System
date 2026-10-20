@@ -140,8 +140,7 @@ export async function fetchDashboardData(
 
     const filtered = MOCK_DATA.filter((item) => {
       if (kw) {
-        const combined = `${item.student_id} ${item.name} ${item.student_name || ''}`.toLowerCase();
-        if (!combined.includes(kw)) return false;
+        if (!item.student_id.toLowerCase().includes(kw)) return false;
       }
       if (room !== 'all' && item.room.toLowerCase() !== room.toLowerCase()) return false;
       if (status !== 'all' && item.status.toLowerCase() !== status.toLowerCase()) return false;
