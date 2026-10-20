@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ภาพรวมสถาปัตยกรรมระบบ (ฉบับแก้ไขถูกต้อง) - กลุ่ม 4</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --success: #10b981;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px 20px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      font-size: 2rem;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+    .meta {
+      color: var(--text-muted);
+      margin-bottom: 25px;
+      font-size: 0.95rem;
+    }
+    .btn-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0 30px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: #334155;
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+    }
+    .btn:hover {
+      background: var(--primary);
+      color: #0f172a;
+      transform: translateY(-2px);
+    }
+    .btn-primary {
+      background: #0284c7;
+      border-color: #38bdf8;
+    }
+    .img-card {
+      background: #ffffff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      margin-bottom: 30px;
+      text-align: center;
+    }
+    .img-card img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 6px;
+    }
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 20px;
+      margin: 30px 0;
+    }
+    .box-info {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 22px;
+    }
+    .box-info h3 {
+      font-size: 1.15rem;
+      margin-bottom: 12px;
+    }
+    .box-info ul {
+      padding-left: 20px;
+      color: #cbd5e1;
+    }
+    .box-info li {
+      margin-bottom: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: bold;
+    }
+    .badge-success { background: #064e3b; color: #6ee7b7; }
+    .badge-danger { background: #7f1d1d; color: #fca5a5; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🏛️ ภาพรวมสถาปัตยกรรมระบบ (System Architecture) - ฉบับแก้ไขถูกต้อง</h1>
+    <div class="meta">
+      กลุ่ม 4: Classroom Access Management & Teacher Dashboard Security System | VM4 Proxmox
+    </div>
+
+    <div class="btn-group">
+      <a href="architecture_corrected.png" download class="btn btn-primary">📥 ดาวน์โหลดรูปภาพ PNG</a>
+      <a href="architecture_corrected.svg" download class="btn">📥 ดาวน์โหลดไฟล์ SVG</a>
+      <a href="architecture_corrected.drawio" download class="btn">📥 ดาวน์โหลดไฟล์ Draw.io XML</a>
+      <a href="TOKEN_AND_INTERNAL_SYSTEM.html" class="btn">🔐 คู่มือการส่ง Token & ระบบภายใน</a>
+    </div>
+
+    <!-- Corrected Diagram Display -->
+    <div class="img-card">
+      <img src="architecture_corrected.png" alt="Group 4 System Architecture Corrected">
+    </div>
+
+    <div class="comparison-grid">
+      <div class="box-info" style="border-left: 4px solid var(--danger);">
+        <h3 style="color: #f87171;">❌ ข้อผิดพลาดเดิมในรูปเก่า</h3>
+        <ul>
+          <li><strong>เส้น Frontend ➔ MariaDB:</strong> ผิดหลัก Security และ 3-Tier Architecture อย่างยิ่ง เพราะหน้าบ้านไม่สามารถและต้องไม่ต่อกับ Database โดยตรง</li>
+          <li><strong>เส้น Nginx ➔ IOT Sync:</strong> Nginx เป็นเพียง Web Server/Proxy ไม่ได้มีเส้นทางส่ง Request ไปยัง Worker ของ IoT โดยตรง</li>
+          <li><strong>คำสะกดผิด:</strong> สะกดว่า <code>Fronted</code> (ตกตัว n)</li>
+        </ul>
+      </div>
+
+      <div class="box-info" style="border-left: 4px solid var(--success);">
+        <h3 style="color: #34d399;">✅ สิ่งที่ปรับปรุงในฉบับแก้ไขนี้</h3>
+        <ul>
+          <li><strong>ตัดเส้น Frontend ➔ Database ออก:</strong> ปลอดภัยตามมาตรฐานความปลอดภัย</li>
+          <li><strong>เพิ่มเส้นเชื่อม Frontend ➔ Backend API:</strong> Frontend เรียกใช้งานผ่าน REST API พร้อมแนบ Bearer Token</li>
+          <li><strong>ตัดเส้น Nginx ➔ IOT Sync ออก:</strong> วาง IOT Sync เป็น Background Worker ที่ดึงข้อมูลจากกลุ่ม 6 บันทึกลง MariaDB</li>
+          <li><strong>แก้ไขคำสะกดเป็น:</strong> <code>Frontend</code> ถูกต้อง 100%</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
