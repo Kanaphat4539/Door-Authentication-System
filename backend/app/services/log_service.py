@@ -128,6 +128,17 @@ def _filtered_mock(
     owner_student_id: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     base_logs = get_all_available_logs()
+    status_clean = str(status).strip().upper() if status else None
+    if status_clean in ("ACTIVE", "CURRENT", "IN_USE"):
+        latest_by_student = {}
+        for l in sorted(base_logs, key=lambda x: _as_datetime(x["timestamp"])):
+            latest_by_student[l["student_id"]] = l
+        active_latest = [l for l in latest_by_student.values() if str(l.get("status", "")).upper() == "IN"]
+        return sorted(
+            [log for log in active_latest if _matches(log, student_id, room, selected_date, time_slot, None, owner_student_id)],
+            key=lambda item: _as_datetime(item["timestamp"]),
+            reverse=True,
+        )
     return sorted(
         [log for log in base_logs if _matches(log, student_id, room, selected_date, time_slot, status, owner_student_id)],
         key=lambda item: _as_datetime(item["timestamp"]),
@@ -193,9 +204,13 @@ def get_dashboard_data(
                 else:
                     where_clauses.append("TIME(timestamp) >= :slot_start AND TIME(timestamp) < ADDTIME(:slot_start, '01:00:00')")
                 params["slot_start"] = slot_clean
-            if status and status != "all":
-                where_clauses.append("status = :status")
-                params["status"] = status
+            status_clean = str(status).strip().upper() if status else None
+            if status_clean and status_clean != "ALL":
+                if status_clean in ("ACTIVE", "CURRENT", "IN_USE"):
+                    where_clauses.append("id IN (SELECT MAX(id) FROM web_app GROUP BY student_id) AND status = 'IN'")
+                else:
+                    where_clauses.append("status = :status")
+                    params["status"] = status_clean
 
 
             where_sql = " AND ".join(where_clauses)
@@ -223,25 +238,30 @@ def get_dashboard_data(
                     })
 
                 # คำนวณยอดการเข้าใช้รายวัน (totalAccess) ตามขอบเขตบัญชีและฟิลเตอร์ที่ล็อกอิน
-                if selected_date:
+                if status_clean in ("ACTIVE", "CURRENT", "IN_USE"):
                     total_access = total
+                    active_room_query = text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {where_sql}")
+                    active_rooms = conn.execute(active_room_query, params).scalar() or 0
                 else:
-                    today_clauses = [c for c in where_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()']
-                    today_query = text(f"SELECT COUNT(*) FROM web_app WHERE {' AND '.join(today_clauses)}")
-                    daily_count = conn.execute(today_query, params).scalar() or 0
-                    total_access = daily_count if daily_count > 0 else total
+                    if selected_date:
+                        total_access = total
+                    else:
+                        today_clauses = [c for c in where_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()']
+                        today_query = text(f"SELECT COUNT(*) FROM web_app WHERE {' AND '.join(today_clauses)}")
+                        daily_count = conn.execute(today_query, params).scalar() or 0
+                        total_access = daily_count if daily_count > 0 else total
 
-                # คำนวณสถานะห้องเรียนที่เปิดใช้งาน (activeRooms) สรุปจากประวัติการแตะบัตรของบัญชีที่ล็อกอิน
-                stat_clauses = [c for c in where_clauses if 'status' not in c]
-                if not selected_date:
-                    stat_today = [c for c in stat_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()', "status = 'IN'"]
-                    active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_today)}"), params).scalar() or 0
-                    if active_rooms == 0:
-                        stat_all = stat_clauses + ["status = 'IN'"]
-                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_all)}"), params).scalar() or 0
-                else:
-                    stat_date = stat_clauses + ["status = 'IN'"]
-                    active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_date)}"), params).scalar() or 0
+                    # คำนวณสถานะห้องเรียนที่เปิดใช้งาน (activeRooms) สรุปจากประวัติการแตะบัตรของบัญชีที่ล็อกอิน
+                    stat_clauses = [c for c in where_clauses if 'status' not in c]
+                    if not selected_date:
+                        stat_today = [c for c in stat_clauses if 'DATE(timestamp)' not in c] + ['DATE(timestamp) = CURDATE()', "status = 'IN'"]
+                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_today)}"), params).scalar() or 0
+                        if active_rooms == 0:
+                            stat_all = stat_clauses + ["status = 'IN'"]
+                            active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_all)}"), params).scalar() or 0
+                    else:
+                        stat_date = stat_clauses + ["status = 'IN'"]
+                        active_rooms = conn.execute(text(f"SELECT COUNT(DISTINCT room) FROM web_app WHERE {' AND '.join(stat_date)}"), params).scalar() or 0
                 used_db = True
 
         except Exception as exc:

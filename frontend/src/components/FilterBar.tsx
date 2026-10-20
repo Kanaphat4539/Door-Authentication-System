@@ -200,6 +200,7 @@ export default function FilterBar({
               className="w-full pl-9 pr-8 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:bg-white transition-all text-slate-800 appearance-none cursor-pointer"
             >
               <option value="all">{t('filterAllStatuses')}</option>
+              <option value="ACTIVE">{t('statusActive')}</option>
               <option value="IN">{t('statusIn')}</option>
               <option value="OUT">{t('statusOut')}</option>
             </select>

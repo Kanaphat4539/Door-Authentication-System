@@ -118,12 +118,24 @@ export async function fetchDashboardData(
     const page = Number(params.page) || 1;
     const limit = Number(params.limit) || 10;
 
-    const filtered = MOCK_DATA.filter((item) => {
+    // หากเลือกสถานะ ACTIVE ให้หาเฉพาะคนที่ประวัติล่าสุดเป็น IN (ยังไม่ OUT)
+    let sourceData = MOCK_DATA;
+    if (status && status.toUpperCase() === 'ACTIVE') {
+      const latestPerStudent = new Map<string, typeof MOCK_DATA[0]>();
+      for (const item of MOCK_DATA) {
+        if (!latestPerStudent.has(item.student_id)) {
+          latestPerStudent.set(item.student_id, item);
+        }
+      }
+      sourceData = Array.from(latestPerStudent.values()).filter(i => i.status.toUpperCase() === 'IN');
+    }
+
+    const filtered = sourceData.filter((item) => {
       if (kw) {
         if (!item.student_id.toLowerCase().includes(kw)) return false;
       }
       if (room !== 'all' && item.room.toLowerCase() !== room.toLowerCase()) return false;
-      if (status !== 'all' && item.status.toLowerCase() !== status.toLowerCase()) return false;
+      if (status !== 'all' && status.toUpperCase() !== 'ACTIVE' && item.status.toLowerCase() !== status.toLowerCase()) return false;
       if (params.timeSlot && params.timeSlot !== 'all') {
         const slotClean = params.timeSlot.split('-')[0].trim();
         const slotHour = parseInt(slotClean.split(':')[0], 10);

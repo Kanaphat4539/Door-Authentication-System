@@ -83,6 +83,10 @@ export const translations: Translations = {
     th: 'ออกห้อง (OUT)',
     en: 'Check Out (OUT)',
   },
+  statusActive: {
+    th: 'กำลังใช้งาน',
+    en: 'Currently In Use',
+  },
   searchBtn: {
     th: 'ค้นหา',
     en: 'Search',
