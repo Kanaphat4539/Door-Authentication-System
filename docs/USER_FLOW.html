@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>User Flow — ระบบจัดการการเข้าห้องเรียนอัจฉริยะ (กลุ่ม 4)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card-bg: #1e293b;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --primary: #38bdf8;
+      --primary-dark: #0284c7;
+      --teacher-color: #3b82f6;
+      --student-color: #10b981;
+      --amber: #f59e0b;
+      --red: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Prompt', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      padding: 30px 20px 80px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+    header {
+      margin-bottom: 25px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 20px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 9999px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--primary);
+      margin-bottom: 10px;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: #fff;
+      margin-bottom: 8px;
+    }
+    h1 span {
+      background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+    .actions-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin: 20px 0 25px;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 18px;
+      background: var(--card-bg);
+      color: #fff;
+      text-decoration: none;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.92rem;
+      transition: all 0.2s;
+      border: 1px solid var(--border);
+    }
+    .btn:hover {
+      background: var(--primary);
+      color: #0f172a;
+      border-color: var(--primary);
+      transform: translateY(-2px);
+    }
+    .btn.active {
+      background: var(--primary-dark);
+      border-color: var(--primary);
+      color: #fff;
+    }
+
+    /* Diagram Card */
+    .diagram-card {
+      background: #020617;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      margin-bottom: 35px;
+      overflow-x: auto;
+      text-align: center;
+    }
+
+    /* Two Columns Actor Breakdown */
+    .flows-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+      margin-bottom: 35px;
+    }
+    @media (max-width: 900px) {
+      .flows-grid { grid-template-columns: 1fr; }
+    }
+    .role-column {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      position: relative;
+    }
+    .role-column.teacher {
+      border-top: 4px solid var(--teacher-color);
+    }
+    .role-column.student {
+      border-top: 4px solid var(--student-color);
+    }
+    .role-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .role-icon {
+      font-size: 2rem;
+    }
+    .role-title h2 {
+      font-size: 1.3rem;
+      color: #fff;
+    }
+    .role-title p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    .steps-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .step-item {
+      display: flex;
+      gap: 14px;
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 8px;
+      padding: 14px 16px;
+    }
+    .step-index {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .teacher .step-index {
+      background: #1e3a8a;
+      color: #93c5fd;
+    }
+    .student .step-index {
+      background: #064e3b;
+      color: #a7f3d0;
+    }
+    .step-content h3 {
+      font-size: 0.98rem;
+      color: #fff;
+      margin-bottom: 4px;
+    }
+    .step-content p {
+      font-size: 0.86rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    .tag {
+      display: inline-block;
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 4px;
+      margin-top: 6px;
+    }
+    .tag-blue { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+    .tag-green { background: rgba(16, 185, 129, 0.2); color: #a7f3d0; }
+    .tag-amber { background: rgba(245, 158, 11, 0.2); color: #fde68a; }
+
+    /* Security Highlight Box */
+    .summary-box {
+      background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+    }
+    .summary-box h2 {
+      font-size: 1.25rem;
+      color: #fff;
+      margin-bottom: 14px;
+    }
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .summary-item {
+      background: #0f172a;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .summary-item h4 {
+      font-size: 0.95rem;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    .summary-item p {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+      line-height: 1.45;
+    }
+    footer {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-top: 40px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border);
+    }
+  </style>
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#020617',
+        primaryColor: '#1e293b',
+        primaryTextColor: '#f8fafc',
+        primaryBorderColor: '#38bdf8',
+        lineColor: '#64748b',
+        secondaryColor: '#0f172a',
+        tertiaryColor: '#1e293b'
+      }
+    });
+  </script>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="badge">ระบบการจัดการและแสดงผลข้อมูลการเข้าใช้ห้องเรียน (กลุ่ม 4)</div>
+      <h1><span>User Flow</span> แผนผังเส้นทางการใช้งานของผู้ใช้</h1>
+      <div class="subtitle">Complete User Flow Journey for Teachers and Students with RBAC & Security Boundary</div>
+
+      <div class="actions-bar">
+        <a class="btn active" href="USER_FLOW.html">📊 ดูผัง User Flow</a>
+        <a class="btn" href="USER_FLOW.md" target="_blank">📄 เอกสารประกอบสไลด์ (Markdown)</a>
+        <a class="btn" href="TOKEN_AND_IOT_FLOWS.html">🔄 โฟลว์ Token & IoT</a>
+        <a class="btn" href="SYSTEM_OVERVIEW.html">🌐 ภาพรวมระบบทั้งหมด</a>
+      </div>
+    </header>
+
+    <!-- LIVE MERMAID DIAGRAM -->
+    <div class="diagram-card">
+      <div class="mermaid">
+flowchart TD
+    %% Start
+    Start(["🌐 ผู้ใช้เข้าสู่เว็บแอปพลิเคชัน\n(http://172.16.10.200:3001)"]) --> CheckAuth{"🔐 มี Token\nที่ยังไม่หมดอายุ?"}
+
+    %% Login Path
+    CheckAuth -- ไม่มี / หมดอายุ --> LoginPage["📄 หน้าเข้าสู่ระบบ (Login Page)\n- กรอก Username & Password\n- เลือกระบบภาษา (TH / EN)"]
+    LoginPage --> SubmitLogin["🚀 กดเข้าสู่ระบบ (POST /api/v1/auth/login)"]
+    SubmitLogin --> VerifyG3["🔍 เซิร์ฟเวอร์กลุ่ม 3 ตรวจสอบรหัสผ่าน"]
+    VerifyG3 -- ไม่ถูกต้อง --> LoginError["❌ แจ้งเตือนข้อผิดพลาด\n'ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง'"]
+    LoginError --> LoginPage
+    VerifyG3 -- ถูกต้อง --> IssueJWT["🎟️ ออก Group 4 JWT Token\n(บรรจุ Role & Student ID, อายุ 120 นาที)"]
+    IssueJWT --> SaveToken["💾 บันทึกลง localStorage\nและ Redirect ไปที่ /dashboard"]
+
+    %% Authenticated
+    CheckAuth -- มี Token สมบูรณ์ --> DirectDash["🚀 เข้าสู่หน้า Dashboard"]
+    SaveToken --> DirectDash
+
+    DirectDash --> RoleSplit{"👤 ตรวจสอบสิทธิ์ (RBAC)"}
+
+    %% TEACHER FLOW
+    RoleSplit -- role == 'teacher' --> TeacherDash["👨‍🏫 หน้าจออาจารย์ (Teacher Dashboard)"]
+    
+    subgraph TeacherActions ["🎯 กิจกรรมของอาจารย์ (Teacher Journey)"]
+        TeacherDash --> T_Stats["📊 1. ดูการ์ดสถิติภาพรวมทั้งระบบ\n- ห้องที่เปิดใช้งานทั้งหมด\n- สถิติการเข้าใช้ห้องเรียนรายวัน\n- ผู้ที่กำลังอยู่ในห้องเรียน (คงที่ ไม่ลดตามฟิลเตอร์)"]
+        T_Stats --> T_Filter["🔍 2. ค้นหาและกรองข้อมูล\n- ค้นหาตามรหัสนักศึกษา (Search Box)\n- กรองตามห้องเรียน (Room Dropdown)\n- กรองตามวันที่ / ช่วงเวลา / สถานะ"]
+        T_Filter --> T_Table["📋 3. ตรวจสอบตาราง Access Logs\n- ดูตารางประวัติของนักศึกษาทุกคน\n- ตรวจเช็กคนกำลังใช้งาน (สถานะ ACTIVE)\n- บันทึก Audit Log พฤติกรรมการสืบค้นอัตโนมัติ"]
+        T_Table --> T_Sync["🔄 4. กดปุ่ม Sync IoT ข้อมูลสด\n- สั่งดึง Log ล่าสุดจากกลุ่ม 6 มาอัปเดตหน้าจอทันที"]
+    end
+
+    %% STUDENT FLOW
+    RoleSplit -- role == 'student' --> StudentDash["🧑‍🎓 หน้าจอนักศึกษา (Student Dashboard)"]
+
+    subgraph StudentActions ["🎯 กิจกรรมของนักศึกษา (Student Journey)"]
+        StudentDash --> S_Stats["📊 1. ดูการ์ดสถิติส่วนบุคคล\n- จำนวนครั้งที่เข้าเรียนทั้งหมดของตนเอง\n- จำนวนห้องเรียนที่ตนเองเคยเข้า\n(แสดงเฉพาะของตนเอง ไม่แสดงข้อมูลคนอื่น)"]
+        S_Stats --> S_Filter["🔍 2. กรองประวัติตนเอง (Anti-IDOR)\n- ซ่อน/ล็อกช่องค้นหา ไม่ให้พิมพ์รหัสคนอื่น\n- กรองตามห้องเรียน หรือวันที่ของตนเองเท่านั้น"]
+        S_Filter --> S_Table["📋 3. ตรวจสอบตารางประวัติตนเอง\n- ดูบันทึกการแตะบัตร เข้า-ออก ห้องเรียนของตนเอง\n- ตรวจสอบสถานะการเข้าห้องเรียนล่าสุด"]
+    end
+
+    %% Common Actions
+    T_Sync --> CommonAction["⚙️ ฟังก์ชันส่วนหัว (Common Navigation)"]
+    T_Table --> CommonAction
+    S_Table --> CommonAction
+
+    CommonAction --> LangSwitch["🌐 สลับภาษาการแสดงผล (ไทย 🇹🇭 / English 🇺🇸)"]
+    CommonAction --> Logout["🚪 กดออกจากระบบ (Logout)"]
+    Logout --> ClearStorage["🗑️ ลบ Token ออกจาก localStorage"]
+    ClearStorage --> LoginPage
+
+    %% Styling
+    classDef startNode fill:#0284c7,stroke:#38bdf8,stroke-width:2px,color:#fff;
+    classDef loginNode fill:#1e293b,stroke:#64748b,stroke-width:2px,color:#fff;
+    classDef teacherNode fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px,color:#fff;
+    classDef studentNode fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#fff;
+    classDef warnNode fill:#7f1d1d,stroke:#ef4444,stroke-width:2px,color:#fff;
+
+    class Start,DirectDash startNode;
+    class LoginPage,SubmitLogin,VerifyG3,IssueJWT,SaveToken,CommonAction,LangSwitch,Logout,ClearStorage loginNode;
+    class TeacherDash,T_Stats,T_Filter,T_Table,T_Sync teacherNode;
+    class StudentDash,S_Stats,S_Filter,S_Table studentNode;
+    class LoginError warnNode;
+      </div>
+    </div>
+
+    <!-- COMPARISON GRID: TEACHER VS STUDENT -->
+    <div class="flows-grid">
+      <!-- TEACHER COLUMN -->
+      <div class="role-column teacher">
+        <div class="role-header">
+          <div class="role-icon">👨‍🏫</div>
+          <div class="role-title">
+            <h2>เส้นทางการใช้งานของอาจารย์ (Teacher Flow)</h2>
+            <p>เน้นการกำกับดูแลภาพรวม การตรวจสอบห้องเรียน และวิเคราะห์สถิติ</p>
+          </div>
+        </div>
+
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-index">1</div>
+            <div class="step-content">
+              <h3>เข้าสู่ระบบด้วยบัญชีผู้สอน</h3>
+              <p>กรอก Username และ Password ระบบตรวจยืนยันสิทธิ์กับกลุ่ม 3 และระบุบทบาทเป็น <code>teacher</code></p>
+              <span class="tag tag-blue">Centralized Auth</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">2</div>
+            <div class="step-content">
+              <h3>อ่านการ์ดสถิติภาพรวมทั้งระบบ (System Stat Cards)</h3>
+              <p>เห็นจำนวนห้องที่เปิดใช้งานทั้งหมด, ยอดการเข้าเรียนรวมของทั้งคณะ และสถิติผู้เข้าใช้ห้องรายวัน โดยการ์ดจะคงค่าสถิติรวมของระบบไว้เสมอแม้ทำการค้นหา</p>
+              <span class="tag tag-blue">Global Analytics</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">3</div>
+            <div class="step-content">
+              <h3>ค้นหาและฟิลเตอร์เจาะจง (Multi-dimensional Search)</h3>
+              <p>มีช่องค้นหาตามรหัสนักศึกษา (Search Keyword), เลือกห้องเรียน (Room Dropdown), เลือกวันที่ และเลือกดูเฉพาะคนที่กำลังใช้งานห้องเรียน (ACTIVE)</p>
+              <span class="tag tag-blue">Search & Audit</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">4</div>
+            <div class="step-content">
+              <h3>ตรวจสอบและเช็กชื่อผ่าน Access Log Table</h3>
+              <p>ตารางแสดงประวัติของทุกคน ทุกห้องเรียน มีระบบ Pagination เปลี่ยนหน้า พร้อมระบบบันทึก Audit Log พฤติกรรมการสืบค้นอัตโนมัติ</p>
+              <span class="tag tag-blue">Audit Trail</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">5</div>
+            <div class="step-content">
+              <h3>ซิงก์ดึงข้อมูล IoT แบบ Manual (Live Sync)</h3>
+              <p>กดปุ่ม "ซิงก์ข้อมูล IoT" เพื่อดึงบันทึกการแตะบัตรสดใหม่จากเซิร์ฟเวอร์กลุ่ม 6 มารวมในฐานข้อมูลทันทีโดยไม่ต้องรอรอบโพลลิ่ง</p>
+              <span class="tag tag-blue">Manual IoT Ingestion</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STUDENT COLUMN -->
+      <div class="role-column student">
+        <div class="role-header">
+          <div class="role-icon">🧑‍🎓</div>
+          <div class="role-title">
+            <h2>เส้นทางการใช้งานของนักศึกษา (Student Flow)</h2>
+            <p>เน้นการตรวจสอบประวัติการเข้าเรียนและสถิติการแตะบัตรส่วนบุคคล</p>
+          </div>
+        </div>
+
+        <div class="steps-list">
+          <div class="step-item">
+            <div class="step-index">1</div>
+            <div class="step-content">
+              <h3>เข้าสู่ระบบด้วยรหัสนักศึกษา</h3>
+              <p>กรอกรหัสนักศึกษาและรหัสผ่าน ระบบออก Token ที่ระบุ <code>role: student</code> และ <code>sub: 67200324</code></p>
+              <span class="tag tag-green">Zero-Trust JWT</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">2</div>
+            <div class="step-content">
+              <h3>อ่านการ์ดสถิติส่วนบุคคล (Personal Stat Cards)</h3>
+              <p>การ์ดแสดงเฉพาะยอดการเข้าเรียนของตนเอง เช่น เข้าเรียนแล้วกี่ครั้ง เข้าใช้ไปกี่ห้องเรียน ไม่แสดงสถิติรวมของเพื่อนหรือภาพรวมระบบ</p>
+              <span class="tag tag-green">Personal Privacy</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">3</div>
+            <div class="step-content">
+              <h3>ป้องกัน IDOR โดยอัตโนมัติ (Anti-IDOR Protection)</h3>
+              <p>ระบบล็อกช่องค้นหารหัสและซ่อนช่องป้อนรหัสนักศึกษาคนอื่น นักศึกษาทำได้เพียงกรองห้องเรียนหรือวันที่ของตนเองเท่านั้น</p>
+              <span class="tag tag-green">IDOR Guard</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">4</div>
+            <div class="step-content">
+              <h3>ตรวจสอบประวัติการแตะบัตรตนเอง (Personal Logs)</h3>
+              <p>ตรวจสอบความถูกต้องว่าเครื่องทาบบัตร RFID หน้าห้องเรียนบันทึกเวลาเข้าเรียน (IN) หรือแตะออก (OUT) ถูกต้องครบถ้วนหรือไม่</p>
+              <span class="tag tag-green">Attendance Check</span>
+            </div>
+          </div>
+
+          <div class="step-item">
+            <div class="step-index">5</div>
+            <div class="step-content">
+              <h3>สลับภาษาและออกจากระบบอย่างปลอดภัย</h3>
+              <p>สามารถสลับภาษาเมนูเป็นอังกฤษ/ไทยได้ และเมื่อออกจากระบบ ระบบจะทำลาย Token ในเครื่องทันที</p>
+              <span class="tag tag-green">Secure Logout</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECURITY & ARCHITECTURAL HIGHLIGHTS -->
+    <div class="summary-box">
+      <h2>🛡️ จุดเด่นด้าน UX และ Security ใน User Flow ของกลุ่ม 4</h2>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <h4>1. การแบ่งบทบาทแบบเบ็ดเสร็จ (Role-Based Divergence)</h4>
+          <p>ผู้ใช้ล็อกอินผ่านประตูเดียว แต่หน้าจอและการอนุญาตเข้าถึงฟังก์ชันจะปรับเปลี่ยนตาม Claims ใน Token อัตโนมัติ ป้องกันความสับสนในการใช้งาน</p>
+        </div>
+        <div class="summary-item">
+          <h4>2. ความสม่ำเสมอของสถิติ (Consistent Stat Cards)</h4>
+          <p>การ์ดสรุปสถิติด้านบนจะคงค่าสถิติหลักของบทบาทนั้นเสมอ (อาจารย์เห็นสถิติรวมทั้งระบบ / นักศึกษาเห็นสถิติรวมของตนเอง) ไม่ลดจำนวนลงตามการกดฟิลเตอร์ตาราง</p>
+        </div>
+        <div class="summary-item">
+          <h4>3. ความมั่นคงปลอดภัยระดับ Zero-Trust & Anti-IDOR</h4>
+          <p>แม้ผู้ใช้ฝั่งนักศึกษาจะพยายามดัดแปลง JavaScript ในเบราว์เซอร์หรือยิง API หลังบ้าน ระบบ Backend จะบังคับ override ด้วยรหัสนักศึกษาจาก Token เสมอ</p>
+        </div>
+        <div class="summary-item">
+          <h4>4. การตรวจสอบคนอยู่ในห้อง (Active Room Occupancy)</h4>
+          <p>อาจารย์และนักศึกษาสามารถเลือกดูสถานะ "กำลังใช้งาน" เพื่อทราบว่าขณะนี้มีใครยังอยู่ในห้องเรียนแบบเรียลไทม์จากการประมวลผลคู่ IN/OUT ของ IoT</p>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      โครงการ Classroom Access Management & Teacher Dashboard Security System &copy; 2026 กลุ่ม 4 (VM4 Proxmox)
+    </footer>
+  </div>
+</body>
+</html>
