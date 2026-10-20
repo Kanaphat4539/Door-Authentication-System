@@ -1,7 +1,5 @@
 from typing import Any
 
-import psycopg
-
 from app.config import Settings
 
 
@@ -32,6 +30,11 @@ def get_user_profile(username: str, settings: Settings) -> dict[str, Any] | None
         return None
 
     # ponytail: connect per request is sufficient for auth-api load; add connection pool if concurrency exceeds 50
+    try:
+        import psycopg
+    except ImportError as exc:
+        raise DatabaseConnectionError("psycopg driver not installed") from exc
+
     try:
         with psycopg.connect(
             host=settings.db_host,
