@@ -25,6 +25,13 @@ def test_teacher_stat_cards_not_reduced_by_search_filter():
     assert data_filtered.get("activeRooms") == all_active_rooms
     assert data_filtered.get("totalAccess") == all_total_access
 
+    # Filtered by a query that yields 0 results (MUST NOT switch to mock 79)
+    res_zero = client.get("/api/v1/logs?status=ACTIVE", headers=headers)
+    assert res_zero.status_code == 200
+    data_zero = res_zero.json()
+    assert data_zero.get("activeRooms") == all_active_rooms
+    assert data_zero.get("totalAccess") == all_total_access
+
 def test_student_stat_cards_scope_to_own_and_not_reduced_by_filter():
     student_token = create_access_token(username="67200324", role="student")
     headers = {"Authorization": f"Bearer {student_token}"}
@@ -44,3 +51,10 @@ def test_student_stat_cards_scope_to_own_and_not_reduced_by_filter():
     # Stat cards remain student's overall stats
     assert std_filtered_data.get("activeRooms") == std_rooms
     assert std_filtered_data.get("totalAccess") == std_access
+
+    # Student filtered by non-matching query (room max_length=10)
+    res_std_zero = client.get("/api/v1/logs?room=Z999", headers=headers)
+    assert res_std_zero.status_code == 200
+    std_zero_data = res_std_zero.json()
+    assert std_zero_data.get("activeRooms") == std_rooms
+    assert std_zero_data.get("totalAccess") == std_access

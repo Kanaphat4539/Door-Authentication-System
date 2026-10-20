@@ -276,8 +276,8 @@ def get_dashboard_data(
             _last_db_failure_time = pytime.time()
             logger.info(f"MariaDB connection not active, using IoT synced logs cache: {exc}")
 
-    # หากไม่ได้ใช้ MariaDB หรือไม่มีข้อมูลใน DB ให้ดึงข้อมูลจาก Synced IoT Storage
-    if not used_db or (total == 0 and len(raw_logs) == 0):
+    # หากไม่ได้ใช้ MariaDB (Connection ล้มเหลว) ให้ดึงข้อมูลจาก Synced IoT Storage
+    if not used_db:
         base_logs = get_all_available_logs()
 
         # กำหนด Scope ข้อมูลตามบทบาท (ไม่ขึ้นกับฟิลเตอร์การค้นหา)
