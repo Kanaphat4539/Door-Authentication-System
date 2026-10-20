@@ -1,15 +1,14 @@
 'use client';
 
+import { useRouter } from 'next/navigation';
+
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   X,
   CheckCircle2,
   XCircle,
-  AlertTriangle,
   RefreshCw,
   Database,
-  Wifi,
-  Server,
   Terminal,
 } from 'lucide-react';
 
@@ -27,6 +26,7 @@ interface TableStatus {
 }
 
 export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
+  const router = useRouter();
   const [testing, setTesting] = useState(false);
   const [latency, setLatency] = useState<number | null>(null);
   const [dbInfo, setDbInfo] = useState<{
@@ -61,9 +61,11 @@ export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
 
     try {
       const res = await fetch('/api/health');
+      if (res.status === 401) { router.replace('/login'); router.refresh(); return; }
       const data = await res.json();
 
-      if (res.ok && data.connected) {
+      if (data.host) setDbInfo({ host: data.host, port: data.port, database: data.database, user: data.user, version: data.version });
+      if (res.ok && data.connected && data.healthy) {
         setLatency(data.latency);
         setOverallStatus('success');
         setDbInfo({
@@ -87,12 +89,12 @@ export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
     } finally {
       setTesting(false);
     }
-  }, []);
+  }, [router]);
 
   useEffect(() => {
-    if (isOpen) {
-      void runDiagnostics();
-    }
+    if (!isOpen) return;
+    const timer = setTimeout(() => { void runDiagnostics(); }, 0);
+    return () => clearTimeout(timer);
   }, [isOpen, runDiagnostics]);
 
   if (!isOpen) return null;
@@ -143,12 +145,12 @@ export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
             <div className="flex-1 space-y-1">
               <h4 className="font-semibold text-sm">
                 {overallStatus === 'success' && 'เชื่อมต่อ PostgreSQL บน VM สำเร็จสมบูรณ์!'}
-                {overallStatus === 'error' && 'ไม่สามารถเชื่อมต่อฐานข้อมูลได้'}
+                {overallStatus === 'error' && 'ฐานข้อมูลหรือโครงสร้างบางส่วนไม่พร้อมใช้งาน'}
                 {overallStatus === 'pending' && 'กำลังทดสอบการเชื่อมต่อ...'}
               </h4>
               <p className="text-xs opacity-90 leading-relaxed">
                 {overallStatus === 'success' &&
-                  `ระบบเชื่อมต่อกับ PostgreSQL 17 สำเร็จ ตารางและ View พร้อมสำหรับ RADIUS (กลุ่ม 1) และ API (กลุ่ม 3)`}
+                  `ระบบเชื่อมต่อกับ PostgreSQL 17 สำเร็จ อ่านตารางและ View ได้ครบ ยังต้องทดสอบร่วมกับกลุ่ม 1 และ 3`}
                 {overallStatus === 'error' && (
                   <span>
                     {errorMessage || 'กรุณาตรวจสอบว่า VM เปิดอยู่ หรือรันคำสั่ง SSH Tunnel บนเครื่อง Local'}
@@ -225,7 +227,7 @@ export default function DbHealthModal({ isOpen, onClose }: DbHealthModalProps) {
                       </span>
                     )}
                     {table.status === 'error' && (
-                      <span className="text-rose-500 text-[11px]">ไม่พบข้อมูล</span>
+                      <span className="text-rose-500 text-[11px]">{table.message || 'อ่านไม่สำเร็จ'}</span>
                     )}
                   </div>
                 </div>

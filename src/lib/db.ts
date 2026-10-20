@@ -1,7 +1,6 @@
 import { Pool } from 'pg';
 
 declare global {
-  // eslint-disable-next-line no-var
   var pgPool: Pool | undefined;
 }
 
@@ -12,7 +11,7 @@ const pool =
     port: parseInt(process.env.DB_PORT || '5432', 10),
     database: process.env.DB_NAME || 'cedatabase',
     user: process.env.DB_USER || 'ceadmin',
-    password: process.env.DB_PASSWORD || 'ceadmin2026',
+    password: process.env.DB_PASSWORD,
     connectionTimeoutMillis: 3000,
     idleTimeoutMillis: 10000,
     max: 10,

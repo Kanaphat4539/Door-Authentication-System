@@ -1,127 +1,47 @@
-# บันทึกประวัติการทำงานและสถานะระบบ (Project Work Log & Progress)
-**โครงการ:** ระบบฐานข้อมูลกลางและเว็บแอปพลิเคชันบริหารจัดการผู้ใช้ (Central User Database & Admin Portal)  
-**กลุ่มผู้รับผิดชอบ:** กลุ่มที่ 2 (Database-Server & CRUD Portal)  
-**อัปเดตล่าสุด:** 9 ตุลาคม 2026 (18:30 น.)
+# สถานะกลุ่ม 2 — 20 ตุลาคม 2569
 
----
+## ส่วนที่ทำแล้ว
 
-## 📌 1. ภาพรวมบทบาทหน้าที่ของกลุ่ม 2 (System Context)
-ในภาพรวมโครงการ (Project Flow 7 กลุ่มตามผังระบบ):
-* **กลุ่ม 2 (เรา):** เป็นศูนย์กลางข้อมูลผู้ใช้ (Central User Database) และมีเว็บแอปพลิเคชันให้นักศึกษา/ผู้ดูแลระบบทำ CRUD (เพิ่ม, ลบ, แก้ไข, ดูข้อมูลผู้ใช้)
-* **การเชื่อมต่อระหว่างกลุ่ม:**
-  * **กลุ่ม 1 (RADIUS Server):** เชื่อมต่อเข้ามาคิวรี่ตาราง/View `radcheck` เพื่อยืนยันตัวตนการล็อกอิน Wi-Fi 802.1X
-  * **กลุ่ม 3 (Authentication API Server):** เชื่อมต่อเข้ามาตรวจสอบข้อมูลผู้ใช้จากตาราง `users` เพื่อให้บริการ API สำหรับยืนยันตัวตนต่อไปยัง Web App (กลุ่ม 4) และ IoT Server (กลุ่ม 6)
+- PostgreSQL 17 บน Debian VM `192.168.100.102`, ฐานข้อมูล `cedatabase`
+- เว็บแอดมินรันบนเครื่องผู้ดูแลและเชื่อมฐานข้อมูลจริงผ่าน SSH tunnel ในเครือข่ายมหาวิทยาลัย
+- CRUD ใช้ transaction, ป้องกัน username ซ้ำ, เก็บบทบาทและรหัสผ่านเดิมเมื่อไม่ได้แก้ และลบ profile ที่สัมพันธ์กัน
+- Login แอดมินแยกจากผู้ใช้, HttpOnly session อายุ 8 ชั่วโมง, ตรวจ Origin และจำกัดการลอง Login ต่อ process
+- แอดมินกดดูรหัส RADIUS ได้เป็นรายบัญชี ไม่ส่งรหัสทั้งหมดผ่าน API รายชื่อ และไม่เก็บใน localStorage
+- เรียงรหัสนักศึกษาจากน้อยไปมาก ค้นหา กรองสถานะ/บทบาท และกดเลือกชั้นปีพร้อมดูจำนวน
+- นำเข้าข้อมูลจริงแล้ว: นักศึกษา 197 คน อาจารย์ 5 คน รวม 202 บัญชี active และมีใน `radcheck` ตามผลตรวจล่าสุด
 
----
+| ชั้นปี | นักศึกษา |
+|---|---:|
+| 1 | 51 |
+| 2 | 45 |
+| 3 | 43 |
+| 4 | 58 |
 
-## 🖥️ 2. ข้อมูลเครื่องเซิร์ฟเวอร์เสมือน (VM Server Specification)
-* **ชื่อเครื่อง:** `Database-Server`
-* **ระบบปฏิบัติการ:** Debian GNU/Linux 13 (Trixie / 6.12 kernel)
-* **Private IP (เครือข่ายภายในระหว่าง VM):** `192.168.100.102`
-* **พอร์ต Database:** `5432` (PostgreSQL 17)
-* **Database Name:** `cedatabase`
-* **Database User:** `ceadmin` *(รหัสผ่านความปลอดภัย: ติดต่อขอด้วย Keyword: `[G2-DB-PASSWORD]`)*
-* **การเชื่อมต่อ SSH จากภายนอก:**
-  * **IP เชื่อมต่อ:** `172.16.10.200`
-  * **SSH Port:** `2202`
-  * **SSH User:** `root`
-  * **SSH Password:** 🔒 *(ติดต่อขอด้วย Keyword: `[G2-VM-SSH-ACCESS]`)*
-  * **เงื่อนไขสำคัญ:** ต้องเชื่อมต่อผ่าน **KMITL-WiFi** หรือ **CEDC-WiFi** ของสถาบันเท่านั้น (ห้ามใช้เน็ตบ้านหรือ Hotspot มือถือ)
+รหัส 67 อยู่ปี 3; รหัสต่ำกว่า 66 ที่ยังเรียนอยู่รวมปี 4 ตามที่ผู้ดูแลยืนยัน ไม่ใช้ปี 5
+อีเมลนักศึกษาเป็น `<รหัสนักศึกษา>@kmitl.ac.th` รายชื่อและข้อมูลบัญชีจริงอยู่เฉพาะไฟล์ส่วนตัวนอก Git
+อาจารย์ใช้ professor01–professor05 พร้อมรหัสสุ่มแยกคน บัญชีเหล่านี้ไม่ใช่แอดมินเว็บ
 
----
+## การตรวจสอบ
 
-## ✅ 3. สรุปสิ่งที่ดำเนินการเสร็จสิ้นแล้ว (Completed Tasks)
+ผ่าน lint, TypeScript, production build และ integration tests 20 รายการบน PostgreSQL จำลองในเครื่อง (เวอร์ชัน 18)
+ตรวจ UI จริงผ่านเบราว์เซอร์ รวม Login, CRUD และการกรองชั้นปี; ตรวจข้อมูลจริงบน VM PostgreSQL 17 แยกต่างหาก
+ผลเหล่านี้ยังไม่ใช่การยืนยันว่า 802.1X ผ่าน FreeRADIUS ทำงานครบเส้นทาง
 
-### 3.1 การเตรียมและติดตั้งระบบบน VM
-1. **ติดตั้ง Software บน VM:**
-   * ติดตั้ง **PostgreSQL 17** และส่วนขยาย `postgresql-contrib`
-   * ติดตั้งเครื่องมืออำนวยความสะดวก: `sudo`, `curl`, `net-tools`, `ufw`
-   * เปิดและตั้งค่าให้ Service `postgresql` เริ่มทำงานอัตโนมัติ (Enabled on boot)
-2. **ตั้งค่าความปลอดภัยและเครือข่าย (Network Configuration):**
-   * แก้ไข `postgresql.conf` ตั้งค่า `listen_addresses = '*'` เพื่อเปิดรับการเชื่อมต่อทุก Interface (พอร์ต 5432)
-   * แก้ไข `pg_hba.conf` อนุญาตการยืนยันตัวตนด้วยรหัสผ่าน (SCRAM-SHA-256) จากวงใน (`192.168.100.0/24`), วง Wi-Fi (`172.16.0.0/16`), และเครือข่ายทั้งหมด
-3. **สร้าง Database และ User:**
-   * **Database Name:** `cedatabase`
-   * **User / Role:** `ceadmin` (Superuser / Owner, รหัสผ่าน: `[G2-DB-PASSWORD]`)
+## ตรวจชุดส่งขึ้น Git
 
-### 3.2 โครงสร้างฐานข้อมูล (Database Schema)
-* ไฟล์สคริปต์หลักย้ายมาอยู่ที่ [`database/init.sql`](database/init.sql)
-* ตารางและวิวสร้างและ Import ลง VM เรียบร้อย:
-  1. `departments`, `majors`, `roles`
-  2. `users` (ตารางหลัก)
-  3. `students`, `professors`
-  4. View `radcheck` สำหรับ FreeRADIUS (กลุ่ม 1)
-  5. View `view_students`, `view_professors`
-  6. Demo Seed Users: `65010001`, `65010002`, `65010003`, `prof_wichan`, `admin01`
+ลบไฟล์ agent ออกจากการติดตามโดยเก็บไว้ในเครื่อง เพิ่ม ignore สำหรับ agent/env/ข้อมูลส่วนตัว
+ลบข้อมูลตัวอย่างฝั่ง client ที่เลิกใช้และภาพ SVG เริ่มต้นที่ไม่มีการอ้างถึง ปิดรหัส SSH ในคู่มือเก่า และปรับเอกสารเป็นสถานะปัจจุบัน
+ตรวจชุดไฟล์ที่จะ commit แล้วไม่พบค่ารหัส DB, รหัสแอดมิน, session secret, รหัส SSH หรือรหัสสุ่มอาจารย์ที่ใช้อยู่จริง
+lint และ TypeScript รอบส่งผ่าน; การ build ซ้ำในสภาพแวดล้อมนี้ติด `Operation not permitted` ขณะ Turbopack เปิดพอร์ตภายในเครื่อง จึงไม่ได้ยืนยัน build รอบนี้ใหม่
+ผล build และ integration tests 20 รายการที่ระบุข้างต้นเป็นผลตรวจจากรอบพัฒนาก่อนจัดชุดส่ง
+การลบข้อมูลอ่อนไหวออกจากเวอร์ชันล่าสุดไม่ลบข้อมูลนั้นจากประวัติ Git เดิม ผู้ดูแลควรเปลี่ยนรหัสที่เคยเผยแพร่ โดยประสานกลุ่มที่ใช้ร่วมกันก่อน
 
-### 3.3 การตัดส่วนทดลอง (Supabase / Vercel) และเชื่อมต่อฐานข้อมูลจริง
-1. **ลบโค้ดทดลอง Supabase:**
-   * ถอนแพ็กเกจ `@supabase/supabase-js` ออกจาก `package.json`
-   * ลบไฟล์ `src/lib/supabase.ts` และ `supabase/schema.sql` (Schema ทดลองเดิม)
-   * ลบแท็บคู่มือ Vercel เดิม (`SetupGuideTab.tsx`)
-2. **ติดตั้งไลบรารีเชื่อมต่อตรง PostgreSQL:**
-   * ติดตั้งไลบรารี `pg` (node-postgres) และ `@types/pg`
-   * สร้าง Connection Pool จัดการการเชื่อมต่อที่ [`src/lib/db.ts`](src/lib/db.ts)
-3. **สร้าง API Routes ใน Next.js:**
-   * [`/api/users`](src/app/api/users/route.ts): รองรับ CRUD (GET, POST, PUT, DELETE) กับ PostgreSQL บน VM โดยตรง
-   * [`/api/health`](src/app/api/health/route.ts): ตรวจสอบ Latency, สถานะการเชื่อมต่อ และจำนวนแถวของตารางทั้งหมด
-4. **ปรับปรุง UI Portal:**
-   * หน้าหลักแสดงสถานะ **PostgreSQL (VM)**
-   * ปรับปรุงหน้าต่างตรวจสอบสถานะฐานข้อมูล ([`DbHealthModal.tsx`](src/components/DbHealthModal.tsx)) ให้อ่านค่าจาก `/api/health`
-   * สร้างแท็บ **Project Flow & VM Guide** ([`ProjectOverviewTab.tsx`](src/components/ProjectOverviewTab.tsx)) พร้อมแผนผัง 7 กลุ่มจากไฟล์ทางการ
-5. **สคริปต์ SSH Tunnel สำหรับ Local Development:**
-   * สร้างสคริปต์ [`scripts/start_tunnel.py`](scripts/start_tunnel.py) เพื่อ Forward พอร์ต 5432 จาก VM สู่เครื่อง Local อัตโนมัติ
+## ส่วนที่รอประสานงาน
 
----
+- กลุ่ม 1: รอผลทดสอบรหัสถูก/ผิด และสถานะปิดสิทธิ์ผ่าน FreeRADIUS
+- กลุ่ม 3: รอข้อสรุปข้อมูลและวิธีเชื่อมต่อ Authentication API
+- `001_service_roles.sql` เตรียมและทดสอบในฐานข้อมูลจำลองแล้ว ยังไม่ได้ใช้บน VM หรือเปลี่ยนบัญชี DB เดิมของกลุ่มอื่น
+- `002_professor_position.sql` ใช้บน VM แล้วสำหรับตำแหน่งอาจารย์
 
-## 📡 4. ข้อมูลการส่งมอบสำหรับกลุ่มอื่น (Handover Information)
-
-| Parameter | Value | คำอธิบาย |
-| :--- | :--- | :--- |
-| **DBMS** | `PostgreSQL 17` | |
-| **Host IP** | `192.168.100.102` | IP สำหรับการเชื่อมต่อระหว่าง VM ในวงใน |
-| **Port** | `5432` | พอร์ตมาตรฐาน PostgreSQL |
-| **Database** | `cedatabase` | |
-| **User** | `ceadmin` | |
-| **Password** | 🔒 ติดต่อขอด้วย Keyword: `[G2-DB-PASSWORD]` | ดูรายละเอียดที่ [HANDOVER_GUIDE.md](HANDOVER_GUIDE.md) |
-
-### ตัวอย่างคำสั่งที่กลุ่มอื่นนำไปใช้:
-* **สำหรับกลุ่ม 1 (RADIUS Server):**
-  ```sql
-  SELECT id, username, attribute, value, op 
-  FROM radcheck 
-  WHERE username = '%{SQL-User-Name}';
-  ```
-* **สำหรับกลุ่ม 3 (Authentication API):**
-  ```sql
-  SELECT user_id, username, password, is_active, role_id 
-  FROM users 
-  WHERE username = $1 AND is_active = TRUE;
-  ```
-
----
-
-## 🌿 5. กฎและกระบวนการทำงาน Git (Git Workflow & Repository Rules)
-* **คลังโค้ดกลางของโครงการ (Central Repo):** [`Kanaphat4539/Door-Authentication-System`](https://github.com/Kanaphat4539/Door-Authentication-System.git)
-* **Branch หลักของกลุ่ม 2:** **`database-server`**
-* **⚠️ กฎเหล็กสำคัญ:**
-  1. **ห้าม Push ขึ้น `main` หรือ `dev` โดยตรงเด็ดขาด**
-  2. โค้ดทั้งหมดของกลุ่ม 2 จะรวมอยู่ที่ branch **`database-server`**
-  3. **เมื่อต้องการพัฒนาฟีเจอร์ใหม่:** ให้แตก Branch ออกมาจาก `database-server` เสมอ:
-     ```bash
-     git checkout database-server
-     git pull origin database-server
-     git checkout -b feature/<feature-name>
-     ```
-  4. **เมื่อฟีเจอร์เสร็จและทดสอบผ่านแล้ว:** ค่อยรวม (Merge) กลับเข้าสู่ `database-server` และ Push:
-     ```bash
-     git checkout database-server
-     git merge feature/<feature-name>
-     git push origin database-server
-     ```
-
----
-
-## 📋 6. แผนงานถัดไป (Next Steps)
-1. ประสานงานส่งข้อมูลการเชื่อมต่อให้กลุ่ม 1 (FreeRADIUS) และกลุ่ม 3 (API Server)
-2. เมื่อมีการเพิ่มฟีเจอร์ใหม่ ให้ปฏิบัติตามกฎการแตก branch จาก `database-server`
+ผู้ดูแลเลือกให้เว็บรันบนเครื่องนี้ต่อไป ไม่ต้อง deploy เว็บบน VM
+การส่งโค้ดทำเฉพาะ branch `database-server` โดยไม่รวม agent files, env จริง หรือข้อมูลส่วนตัว

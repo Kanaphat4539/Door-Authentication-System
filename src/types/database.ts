@@ -1,4 +1,4 @@
-export type UserRole = 'student' | 'teacher' | 'admin' | 'guest';
+export type UserRole = 'student' | 'teacher' | 'admin' | 'staff';
 
 // Master tables
 export interface Department {
@@ -57,6 +57,7 @@ export interface ProfessorRecord {
   professor_id: string;
   user_id: string;
   department_code: string;
+  position_th?: string | null;
   created_at?: string;
   updated_at?: string;
 }
@@ -96,7 +97,7 @@ export interface User {
   student_id: string;
   full_name: string;
   email: string | null;
-  password_text: string;
+  password_text?: string;
   role: UserRole;
   is_active: boolean;
   prefix_th?: string;

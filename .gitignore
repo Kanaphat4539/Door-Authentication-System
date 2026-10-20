@@ -45,3 +45,16 @@ next-env.d.ts
 *PRIVATE*.md
 *secret*
 *private*
+
+# Real CE04 roster and local review notes must not be pushed with public source.
+/data/private/
+!.env.example
+
+__pycache__/
+*.pyc
+
+# Local agent instructions and tooling (not part of the application)
+AGENTS.md
+**/AGENTS.md
+/.agents/
+/.codex/

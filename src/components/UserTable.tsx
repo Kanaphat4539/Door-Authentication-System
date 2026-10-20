@@ -1,12 +1,14 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search, Plus, Edit2, Trash2, Eye, EyeOff, RefreshCw } from 'lucide-react';
+import { Search, Plus, Edit2, Trash2, RefreshCw } from 'lucide-react';
 import { User, UserRole } from '@/types/database';
+import UserPassword from '@/components/UserPassword';
 
 interface UserTableProps {
   users: User[];
   loading: boolean;
+  disabled?: boolean;
   onRefresh: () => void;
   onAddUser: () => void;
   onEditUser: (user: User) => void;
@@ -17,6 +19,7 @@ interface UserTableProps {
 export default function UserTable({
   users,
   loading,
+  disabled = false,
   onRefresh,
   onAddUser,
   onEditUser,
@@ -26,15 +29,13 @@ export default function UserTable({
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState<string>('all');
   const [statusFilter, setStatusFilter] = useState<string>('all');
-  const [revealedPasswords, setRevealedPasswords] = useState<Record<string, boolean>>({});
-
-  const togglePasswordVisibility = (userId: string) => {
-    setRevealedPasswords((prev) => ({
-      ...prev,
-      [userId]: !prev[userId],
-    }));
-  };
-
+  const [yearFilter, setYearFilter] = useState<string>('all');
+  const years = [1, 2, 3, 4];
+  const studentCounts = years.map(year => ({
+    year,
+    count: users.filter(user => user.role === 'student' && user.year_level === year).length,
+  }));
+  const totalStudents = users.filter(user => user.role === 'student').length;
   const filteredUsers = users.filter((u) => {
     const matchesSearch =
       u.student_id.toLowerCase().includes(search.toLowerCase()) ||
@@ -47,8 +48,9 @@ export default function UserTable({
       (statusFilter === 'active' && u.is_active) ||
       (statusFilter === 'inactive' && !u.is_active);
 
-    return matchesSearch && matchesRole && matchesStatus;
-  });
+    const matchesYear = yearFilter === 'all' || (u.role === 'student' && u.year_level === Number(yearFilter));
+    return matchesSearch && matchesRole && matchesStatus && matchesYear;
+  }).sort((a, b) => a.student_id.localeCompare(b.student_id, 'en', { numeric: true }));
 
   const getRoleBadge = (role: UserRole) => {
     switch (role) {
@@ -64,10 +66,10 @@ export default function UserTable({
             Teacher
           </span>
         );
-      case 'guest':
+      case 'staff':
         return (
           <span className="px-2 py-0.5 text-xs font-medium rounded-full bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
-            Guest
+            Staff
           </span>
         );
       case 'student':
@@ -82,6 +84,37 @@ export default function UserTable({
 
   return (
     <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-xl shadow-sm overflow-hidden">
+      <section aria-label="จำนวนนักศึกษาแยกตามชั้นปี" className="border-b border-zinc-200 dark:border-zinc-800 p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">นักศึกษาแยกตามชั้นปี</h2>
+          <p className="text-xs text-zinc-500 dark:text-zinc-400">นักศึกษาทั้งหมด {totalStudents} คน · ยอดชั้นปีไม่รวมอาจารย์และบุคลากร</p>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <button
+            type="button"
+            aria-pressed={yearFilter === 'all' && roleFilter === 'all'}
+            onClick={() => { setYearFilter('all'); setRoleFilter('all'); }}
+            className={`rounded-lg border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 ${yearFilter === 'all' && roleFilter === 'all' ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+          >
+            <span className="block text-xs">ผู้ใช้ทุกบทบาท</span>
+            <span className="mt-1 block text-xl font-semibold">{users.length} <span className="text-xs font-normal">คน</span></span>
+          </button>
+          {studentCounts.map(({ year, count }) => (
+            <button
+              key={year}
+              type="button"
+              aria-label={`ชั้นปีที่ ${year} จำนวน ${count} คน`}
+              aria-pressed={yearFilter === String(year)}
+              onClick={() => { setYearFilter(String(year)); setRoleFilter('student'); }}
+              className={`rounded-lg border p-3 text-left transition-colors focus-visible:outline-2 focus-visible:outline-blue-500 ${yearFilter === String(year) ? 'border-blue-500 bg-blue-50 dark:bg-blue-950/40 text-blue-700 dark:text-blue-300' : 'border-zinc-200 dark:border-zinc-700 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-50 dark:hover:bg-zinc-800'}`}
+            >
+              <span className="block text-xs">ชั้นปีที่ {year}</span>
+              <span className="mt-1 block text-xl font-semibold">{count} <span className="text-xs font-normal">คน</span></span>
+            </button>
+          ))}
+        </div>
+        <p className="text-xs text-zinc-500 dark:text-zinc-400">กดชั้นปีเพื่อดูรายชื่อ · จำนวนด้านบนเป็นยอดรวมก่อนใช้ตัวกรองค้นหาและสถานะ</p>
+      </section>
       {/* Controls Bar */}
       <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex flex-col md:flex-row gap-3 items-stretch md:items-center justify-between">
         <div className="flex flex-1 flex-col sm:flex-row gap-2">
@@ -90,6 +123,7 @@ export default function UserTable({
             <Search className="w-4 h-4 text-zinc-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
+              aria-label="ค้นหาผู้ใช้"
               placeholder="ค้นหารหัสนักศึกษา, ชื่อ, หรืออีเมล..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -98,21 +132,23 @@ export default function UserTable({
           </div>
 
           {/* Role Filter */}
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <select
+              aria-label="กรองบทบาท"
               value={roleFilter}
-              onChange={(e) => setRoleFilter(e.target.value)}
+              onChange={(e) => { setRoleFilter(e.target.value); if (e.target.value !== 'student') setYearFilter('all'); }}
               className="px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
             >
               <option value="all">ทุกบทบาท (All Roles)</option>
               <option value="student">Student</option>
               <option value="teacher">Teacher</option>
               <option value="admin">Admin</option>
-              <option value="guest">Guest</option>
+              <option value="staff">Staff</option>
             </select>
 
             {/* Status Filter */}
             <select
+              aria-label="กรองสถานะ"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
               className="px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
@@ -128,7 +164,7 @@ export default function UserTable({
         <div className="flex items-center gap-2">
           <button
             onClick={onRefresh}
-            disabled={loading}
+            disabled={loading || disabled}
             className="p-2 text-zinc-600 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg border border-zinc-200 dark:border-zinc-700 transition-colors"
             title="รีเฟรชข้อมูล"
           >
@@ -136,6 +172,7 @@ export default function UserTable({
           </button>
 
           <button
+            disabled={disabled}
             onClick={onAddUser}
             className="flex items-center justify-center gap-1.5 px-3.5 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-lg shadow-sm transition-colors whitespace-nowrap"
           >
@@ -154,6 +191,7 @@ export default function UserTable({
               <th className="py-3 px-4">ชื่อ - นามสกุล</th>
               <th className="py-3 px-4">RADIUS Password</th>
               <th className="py-3 px-4">บทบาท</th>
+              <th className="py-3 px-4">ชั้นปี</th>
               <th className="py-3 px-4 text-center">RADIUS Access</th>
               <th className="py-3 px-4 text-right">จัดการ</th>
             </tr>
@@ -161,7 +199,7 @@ export default function UserTable({
           <tbody className="divide-y divide-zinc-200 dark:divide-zinc-800">
             {loading && users.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-zinc-500">
+                <td colSpan={7} className="py-12 text-center text-zinc-500">
                   <div className="flex flex-col items-center justify-center gap-2">
                     <RefreshCw className="w-6 h-6 animate-spin text-blue-500" />
                     <span>กำลังโหลดข้อมูลจากฐานข้อมูล...</span>
@@ -170,10 +208,10 @@ export default function UserTable({
               </tr>
             ) : filteredUsers.length === 0 ? (
               <tr>
-                <td colSpan={6} className="py-12 text-center text-zinc-500">
+                <td colSpan={7} className="py-12 text-center text-zinc-500">
                   <p className="text-base font-medium">ไม่พบข้อมูลผู้ใช้</p>
                   <p className="text-xs text-zinc-400 mt-1">
-                    {search || roleFilter !== 'all' || statusFilter !== 'all'
+                    {search || roleFilter !== 'all' || statusFilter !== 'all' || yearFilter !== 'all'
                       ? 'ลองปรับเปลี่ยนเงื่อนไขการค้นหา'
                       : 'กดปุ่ม "เพิ่มผู้ใช้ใหม่" เพื่อเริ่มต้นสร้างข้อมูล'}
                   </p>
@@ -181,7 +219,6 @@ export default function UserTable({
               </tr>
             ) : (
               filteredUsers.map((user) => {
-                const isPasswordShown = revealedPasswords[user.id] || false;
                 return (
                   <tr
                     key={user.id}
@@ -204,33 +241,21 @@ export default function UserTable({
                       )}
                     </td>
 
-                    {/* Password */}
-                    <td className="py-3 px-4 whitespace-nowrap">
-                      <div className="flex items-center gap-2 font-mono text-xs">
-                        <span className="bg-zinc-100 dark:bg-zinc-800 px-2 py-1 rounded text-zinc-700 dark:text-zinc-300 min-w-[70px] inline-block">
-                          {isPasswordShown ? user.password_text : '••••••••'}
-                        </span>
-                        <button
-                          type="button"
-                          onClick={() => togglePasswordVisibility(user.id)}
-                          className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded"
-                          title={isPasswordShown ? 'ซ่อนรหัสผ่าน' : 'ดูรหัสผ่าน'}
-                        >
-                          {isPasswordShown ? (
-                            <EyeOff className="w-3.5 h-3.5" />
-                          ) : (
-                            <Eye className="w-3.5 h-3.5" />
-                          )}
-                        </button>
-                      </div>
+                    <td className="py-3 px-4">
+                      <UserPassword key={`${user.id}:${user.updated_at || ''}`} userId={user.id} username={user.student_id} disabled={disabled} />
                     </td>
 
                     {/* Role */}
                     <td className="py-3 px-4 whitespace-nowrap">{getRoleBadge(user.role)}</td>
 
+                    <td className="py-3 px-4 whitespace-nowrap text-zinc-600 dark:text-zinc-300">
+                      {user.role === 'student' ? (user.year_level ? `ปี ${user.year_level}` : 'ไม่ระบุ') : '—'}
+                    </td>
+
                     {/* Status Toggle */}
                     <td className="py-3 px-4 text-center whitespace-nowrap">
                       <button
+                        disabled={disabled}
                         onClick={() => onToggleStatus(user)}
                         className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
                           user.is_active
@@ -256,6 +281,7 @@ export default function UserTable({
                     <td className="py-3 px-4 text-right whitespace-nowrap">
                       <div className="inline-flex items-center gap-1">
                         <button
+                          disabled={disabled}
                           onClick={() => onEditUser(user)}
                           className="p-1.5 text-zinc-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                           title="แก้ไขข้อมูล"
@@ -263,6 +289,7 @@ export default function UserTable({
                           <Edit2 className="w-4 h-4" />
                         </button>
                         <button
+                          disabled={disabled}
                           onClick={() => onDeleteUser(user)}
                           className="p-1.5 text-zinc-500 hover:text-rose-600 dark:hover:text-rose-400 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
                           title="ลบข้อมูล"
@@ -282,10 +309,10 @@ export default function UserTable({
       {/* Footer Summary */}
       <div className="px-4 py-3 border-t border-zinc-200 dark:border-zinc-800 bg-zinc-50/50 dark:bg-zinc-900/30 flex items-center justify-between text-xs text-zinc-500 dark:text-zinc-400">
         <div>
-          แสดงทั้งหมด <b>{filteredUsers.length}</b> จาก <b>{users.length}</b> รายการ
+          {yearFilter !== 'all' ? `ชั้นปีที่ ${yearFilter}: ` : ''}แสดง <b>{filteredUsers.length}</b> จาก <b>{yearFilter === 'all' ? users.length : studentCounts.find(item => item.year === Number(yearFilter))?.count || 0}</b> รายการ
         </div>
         <div className="hidden sm:block">
-          ระบบอัปเดตแบบเรียลไทม์ พร้อมเชื่อมต่อไปยัง FreeRADIUS ผ่าน PostgreSQL VIEW
+          กดรีเฟรชเพื่ออ่านข้อมูลล่าสุดจากฐานข้อมูล
         </div>
       </div>
     </div>

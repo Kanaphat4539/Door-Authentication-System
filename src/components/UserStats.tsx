@@ -16,7 +16,7 @@ export default function UserStats({ users }: UserStatsProps) {
     student: users.filter((u) => u.role === 'student').length,
     teacher: users.filter((u) => u.role === 'teacher').length,
     admin: users.filter((u) => u.role === 'admin').length,
-    guest: users.filter((u) => u.role === 'guest').length,
+    staff: users.filter((u) => u.role === 'staff').length,
   };
 
   return (
@@ -73,7 +73,7 @@ export default function UserStats({ users }: UserStatsProps) {
           <span className="font-semibold text-zinc-900 dark:text-zinc-100">{rolesCount.admin}</span> แอดมิน
         </div>
         <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-          {rolesCount.guest} บุคคลภายนอก
+          {rolesCount.staff} เจ้าหน้าที่
         </p>
       </div>
     </div>

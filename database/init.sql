@@ -98,9 +98,12 @@ CREATE TABLE IF NOT EXISTS public.professors (
     professor_id VARCHAR(50) PRIMARY KEY,       -- รหัสประจำตัวอาจารย์ (เช่น PROF001)
     user_id UUID UNIQUE NOT NULL REFERENCES public.users(user_id) ON UPDATE CASCADE ON DELETE CASCADE,
     department_code VARCHAR(20) NOT NULL REFERENCES public.departments(department_code) ON UPDATE CASCADE ON DELETE RESTRICT,
+    position_th VARCHAR(255),                 -- ตำแหน่งบริหาร เช่น ประธานหลักสูตร
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.professors ADD COLUMN IF NOT EXISTS position_th VARCHAR(255);
 
 DROP TRIGGER IF EXISTS trigger_professors_updated_at ON public.professors;
 CREATE TRIGGER trigger_professors_updated_at
@@ -231,14 +234,16 @@ INSERT INTO public.users (user_id, username, password, prefix_th, first_name_th,
     ('22222222-2222-2222-2222-222222222222', '65010002', 'pass5678', 'นางสาว', 'สมหญิง', 'รักสงบ', 'Ms.', 'Somying', 'Raksangob', 'somying.r@ce.kmitl.ac.th', '0898765432', 1, TRUE),
     ('33333333-3333-3333-3333-333333333333', '65010003', 'ce2026pass', 'นาย', 'ประสิทธิ์', 'มีปัญญา', 'Mr.', 'Prasit', 'Meepanya', 'prasit.m@ce.kmitl.ac.th', '0851122334', 1, TRUE),
     ('44444444-4444-4444-4444-444444444444', 'prof_wichan', 'prof_secret99', 'ดร.', 'วิชาญ', 'พัฒนา', 'Dr.', 'Wichan', 'Pattana', 'wichan.p@ce.kmitl.ac.th', '0819998877', 2, TRUE),
-    ('55555555-5555-5555-5555-555555555555', 'admin01', 'Admin@2026!', 'นาย', 'สุรชัย', 'ผู้ดูแลเครือข่าย', 'Mr.', 'Surachai', 'NetworkAdmin', 'admin@ce.kmitl.ac.th', '0800000000', 3, TRUE)
+    ('55555555-5555-5555-5555-555555555555', 'admin01', 'Admin@2026!', 'นาย', 'สุรชัย', 'ผู้ดูแลเครือข่าย', 'Mr.', 'Surachai', 'NetworkAdmin', 'admin@ce.kmitl.ac.th', '0800000000', 3, TRUE),
+    ('99999999-9999-9999-9999-999999999999', 'radius_test', 'RadAuth@2026!', 'นาย', 'ทดสอบ', 'เรเดียส', 'Mr.', 'Radius', 'Test', 'radiustest@ce.kmitl.ac.th', '0801234567', 1, TRUE)
 ON CONFLICT (username) DO NOTHING;
 
 -- Insert Demo Students
 INSERT INTO public.students (student_id, user_id, department_code, major_code, year_level) VALUES
     ('65010001', '11111111-1111-1111-1111-111111111111', 'CPE', 'CPE-BENG', 3),
     ('65010002', '22222222-2222-2222-2222-222222222222', 'CPE', 'IOT-BENG', 3),
-    ('65010003', '33333333-3333-3333-3333-333333333333', 'CPE', 'CPE-BENG', 2)
+    ('65010003', '33333333-3333-3333-3333-333333333333', 'CPE', 'CPE-BENG', 2),
+    ('radius_test', (SELECT user_id FROM public.users WHERE username = 'radius_test'), 'CPE', 'CPE-BENG', 1)
 ON CONFLICT (student_id) DO NOTHING;
 
 -- Insert Demo Professors

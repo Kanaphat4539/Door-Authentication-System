@@ -10,6 +10,7 @@ interface DeleteModalProps {
   onConfirm: () => Promise<void>;
   user: User | null;
   loading: boolean;
+  error?: string | null;
 }
 
 export default function DeleteModal({
@@ -18,11 +19,12 @@ export default function DeleteModal({
   onConfirm,
   user,
   loading,
+  error,
 }: DeleteModalProps) {
   if (!isOpen || !user) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div role="dialog" aria-modal="true" aria-label="ยืนยันการลบผู้ใช้" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-md shadow-2xl p-6 overflow-hidden animate-in fade-in zoom-in-95 duration-200">
         <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400 mb-4">
           <div className="p-2.5 bg-rose-100 dark:bg-rose-950/60 rounded-xl">
@@ -48,6 +50,7 @@ export default function DeleteModal({
           </p>
         </div>
 
+        {error && <p role="alert" className="rounded bg-red-50 p-3 text-sm text-red-800">{error}</p>}
         <div className="flex items-center justify-end gap-3 mt-6">
           <button
             type="button"

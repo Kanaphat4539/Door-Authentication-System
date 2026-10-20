@@ -34,7 +34,7 @@ export default function Navbar({
                 </span>
               </div>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 hidden sm:block">
-                Central User Database Server (PostgreSQL 17 on VM)
+                Central User Database Server
               </p>
             </div>
           </div>
@@ -53,7 +53,7 @@ export default function Navbar({
               {isDbConnected ? (
                 <>
                   <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                  <span className="font-semibold">PostgreSQL (VM)</span>
+                  <span className="font-semibold">PostgreSQL</span>
                   <Activity className="w-3.5 h-3.5 ml-0.5 text-emerald-600" />
                 </>
               ) : (

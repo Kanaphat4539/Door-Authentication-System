@@ -26,8 +26,8 @@ export default function RadiusIntegrationTab({ users }: RadiusIntegrationTabProp
     # PostgreSQL Database Connection Settings (เครือข่าย VM ภายใน)
     server = "192.168.100.102"
     port = 5432
-    login = "ceadmin"
-    password = "ceadmin2026"
+    login = "radius_reader"
+    password = "<รหัสผ่านที่ได้รับจากกลุ่ม 2>"
     radius_db = "cedatabase"
 
     # Connection pool options
@@ -95,7 +95,7 @@ WHERE is_active = TRUE;`;
             </span>
           </div>
           <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-3">
-            นี่คือตารางที่ FreeRADIUS (กลุ่ม 1) จะมองเห็นเมื่อสั่ง <code>SELECT * FROM radcheck</code>
+            ตัวอย่างจากสถานะผู้ใช้ที่โหลดล่าสุด ไม่ใช่ผลทดสอบ FreeRADIUS โดยคำสั่ง <code>SELECT * FROM radcheck</code>
           </p>
 
           <div className="overflow-x-auto border border-zinc-200 dark:border-zinc-800 rounded-lg">
@@ -119,7 +119,7 @@ WHERE is_active = TRUE;`;
                     </td>
                     <td className="py-2 px-3 text-zinc-500">:=</td>
                     <td className="py-2 px-3 text-emerald-600 dark:text-emerald-400">
-                      {user.password_text}
+                      ไม่แสดงรหัสผ่านบนเว็บ
                     </td>
                   </tr>
                 ))}

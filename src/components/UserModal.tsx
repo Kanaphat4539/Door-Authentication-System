@@ -21,16 +21,19 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
   const [studentId, setStudentId] = useState(editingUser?.student_id || '');
   const [fullName, setFullName] = useState(editingUser?.full_name || '');
   const [email, setEmail] = useState(editingUser?.email || '');
-  const [passwordText, setPasswordText] = useState(editingUser?.password_text || '');
+  const [passwordText, setPasswordText] = useState('');
   const [role, setRole] = useState<UserRole>(editingUser?.role || 'student');
   const [isActive, setIsActive] = useState(editingUser ? editingUser.is_active : true);
+  const [department, setDepartment] = useState(editingUser?.department_code || 'CPE');
+  const [major, setMajor] = useState(editingUser?.major_code || 'CPE-BENG');
+  const [year, setYear] = useState(String(editingUser?.year_level || 2));
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!studentId.trim() || !fullName.trim() || !passwordText.trim()) {
+    if (!studentId.trim() || !fullName.trim() || (!editingUser && !passwordText)) {
       setError('กรุณากรอกรหัสนักศึกษา/Username, ชื่อ-นามสกุล และรหัสผ่านให้ครบถ้วน');
       return;
     }
@@ -42,7 +45,9 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
         student_id: studentId.trim(),
         full_name: fullName.trim(),
         email: email.trim() || null,
-        password_text: passwordText.trim(),
+        ...(passwordText ? { password_text: passwordText } : {}),
+        ...(role === 'student' || role === 'teacher' ? { department_code: department } : {}),
+        ...(role === 'student' ? { major_code: major, year_level: Number(year) } : {}),
         role,
         is_active: isActive,
       });
@@ -55,7 +60,7 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
   };
 
   return (
-    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden transition-all animate-in fade-in zoom-in-95 duration-200">
+    <div className="bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 rounded-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto shadow-2xl transition-all animate-in fade-in zoom-in-95 duration-200">
       {/* Header */}
       <div className="px-6 py-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -72,6 +77,7 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
           </div>
         </div>
         <button
+          aria-label="ปิดแบบฟอร์ม"
           onClick={onClose}
           className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 p-1 rounded-lg"
         >
@@ -90,10 +96,11 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {/* Student ID / Username */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1" htmlFor="username">
               รหัสนักศึกษา / Username <span className="text-rose-500">*</span>
             </label>
             <input
+              id="username"
               type="text"
               value={studentId}
               onChange={(e) => setStudentId(e.target.value)}
@@ -105,10 +112,10 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
 
           {/* Role */}
           <div>
-            <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+            <label htmlFor="role" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
               บทบาท (Role)
             </label>
-            <select
+            <select id="role"
               value={role}
               onChange={(e) => setRole(e.target.value as UserRole)}
               className="w-full px-3 py-2 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500"
@@ -116,18 +123,26 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
               <option value="student">Student (นักศึกษา)</option>
               <option value="teacher">Teacher (อาจารย์)</option>
               <option value="admin">Admin (ผู้ดูแลระบบ)</option>
-              <option value="guest">Guest (ผู้มาติดต่อ)</option>
+              <option value="staff">Staff (เจ้าหน้าที่)</option>
             </select>
           </div>
         </div>
 
+        {(role === 'student' || role === 'teacher') && <label className="block text-sm">รหัสภาควิชา
+          <input aria-label="รหัสภาควิชา" required value={department} onChange={e => setDepartment(e.target.value)} className="w-full rounded border p-2" />
+        </label>}
+        {role === 'student' && <div className="grid grid-cols-2 gap-3">
+          <label className="text-sm">รหัสสาขา<input required value={major} onChange={e => setMajor(e.target.value)} className="w-full rounded border p-2" /></label>
+          <label className="text-sm">ชั้นปี<input type="number" min="1" max="8" required value={year} onChange={e => setYear(e.target.value)} className="w-full rounded border p-2" /></label>
+        </div>}
         {/* Full Name */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+          <label htmlFor="full-name" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
             ชื่อ - นามสกุล <span className="text-rose-500">*</span>
           </label>
           <input
             type="text"
+            id="full-name"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             placeholder="เช่น นายสมชาย เรียนดี"
@@ -138,10 +153,11 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
 
         {/* Email */}
         <div>
-          <label className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
+          <label htmlFor="email" className="block text-xs font-semibold text-zinc-700 dark:text-zinc-300 mb-1">
             อีเมล (Email)
           </label>
           <input
+            id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -153,7 +169,7 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
         {/* Password */}
         <div>
           <div className="flex items-center justify-between mb-1">
-            <label className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+            <label htmlFor="new-password" className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
               รหัสผ่าน (RADIUS Password) <span className="text-rose-500">*</span>
             </label>
             <span className="text-[10px] text-zinc-500 dark:text-zinc-400">
@@ -162,15 +178,18 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
           </div>
           <div className="relative">
             <input
+              id="new-password"
               type={showPassword ? 'text' : 'password'}
               value={passwordText}
               onChange={(e) => setPasswordText(e.target.value)}
-              placeholder="กำหนดรหัสผ่าน"
+              placeholder={editingUser ? 'เว้นว่างเพื่อใช้รหัสผ่านเดิม' : 'กำหนดรหัสผ่าน'}
               className="w-full px-3 py-2 pr-10 text-sm rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 focus:outline-hidden focus:ring-2 focus:ring-blue-500 font-mono"
-              required
+              required={!editingUser}
+              autoComplete="new-password"
             />
             <button
               type="button"
+              aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่านใหม่'}
               onClick={() => setShowPassword(!showPassword)}
               className="absolute right-2.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-300 p-0.5"
             >
@@ -191,6 +210,7 @@ function UserFormContent({ onClose, onSave, editingUser }: UserFormProps) {
           </div>
           <label className="relative inline-flex items-center cursor-pointer">
             <input
+              aria-label="อนุญาตการยืนยันตัวตน"
               type="checkbox"
               checked={isActive}
               onChange={(e) => setIsActive(e.target.checked)}
@@ -233,7 +253,7 @@ export default function UserModal({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
+    <div role="dialog" aria-modal="true" aria-label="จัดการผู้ใช้" className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
       <UserFormContent
         key={editingUser ? editingUser.id : 'create-new'}
         onClose={onClose}
