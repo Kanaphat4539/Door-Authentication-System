@@ -14,12 +14,12 @@ INSERT INTO `web_app` (`timestamp`, `student_id`, `student_name`, `room`, `statu
 ('2026-10-14 12:55:44', '65010666', 'นางสาวนภัสสร ใจดี', 'B218', 'OUT'),
 ('2026-10-14 12:30:20', '65010444', 'นายธีรภัทร ชาญวิทย์', 'B217', 'IN'),
 ('2026-10-14 12:05:06', '66010222', 'นางสาวศิริพร บุญตา', 'E107', 'OUT')
-ON DUPLICATE KEY UPDATE `created_at` = CURRENT_TIMESTAMP;
+ON DUPLICATE KEY UPDATE `student_name` = VALUES(`student_name`);
 
 -- ข้อมูลจำลองสำหรับประวัติการสืบค้น (Audit Log)
-INSERT INTO `user` (`username`, `role`, `action`, `timestamp`) VALUES
-('teacher_ajarn', 'teacher', 'Login', '2026-10-14 12:00:00'),
-('teacher_ajarn', 'teacher', 'Search>room=B217', '2026-10-14 12:01:15'),
-('teacher_ajarn', 'teacher', 'Search>keyword=65010234', '2026-10-14 12:05:30'),
-('student_somchai', 'student', 'Login', '2026-10-14 13:00:00'),
-('student_somchai', 'student', 'Search>keyword=student_somchai', '2026-10-14 13:01:00');
+INSERT INTO `user` (`timestamp`, `username`, `role`, `action`) VALUES
+('2026-10-14 12:00:00', 'teacher_ajarn', 'teacher', 'Login'),
+('2026-10-14 12:01:15', 'teacher_ajarn', 'teacher', 'Search>room=B217'),
+('2026-10-14 12:05:30', 'teacher_ajarn', 'teacher', 'Search>keyword=65010234'),
+('2026-10-14 13:00:00', 'student_somchai', 'student', 'Login'),
+('2026-10-14 13:01:00', 'student_somchai', 'student', 'Search>keyword=student_somchai');

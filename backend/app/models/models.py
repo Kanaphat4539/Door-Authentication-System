@@ -11,11 +11,10 @@ class WebAppLog(Base):
 
     id = Column(BigInteger, primary_key=True, autoincrement=True)
     timestamp = Column(DateTime, nullable=False, index=True)
-    student_id = Column(String(8), nullable=False, index=True)
+    student_id = Column(String(20), nullable=False, index=True)
     student_name = Column(String(150), nullable=False)
     room = Column(String(10), nullable=False, index=True)
     status = Column(Enum("IN", "OUT", name="access_status_enum"), nullable=False, index=True)
-    created_at = Column(DateTime, nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     def to_dict(self):
         return {
@@ -25,7 +24,6 @@ class WebAppLog(Base):
             "student_name": self.student_name,
             "room": self.room,
             "status": self.status,
-            "created_at": self.created_at.isoformat() if self.created_at else None,
         }
 
 

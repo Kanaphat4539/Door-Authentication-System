@@ -9,11 +9,10 @@ USE `web_app_db`;
 CREATE TABLE IF NOT EXISTS `web_app` (
     `id` BIGINT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT 'Primary Key',
     `timestamp` DATETIME NOT NULL COMMENT 'เวลาสแกน (UTC+7)',
-    `student_id` CHAR(8) NOT NULL COMMENT 'รหัสนักศึกษา 8 หลัก',
+    `student_id` VARCHAR(20) NOT NULL COMMENT 'รหัสผู้ใช้งาน/นักศึกษา',
     `student_name` VARCHAR(150) NOT NULL COMMENT 'ชื่อ-นามสกุล',
-    `room` VARCHAR(10) NOT NULL COMMENT 'รหัสห้อง เช่น LAB-401',
+    `room` VARCHAR(10) NOT NULL COMMENT 'รหัสห้อง เช่น B316, B317',
     `status` ENUM('IN', 'OUT') NOT NULL COMMENT 'สถานะเข้า-ออก',
-    `created_at` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT 'เวลาบันทึกเข้า DB',
     
     PRIMARY KEY (`id`),
     INDEX `idx_timestamp` (`timestamp`),
