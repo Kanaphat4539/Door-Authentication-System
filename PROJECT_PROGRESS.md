@@ -38,10 +38,21 @@ lint และ TypeScript รอบส่งผ่าน; การ build ซ้
 
 ## ส่วนที่รอประสานงาน
 
-- กลุ่ม 1: รอผลทดสอบรหัสถูก/ผิด และสถานะปิดสิทธิ์ผ่าน FreeRADIUS
-- กลุ่ม 3: รอข้อสรุปข้อมูลและวิธีเชื่อมต่อ Authentication API
+- กลุ่ม 1: PAP Access-Accept ผ่านตามภาพที่ส่งมาแล้ว รอทดสอบรหัสผิด/บัญชีปิดและส่ง role ไป API
+- กลุ่ม 3: ยืนยันใช้ RADIUS ผ่านกลุ่ม 1 โดยไม่ต่อ DB; ส่งผล API Login 200/JWT ผ่านแล้วตามรายงาน แต่ role ใน JWT ยังต้องยืนยัน
 - `001_service_roles.sql` เตรียมและทดสอบในฐานข้อมูลจำลองแล้ว ยังไม่ได้ใช้บน VM หรือเปลี่ยนบัญชี DB เดิมของกลุ่มอื่น
 - `002_professor_position.sql` ใช้บน VM แล้วสำหรับตำแหน่งอาจารย์
 
 ผู้ดูแลเลือกให้เว็บรันบนเครื่องนี้ต่อไป ไม่ต้อง deploy เว็บบน VM
 การส่งโค้ดทำเฉพาะ branch `database-server` โดยไม่รวม agent files, env จริง หรือข้อมูลส่วนตัว
+
+## ส่งมอบบทบาทผ่านกลุ่ม 1
+
+ใช้ migration 003 บน PostgreSQL 17 VM แล้ว เพิ่ม public.radius_user_roles สำหรับอ่านบัญชี active
+มี user_id, username, role_id, role_code, api_role, is_active โดยไม่คืนรหัสผ่านหรือข้อมูลชื่อ/อีเมล
+ทดสอบ isolated schema/NOLOGIN reader แล้ว rollback ทั้งหมด ผ่าน 7 ชุดตรวจ รวม mapping 4 บทบาท สถานะบัญชี และสิทธิ์อ่าน View
+ตรวจพบ FreeRADIUS 3.2.7 จาก 192.168.100.101 เชื่อมด้วย ceadmin และบัญชีนี้อ่าน users/roles/View ใหม่ได้
+คงบัญชี DB/รหัสเดิมและกฎเครือข่าย ไม่ได้สร้าง auth_reader หรือเปลี่ยนการตั้งค่า RADIUS/API
+ตรวจข้อมูลก่อน/หลัง migration: users 202, students 197, professors 5, radcheck 202; digest ของ users และนิยาม radcheck เดิมตรงกัน
+มี role จริง STUDENT/student 197 และ PROFESSOR/teacher 5; ADMIN/STAFF ตรวจด้วย fixture แยก
+ขั้นต่อไปให้กลุ่ม 1/3 ตกลง RADIUS Attribute และตรวจ role ที่ส่งไป JWT ตาม docs/GROUP1-ROLE-HANDOVER.md

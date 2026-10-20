@@ -1,3 +1,5 @@
+-- Legacy optional provisioning: auth_reader is not required by the latest group 3 agreement.
+-- Do not run this bundle on the shared VM just to enable role lookup; apply 003 instead.
 -- Run as postgres with psql, database cedatabase. Passwords are prompted, never committed.
 -- Creates dedicated accounts without changing the legacy ceadmin account used by group 1.
 \set ON_ERROR_STOP on
@@ -19,7 +21,7 @@ GRANT USAGE ON SCHEMA public TO portal_app, radius_reader, auth_reader;
 REVOKE ALL ON ALL TABLES IN SCHEMA public FROM portal_app, radius_reader, auth_reader;
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.users, public.students, public.professors TO portal_app;
 GRANT SELECT ON public.departments, public.majors, public.roles, public.radcheck TO portal_app;
-GRANT SELECT ON public.radcheck TO radius_reader;
+GRANT SELECT ON public.radcheck, public.radius_user_roles TO radius_reader;
 GRANT SELECT ON public.users, public.roles, public.view_students, public.view_professors TO auth_reader;
 COMMIT;
 -- Update portal env / group 1 configuration separately and test each account.

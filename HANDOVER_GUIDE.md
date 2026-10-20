@@ -22,7 +22,7 @@ IP ระหว่าง VM ไม่ใช่ URL ของเว็บแอ�
 
 | คอลัมน์ | ความหมาย |
 |---|---|
-| id | ลำดับแถวใน View |
+| id | user_id ชนิด UUID ที่แปลงเป็น text |
 | username | ชื่อบัญชี |
 | attribute | `Cleartext-Password` |
 | op | `:=` |
@@ -36,20 +36,22 @@ WHERE username = '<บัญชีทดสอบที่ตกลงกัน>
 
 View อ่านรหัสจาก `users` โดยตรง การเพิ่ม/แก้ไข/ปิดสิทธิ์ผ่านเว็บจึงสะท้อนใน View
 ไม่เปลี่ยนรูปแบบรหัสผ่านใน DB โดยไม่ตกลงกับกลุ่ม 1 เพื่อคงวิธีตรวจ 802.1X ที่ใช้อยู่
-รอผลทดสอบ Authentication จริงจากกลุ่ม 1; ดูลำดับการทดสอบใน [คู่มือทดสอบ](docs/TESTING_AND_HANDOVER.md)
+กลุ่ม 1 ส่งผล PAP Access-Accept แล้ว และกลุ่ม 3 ส่งผล API Login 200/JWT ผ่าน RADIUS มาแล้ว ยังต้องยืนยัน role และผลรหัสผิด/บัญชีปิด
+
+เพิ่ม `radius_user_roles` บน VM แล้ว อ่าน role_code และ api_role ของบัญชี active ผ่านบัญชี DB เดิมได้ ดู [คู่มือบทบาทให้กลุ่ม 1](docs/GROUP1-ROLE-HANDOVER.md)
 
 ## กลุ่ม 3 — Authentication API
 
-มี `public.users`, `public.roles`, `public.view_students`, `public.view_professors`
-`users` มี `user_id`, `username`, `password`, `is_active`, `role_id`, ข้อมูลชื่อและอีเมล
-ต้องตกลงรูปแบบข้อมูล Login/Token และข้อมูลโปรไฟล์ร่วมกันก่อน ยังไม่มีข้อสรุปการเชื่อมต่อ
-ใช้ parameterized query และตรวจ `is_active = true`; ไม่ส่ง password กลับใน JSON ของ API ผู้ใช้งาน
-กลุ่ม 2 ไม่ได้ทำเว็บ Login หมายเลข 4 หรือ Authentication API หมายเลข 3 แทนกลุ่มนั้น
+ตามเอกสารตอบกลับวันที่ 20 ตุลาคม 2569 กลุ่ม 3 รับผลและ role ผ่าน RADIUS กลุ่ม 1 เท่านั้น
+ไม่ต่อ DB กลุ่ม 2 โดยตรง ไม่ต้องสร้าง/ส่ง auth_reader หรือเปิด pg_hba.conf ให้ 192.168.100.103
+ตารางประตู สิทธิ์เข้าห้อง และ logs ถูกตัดออกจากขอบเขตระหว่างกลุ่ม 2/3
+กลุ่ม 1/3 ต้องตกลง Attribute และนำ role ที่อ่านจากฐานข้อมูลไปใส่ RADIUS Packet/JWT ให้ตรงกัน
 
 ## สิทธิ์แยกตามบริการ
 
-[migration 001](database/migrations/001_service_roles.sql) เตรียมบัญชี `portal_app` สำหรับเว็บ, `radius_reader` สำหรับ RADIUS และ `auth_reader` สำหรับกลุ่ม 3
+[migration 001](database/migrations/001_service_roles.sql) เป็นสคริปต์เก่าทางเลือกสำหรับแยกบัญชี `portal_app`, `radius_reader`, `auth_reader`; ข้อตกลงปัจจุบันไม่ใช้ auth_reader
 ทดสอบในฐานข้อมูลจำลองแล้ว แต่ยังไม่ได้ใช้บน VM และไม่ได้เปลี่ยนบัญชี `ceadmin` ของระบบเดิม
-ให้ประสานกับผู้ใช้งานแต่ละกลุ่ม สำรองข้อมูล แล้วค่อยสร้าง/เปลี่ยนบัญชีตาม [ขั้นตอนทดสอบและสิทธิ์](docs/TESTING_AND_HANDOVER.md)
+ไม่ได้ใช้ migration 001 บน VM รอบนี้ การส่ง role ใช้ migration 003 โดยคงบัญชีเดิม
+หากจะเปลี่ยนบัญชี ให้ประสานกับกลุ่ม 1 ก่อนและสำรองข้อมูลตาม [ขั้นตอนทดสอบและสิทธิ์](docs/TESTING_AND_HANDOVER.md)
 
 รายละเอียดการเริ่มเว็บ: [README](README.md) · สถานะล่าสุด: [PROJECT_PROGRESS](PROJECT_PROGRESS.md)
