@@ -182,3 +182,106 @@ def test_settings_reject_nas_identifier_that_cannot_be_encoded(identifier):
 
     with pytest.raises(ValidationError):
         settings(radius_nas_identifier=identifier)
+
+
+def test_normalize_role():
+    from app.services.radius import normalize_role
+
+    assert normalize_role("STUDENT") == "student"
+    assert normalize_role("PROFESSOR") == "teacher"
+    assert normalize_role("ADMIN") == "admin"
+    assert normalize_role("STAFF") == "staff"
+    assert normalize_role("unknown") == "unknown"
+    assert normalize_role(None) == "student"
+
+
+def test_token_with_role_and_user_id():
+    from app.security.tokens import create_access_token, decode_access_token
+
+    s = settings(jwt_secret=KEY)
+    token = create_access_token(
+        "student",
+        s,
+        role="student",
+        user_id="101",
+    )
+    claims = decode_access_token(token, s)
+    assert claims["role"] == "student"
+    assert claims["user_id"] == "101"
+
+
+def test_radius_role_from_filter_id(monkeypatch):
+    from io import StringIO
+    from pyrad.dictionary import Dictionary
+    from pyrad.packet import AccessAccept, AuthPacket
+    from app.services import radius
+
+    fake_dict = Dictionary(StringIO(radius._DICTIONARY))
+
+    def fake_exchange(request, s):
+        reply = AuthPacket(
+            code=AccessAccept,
+            id=request.id,
+            secret=s.radius_secret.get_secret_value().encode("utf-8"),
+            authenticator=request.authenticator,
+            dict=fake_dict,
+        )
+        reply["Filter-Id"] = ["PROFESSOR"]
+        reply.add_message_authenticator()
+        return reply.ReplyPacket()
+
+    monkeypatch.setattr("app.services.radius._exchange", fake_exchange)
+
+    c = client(
+        jwt_secret=KEY,
+        auth_mode="radius",
+        radius_host="127.0.0.1",
+        radius_secret="test-radius-secret",
+    )
+    login_resp = c.post(
+        "/auth/login",
+        json={"username": "aj_somchai", "password": "password"},
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    claims = jwt.decode(token, KEY, algorithms=["HS256"], audience="door-system", issuer="auth-api")
+    assert claims["role"] == "teacher"
+
+
+def test_radius_role_inferred_for_student(monkeypatch):
+    from io import StringIO
+    from pyrad.dictionary import Dictionary
+    from pyrad.packet import AccessAccept, AuthPacket
+    from app.services import radius
+
+    fake_dict = Dictionary(StringIO(radius._DICTIONARY))
+
+    def fake_exchange(request, s):
+        reply = AuthPacket(
+            code=AccessAccept,
+            id=request.id,
+            secret=s.radius_secret.get_secret_value().encode("utf-8"),
+            authenticator=request.authenticator,
+            dict=fake_dict,
+        )
+        reply.add_message_authenticator()
+        return reply.ReplyPacket()
+
+    monkeypatch.setattr("app.services.radius._exchange", fake_exchange)
+
+    c = client(
+        jwt_secret=KEY,
+        auth_mode="radius",
+        radius_host="127.0.0.1",
+        radius_secret="test-radius-secret",
+    )
+    login_resp = c.post(
+        "/auth/login",
+        json={"username": "67200030", "password": "password"},
+    )
+    assert login_resp.status_code == 200
+    token = login_resp.json()["access_token"]
+    claims = jwt.decode(token, KEY, algorithms=["HS256"], audience="door-system", issuer="auth-api")
+    assert claims["sub"] == "67200030"
+    assert claims["role"] == "student"
+

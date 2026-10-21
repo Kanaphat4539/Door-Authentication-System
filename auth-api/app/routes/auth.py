@@ -7,7 +7,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from app.config import Settings
 from app.schemas.auth import LoginRequest, TokenResponse, UserResponse
 from app.security.tokens import TokenConfigurationError, create_access_token, decode_access_token
-from app.services.database import DatabaseConnectionError, get_user_profile
 from app.services.radius import AuthenticationUnavailable, authenticate
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -34,18 +33,7 @@ def login(
 
     user_role: str | None = accepted.role
     user_id: str | None = accepted.user_id
-    if settings.db_host:
-        try:
-            profile = get_user_profile(body.username, settings)
-        except DatabaseConnectionError as exc:
-            raise HTTPException(status_code=503, detail="Database service unavailable") from exc
-        if profile is None:
-            raise HTTPException(status_code=403, detail="User record not found in system database")
-        if not profile["is_active"]:
-            raise HTTPException(status_code=403, detail="Account is disabled")
-        user_role = profile["role"]
-        user_id = profile["user_id"]
-    elif settings.auth_mode == "mock" and settings.mock_role:
+    if settings.auth_mode == "mock" and settings.mock_role:
         user_role = settings.mock_role
 
     response.headers["Cache-Control"] = "no-store"
